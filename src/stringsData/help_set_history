@@ -1,0 +1,4 @@
+help:set history
+              history  (integer)
+
+The number of commands in history.

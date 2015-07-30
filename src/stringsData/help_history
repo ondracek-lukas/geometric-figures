@@ -1,0 +1,6 @@
+help:history
+                          history
+
+               Show the history of commands.
+
+The maximum count of commands can be set with set history.

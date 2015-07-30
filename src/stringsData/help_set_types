@@ -1,0 +1,22 @@
+help:set types
+                                  set:  variable types
+
+Boolean:                   has only two allowed values true or false
+                           set [no]<variable_name>  - sets the value
+                           set [no]<variable_name>? - gets the value
+
+
+Integer:                                [(+|-)]<digits>
+
+
+Real number:                 [(+|-)]<digits>[.<digits>][e<digits>]
+
+
+Color:                          #<hex_red><hex_green><hex_blue>          |  hex  from  00 to  ff
+                            <float_red> <float_green> <float_blue>       | float from 0.0 to 1.0
+                        (black|red|green|blue|cyan|purple|yellow|white)  |
+                                                                         |
+                                                                         |
+Color with opacity:       #<hex_alpha><hex_red><hex_green><hex_blue>     |
+                                    [<float_alpha>] <color>              |
+                                          transparent                    |

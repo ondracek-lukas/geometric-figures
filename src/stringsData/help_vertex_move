@@ -1,0 +1,9 @@
+help:vertex move;help:vert move
+           vert[ex] move <coordinate1> [<coordinate2> [...]]
+
+             Move the selected vertex by the given vector.
+            Unspecified coordinates are considered to be 0.
+
+              If convexhull is set, it is recalculated,
+otherwise incident faces of lower dimension than the space are broken
+                      to a simplex and the rest.

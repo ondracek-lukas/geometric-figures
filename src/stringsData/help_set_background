@@ -1,0 +1,5 @@
+help:set background
+              background  (color)
+
+       Color of the background.
+Text color is adjusted to be visible.

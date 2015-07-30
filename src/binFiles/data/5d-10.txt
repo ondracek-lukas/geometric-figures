@@ -1,0 +1,48 @@
+# 5D hypercupe to be sourced from app
+
+new 5
+
+vert add -1 -1 -1 -1 -1
+vert add -1 -1 -1 -1 1
+vert add -1 -1 -1 1 -1
+vert add -1 -1 -1 1 1
+vert add -1 -1 1 -1 -1
+vert add -1 -1 1 -1 1
+vert add -1 -1 1 1 -1
+vert add -1 -1 1 1 1
+vert add -1 1 -1 -1 -1
+vert add -1 1 -1 -1 1
+vert add -1 1 -1 1 -1
+vert add -1 1 -1 1 1
+vert add -1 1 1 -1 -1
+vert add -1 1 1 -1 1
+vert add -1 1 1 1 -1
+vert add -1 1 1 1 1
+vert add 1 -1 -1 -1 -1
+vert add 1 -1 -1 -1 1
+vert add 1 -1 -1 1 -1
+vert add 1 -1 -1 1 1
+vert add 1 -1 1 -1 -1
+vert add 1 -1 1 -1 1
+vert add 1 -1 1 1 -1
+vert add 1 -1 1 1 1
+vert add 1 1 -1 -1 -1
+vert add 1 1 -1 -1 1
+vert add 1 1 -1 1 -1
+vert add 1 1 -1 1 1
+vert add 1 1 1 -1 -1
+vert add 1 1 1 -1 1
+vert add 1 1 1 1 -1
+vert add 1 1 1 1 1
+vert deselect
+
+set convexhull
+
+set campos5=3
+
+set spacecolor+4=red
+set spacecolor-4=green
+set spacecolor+5=blue
+set spacecolor-5=yellow
+set spacecolor=white
+set facecolor=0.1 white

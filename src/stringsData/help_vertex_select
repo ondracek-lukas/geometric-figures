@@ -1,0 +1,8 @@
+help:vertex select;help:vertex sel;help:vertex next;help:vertex previous;help:vertex prev;help:vertex deselect;help:vertex desel;help:vert select;help:vert sel;help:vert next;help:vert previous;help:vert prev;help:vert deselect;help:vert desel
+               vertex sel[ect] <index_of_vertex>
+               vertex next
+               vertex prev[ious]
+               vertex desel[ect]
+
+Select specific, following, preceding vertex; deselect vertex.
+                Vertices are indexed from one.

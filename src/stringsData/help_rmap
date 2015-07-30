@@ -1,0 +1,17 @@
+help:rmap
+                    rmap <key> [<axis1> <axis2>]
+
+             Assign the plane of rotation to the key or
+          unassign previous one if axes are not specified.
+
+       The key can be an ASCII character or <[c][a][s]-key>,
+where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
+
+                    The axes are indexed from 1.
+                     Axis 1 goes to the right,
+                         axis 2 goes up,
+        axis 3 and every next go forward from the camera.
+                  The order of the axes matters.
+                     The angle is in degrees.
+
+  The figure will be rotating all the time the key is being held.

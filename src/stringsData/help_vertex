@@ -1,0 +1,11 @@
+help:vertex;help:vert
+vert[ex] ( add | [de]sel[ect] | move | prev[ious] | next | r[e]m[ove]) <params>
+
+          vert[ex] add [<params>]        - add new vertex
+          vert[ex] desel[ect]            - deselect the vertex
+          vert[ex] move <params>         - move the selected vertex
+          vert[ex] ( prev[ious] | next ) - cycle over the vertices
+          vert[ex] r[e]m[ove]            - remove the selected vertex
+          vert[ex] sel[ect] <index>      - select specified vertex
+
+             For more help type :help vert[ex] <subcommand>.

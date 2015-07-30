@@ -1,0 +1,4 @@
+help:set dimen
+                      dimen  (integer, read-only)
+
+           The dimension of the space.

@@ -1,0 +1,8 @@
+help:write;help:w
+                w[rite] <path>
+
+        Write figure to the binary file.
+
+~/... expands to the home folder
+%/... expands to the location of the application
+

@@ -1,0 +1,11 @@
+help:set spacecolor;help:set spacecolor+;help:set spacecolor-
+                       spacecolor[(+|-}<axis>]  (color with opacity)
+
+          Allow to assign color to any point in the space.
+             It is used to draw the vertices and edges.
+
+            Without axis, it is the color of the origin.
+              With axis, it is the color of hyperplane,
+ which is orthogonal to the axis and goes through the (+|-)1 on it.
+
+     Color of a point is the linear combination of the set ones.

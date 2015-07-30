@@ -1,0 +1,29 @@
+help:
+          Press : to open the console, then write the command.
+
+The list of commands:
+  {...}                          - block of commands
+  echo                           - write text to console
+  help                           - show help
+  history                        - show the history of commands
+  map                            - (un)assign command to key
+  n[ew]                          - create new space
+  o[pen]                         - open figure from file
+  (q[uit]|exit)                  - close the application
+  reset boundary                 - remove the figure except vertices
+  reset colors                   - set the default colors
+  reset rot[ation]               - rotate figure to its default rotation
+  rmap                           - (un)assign rotation to key
+  rot[ate]                       - rotate figure
+  set                            - show/edit settings
+  so[urce]                       - read commands from file
+  vert[ex] add                   - add new vertex
+  vert[ex] desel[ect]            - deselect the vertex
+  vert[ex] move                  - move the selected vertex
+  vert[ex] ( prev[ious] | next ) - cycle over the vertices
+  vert[ex] r[e]m[ove]            - remove the selected vertex
+  vert[ex] sel[ect]              - select specified vertex
+  w[rite]                        - write figure to file
+
+                   For more help type :help <command>.
+     For information about author and license conditions type :help about.

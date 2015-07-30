@@ -1,0 +1,8 @@
+help:echo
+                    echo <string>
+
+          Print the string to the console.
+        Clear the console without the string.
+
+    To be used while reading commands from file,
+to inform about the progress or suppress the errors.

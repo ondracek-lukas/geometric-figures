@@ -1,0 +1,4 @@
+help:quit;help:q;help:exit
+                ( q[uit] | exit )
+
+Close the application without saving the figure.

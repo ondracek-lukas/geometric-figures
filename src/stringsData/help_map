@@ -1,0 +1,8 @@
+help:map
+                        map <key> [<command>]
+
+                   Assign the command to the key
+         or unassign previous one if command is not specified.
+
+       The key can be an ASCII character or <[c][a][s]-key>,
+where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.

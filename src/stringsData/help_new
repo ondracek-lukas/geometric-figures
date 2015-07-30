@@ -1,0 +1,4 @@
+help:new;help:n
+             n[ew] <count_of_dimensions>
+
+Create a new space with the given number of dimensions.

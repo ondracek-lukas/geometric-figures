@@ -1,0 +1,13 @@
+help:source;help:so
+                           so[urce] <path>
+
+                  Read commands from the text file.
+            White characters before commands are skipped.
+          Everything from # to the end of line is skipped.
+Spaces after command are skipped even when typed in the application.
+
+     In braces, new-line characters are replaced by semicolons.
+
+       In path:
+         ~/... expands to the home folder
+         %/... expands to the location of the application

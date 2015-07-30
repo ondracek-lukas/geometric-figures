@@ -1,0 +1,4 @@
+help:set selvertcolor
+                       selvertcolor  (color with opacity)
+
+      Color of the selected vertex and its opacity.

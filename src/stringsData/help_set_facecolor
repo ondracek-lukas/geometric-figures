@@ -1,0 +1,4 @@
+help:set facecolor
+                      facecolor  (color with opacity)
+
+         The color and opacity of 2D faces.

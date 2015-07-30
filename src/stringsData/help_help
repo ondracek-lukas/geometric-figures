@@ -1,0 +1,4 @@
+help:help
+       help [<command> [...]]
+
+Show the help to the given command.

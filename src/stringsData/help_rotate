@@ -1,0 +1,11 @@
+help:rotate;help:rot
+                        rot[ate] <axis1> <axis2> <angle>
+
+Rotate figure around the origin in the plane of the axes by the specified angle.
+
+                           The axes are indexed from 1.
+                            Axis 1 goes to the right,
+                                axis 2 goes up,
+               axis 3 and every next go forward from the camera.
+                         The order of the axes matters.
+                            The angle is in degrees.

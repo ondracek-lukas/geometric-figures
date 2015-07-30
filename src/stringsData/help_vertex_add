@@ -1,0 +1,6 @@
+help:vertex add;help:vert add
+vert[ex] add [<coordinate1> [<coordinate2> [...]]]
+
+    Add new vertex to the specified position.
+ Unspecified coordinates are considered to be 0.
+    If convexhull is set, it is recalculated.

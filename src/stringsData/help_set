@@ -1,0 +1,29 @@
+help:set
+                           set
+                           set <variable>[?]
+                           set [no]<variable>
+                           set <variable>=<value>
+
+Print all the settings (first form) or the specified variable (second form),
+              question mark is required for boolean variables.
+     Set boolean variable (third form) or other variable (fourth form).
+
+    The list of variables:
+        background                - color of the background
+        campos<axis>              - position of the camera in the spec. axis
+        camposl<axis>             - the same but in a logarithmic scale
+        convexhull                - det. whether to maintain convex hull
+        dimen                     - dimension of the space, read-only
+        edgesize                  - size of the edges
+        facecolor                 - color of the faces
+        history                   - length of the history of commands
+        maxfps                    - maximum frame rate
+        selvertcolor              - color of the selected vertex
+        selvertsize               - size of the selected vertex
+        spacecolor[(+|-)<axis>]   - colors of the space
+        speed                     - angular speed
+        vertsize                  - size of the vertices
+
+                  For more help type :help set <variable>,
+                    where the variable is without index.
+        For more help about types of variables type :help set types.

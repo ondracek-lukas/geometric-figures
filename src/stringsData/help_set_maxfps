@@ -1,0 +1,5 @@
+help:set maxfps
+             maxfps  (integer)
+
+     The maximum frame rate,
+the number of frames per second.

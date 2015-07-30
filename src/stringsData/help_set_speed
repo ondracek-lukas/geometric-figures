@@ -1,0 +1,6 @@
+help:set speed
+                    speed  (real number)
+
+        Angular speed of the rotation
+when holding the key mapped with rmap command
+            in degrees per second.

@@ -1,0 +1,10 @@
+help:vertex remove;help:vertex rm;help:vert remove;help:vert rm
+                         vert[ex] r[e]m[ove]
+
+                     Remove the selected vertex.
+
+              If convexhull is set, it is recalculated,
+                otherwise incident faces are removed,
+the view will be then split into several figures of lower dimension.
+            If the view consists of more than one figure,
+              incident figures (not faces) are removed.

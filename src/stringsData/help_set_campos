@@ -1,0 +1,14 @@
+help:set campos;help:set camposl
+                            campos<axis>  (real number)
+
+         The position of the camera in the specified axis.
+           Axis is from 3 to the dimension of the space.
+The distance is offset by the zoom to make the unit sphere visible.
+            Figure becomes smaller to fit in the sphere.
+
+                           camposl<axis>  (real number)
+
+                   The same as the previous one,
+                    but in a logarithmic scale.
+             It reflects better the difference between
+              perspective and orthographic projection.

@@ -1,0 +1,18 @@
+help:set vertsize;help:set selvertsize;help:set edgesize
+                        edgesize  (real number)
+
+                   The size of edges.
+
+
+                        vertsize (real number)
+
+                 The size of vertices.
+
+
+                      selvertsize (real number)
+
+            The size of the selected vertex.
+The scale depends on it, even if no vertex is selected.
+
+
+          edgesize <= vertsize <= selvertsize

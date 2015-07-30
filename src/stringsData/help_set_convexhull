@@ -1,0 +1,5 @@
+help:set convexhull
+                       convexhull  (boolean)
+
+      Determines whether to maintain convex hull.
+On update, statistic information appears in the console.

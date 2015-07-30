@@ -1,0 +1,7 @@
+help:open;help:o
+                 o[pen] <path>
+
+       Open figure from the binary file.
+
+~/... expands to the home folder
+%/... expands to the location of the application

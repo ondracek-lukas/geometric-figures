@@ -23,7 +23,6 @@ BEGINFILE{
 	FS=";"
 }
 
-/@VERSION@/ {gsub("@VERSION@",version)}
 
 (FS==";"){
 	gsub(/\..*$/,"",FILENAME)
@@ -37,6 +36,8 @@ BEGINFILE{
 }
 
 {
+	gsub("\"", "\\\"")
+	$0=gensub("@([[:upper:]]+)@","\" STRINGS_DATA_\\1 \"", "g")
 	spaces=0
 	for(i=1; i<=NF; i++)
 		if($i==" ")
@@ -50,9 +51,6 @@ BEGINFILE{
 				spaces=0
 			}
 			switch($i){
-				case "\"":
-					printf "\\\""
-					break;
 				case "\t":
 					error("tab character found")
 				default:

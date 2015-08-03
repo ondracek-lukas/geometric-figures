@@ -10,7 +10,7 @@ where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
                     The axes are indexed from 1.
                      Axis 1 goes to the right,
                          axis 2 goes up,
-        axis 3 and every next go forward from the camera.
+             axis 3 and every next go to the camera.
                   The order of the axes matters.
                      The angle is in degrees.
 

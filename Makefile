@@ -81,7 +81,7 @@ obj$(suff)/%.d: src/%.c
 -include $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.d=')
 obj$(suff)/%.o: src/%.c
 	@mkdir -p obj$(suff)/
-	$(CC) -c -o $@ $< -std=gnu99 -Wimplicit-function-declaration $(CFLAGS) # -g -Wall
+	$(CC) -c -o $@ $< -std=gnu99 -Wimplicit-function-declaration -D 'STRINGS_DATA_VERSION="$(version)"' $(CFLAGS) # -g -Wall
 
 bin$(suff)/$(name): $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.o=')
 	# Link geometric figures (freeglut3-dev needed)
@@ -117,5 +117,4 @@ src/consoleCmdSetMacrosUndef.c.tmp: src/consoleCmdSetMacros.sh src/consoleCmdSet
 	src/consoleCmdSetMacros.sh write
 src/stringsData.c.tmp: src/stringsData.awk src/stringsData src/stringsData/*
 	# Generate stringsData file
-	export version
 	cd src/stringsData/ && ../stringsData.awk -v version="$(version)" * > ../stringsData.c.tmp

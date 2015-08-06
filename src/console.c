@@ -21,6 +21,7 @@
 #include "matrix.h"
 #include "keyboard.h"
 #include "consoleCmd.h"
+#include "script.h"
 
 enum consolePrintMode consolePrintMode=consolePrintOneLine;
 
@@ -270,6 +271,9 @@ void consoleExecuteCmd(char *cmd) {
 	} else {
 		consolePrintErr("Wrong command");
 	}
+	char *err=scriptCatchException();
+	if (err)
+		consolePrintErr(err);
 }
 
 #undef cmdw

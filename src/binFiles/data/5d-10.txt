@@ -1,48 +1,49 @@
 # 5D hypercupe to be sourced from app
+# vim: ft=python
 
-new 5
+gf.new("5")
 
-vert add -1 -1 -1 -1 -1
-vert add -1 -1 -1 -1 1
-vert add -1 -1 -1 1 -1
-vert add -1 -1 -1 1 1
-vert add -1 -1 1 -1 -1
-vert add -1 -1 1 -1 1
-vert add -1 -1 1 1 -1
-vert add -1 -1 1 1 1
-vert add -1 1 -1 -1 -1
-vert add -1 1 -1 -1 1
-vert add -1 1 -1 1 -1
-vert add -1 1 -1 1 1
-vert add -1 1 1 -1 -1
-vert add -1 1 1 -1 1
-vert add -1 1 1 1 -1
-vert add -1 1 1 1 1
-vert add 1 -1 -1 -1 -1
-vert add 1 -1 -1 -1 1
-vert add 1 -1 -1 1 -1
-vert add 1 -1 -1 1 1
-vert add 1 -1 1 -1 -1
-vert add 1 -1 1 -1 1
-vert add 1 -1 1 1 -1
-vert add 1 -1 1 1 1
-vert add 1 1 -1 -1 -1
-vert add 1 1 -1 -1 1
-vert add 1 1 -1 1 -1
-vert add 1 1 -1 1 1
-vert add 1 1 1 -1 -1
-vert add 1 1 1 -1 1
-vert add 1 1 1 1 -1
-vert add 1 1 1 1 1
-vert deselect
+gf.vertexAdd("-1 -1 -1 -1 -1")
+gf.vertexAdd("-1 -1 -1 -1 1")
+gf.vertexAdd("-1 -1 -1 1 -1")
+gf.vertexAdd("-1 -1 -1 1 1")
+gf.vertexAdd("-1 -1 1 -1 -1")
+gf.vertexAdd("-1 -1 1 -1 1")
+gf.vertexAdd("-1 -1 1 1 -1")
+gf.vertexAdd("-1 -1 1 1 1")
+gf.vertexAdd("-1 1 -1 -1 -1")
+gf.vertexAdd("-1 1 -1 -1 1")
+gf.vertexAdd("-1 1 -1 1 -1")
+gf.vertexAdd("-1 1 -1 1 1")
+gf.vertexAdd("-1 1 1 -1 -1")
+gf.vertexAdd("-1 1 1 -1 1")
+gf.vertexAdd("-1 1 1 1 -1")
+gf.vertexAdd("-1 1 1 1 1")
+gf.vertexAdd("1 -1 -1 -1 -1")
+gf.vertexAdd("1 -1 -1 -1 1")
+gf.vertexAdd("1 -1 -1 1 -1")
+gf.vertexAdd("1 -1 -1 1 1")
+gf.vertexAdd("1 -1 1 -1 -1")
+gf.vertexAdd("1 -1 1 -1 1")
+gf.vertexAdd("1 -1 1 1 -1")
+gf.vertexAdd("1 -1 1 1 1")
+gf.vertexAdd("1 1 -1 -1 -1")
+gf.vertexAdd("1 1 -1 -1 1")
+gf.vertexAdd("1 1 -1 1 -1")
+gf.vertexAdd("1 1 -1 1 1")
+gf.vertexAdd("1 1 1 -1 -1")
+gf.vertexAdd("1 1 1 -1 1")
+gf.vertexAdd("1 1 1 1 -1")
+gf.vertexAdd("1 1 1 1 1")
+gf.vertexDeselect()
 
-set convexhull
+gf.set("convexhull")
 
-set campos5=3
+gf.set("campos5=3")
 
-set spacecolor+4=red
-set spacecolor-4=green
-set spacecolor+5=blue
-set spacecolor-5=yellow
-set spacecolor=white
-set facecolor=0.1 white
+gf.set("spacecolor+4=red")
+gf.set("spacecolor-4=green")
+gf.set("spacecolor+5=blue")
+gf.set("spacecolor-5=yellow")
+gf.set("spacecolor=white")
+gf.set("facecolor=0.1 white")

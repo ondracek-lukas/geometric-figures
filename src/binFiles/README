@@ -31,6 +31,9 @@ To execute the application you will need:
   Freeglut 3.0
     Linux:   package freeglut3 (on Debian)
     Windows: library freeglut.dll
+  Python 2.7
+    Linux:   package python2.7 (on Debian)
+    Windows: http://www.python.org/downloads/
 
 The library freeglut.dll for windows can be obtained from
 http://www.transmissionzero.co.uk/software/freeglut-devel/

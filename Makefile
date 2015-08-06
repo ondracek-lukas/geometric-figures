@@ -3,30 +3,39 @@
 .PHONY: compile package clean clean-tmp \
 	compile-all package-all clean-all clean-tmp-all
 
-link=-lglut -lGLU -lGL -lm
-name=geometric_figures
-pkg=tar.gz
-version=$(shell cat VERSION)
-ifeq ($(arch), 32)
-	suff=32
-	CFLAGS=-m32
-	version=$(shell cat VERSION) for Linux 32-bit
+LDFLAGS    = -lm
+CFLAGS     = -std=gnu99 -Wimplicit-function-declaration #-g -Wall
+version    = $(shell cat VERSION)
+
+ifeq ($(arch), win32) # Windows
+	CC       = i686-w64-mingw32-gcc
+	CFLAGS  += -mwindows -DGLUT_DISABLE_ATEXIT_HACK -mthreads \
+	           -I/usr/i686-w64-mingw32/include/python27 \
+	           #-mconsole # uncomment to use console in windows (to see python scripts errors)
+	LDFLAGS += -lfreeglut -lglu32 -lopengl32 -lpython27
+	name     = geometric_figures.exe
+	suff     = -win32
+	pkg      = zip
+	txtext   = .txt
+	version  = for Windows
+else                  # Linux (native/32/64)
+	LDFLAGS += -lglut -lGLU -lGL -lpython2.7
+	CFLAGS  += -I/usr/include/python2.7
+	name     = geometric_figures
+	pkg      = tar.gz
 endif
-ifeq ($(arch), 64)
-	suff=64
-	CFLAGS=-m64
-	version=$(shell cat VERSION) for Linux 64-bit
+ifeq ($(arch), 32)    # Linux 32-bit
+	CFLAGS  += -m32
+	suff     = 32
+	version += for Linux 32-bit
 endif
-ifeq ($(arch), win32)
-	suff=-win32
-	CC=i686-w64-mingw32-gcc
-	CFLAGS=-mwindows -DGLUT_DISABLE_ATEXIT_HACK
-	link=-lfreeglut -lglu32 -lopengl32 -lm
-	name=geometric_figures.exe
-	pkg=zip
-	txtext=.txt
-	version=$(shell cat VERSION) for Windows
+ifeq ($(arch), 64)    # Linux 64-bit
+	CFLAGS  += -m64
+	suff     = 64
+	version += for Linux 64-bit
 endif
+CFLAGS    += -D 'STRINGS_DATA_VERSION="$(version)"'
+
 binFiles=$(shell find src/binFiles -type f | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
 
 
@@ -79,14 +88,14 @@ obj$(suff)/%.d: src/%.c
 	@{ { echo "obj$(suff)/$*.o:"; sed -nr 's=#include\s*"([^"]*)".*=src/\1=p' $<; } | tr "\n" " "; echo; } > $@
 
 -include $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.d=')
-obj$(suff)/%.o: src/%.c
+obj$(suff)/%.o: src/%.c VERSION
 	@mkdir -p obj$(suff)/
-	$(CC) -c -o $@ $< -std=gnu99 -Wimplicit-function-declaration -D 'STRINGS_DATA_VERSION="$(version)"' $(CFLAGS) # -g -Wall
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 bin$(suff)/$(name): $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.o=')
-	# Link geometric figures (freeglut3-dev needed)
+	@# Link geometric figures (freeglut3-dev needed)
 	@mkdir -p bin$(suff)/
-	$(CC) -o $@ $^ $(link) $(CFLAGS) # -g
+	$(CC) -o $@ $^ $(LDFLAGS) $(CFLAGS)
 
 pkg/geometric_figures$(suff).tar.gz: compile
 	@echo "Creating tar.gz package"
@@ -110,11 +119,15 @@ pkg/geometric_figures$(suff).zip: compile
 
 
 src/consoleCmdSetMacrosDef.c.tmp: src/consoleCmdSetMacros.sh src/consoleCmdSet.c
-	# Generate consoleCmdSet macros files
+	@# Generate consoleCmdSet macros files
 	src/consoleCmdSetMacros.sh write
 src/consoleCmdSetMacrosUndef.c.tmp: src/consoleCmdSetMacros.sh src/consoleCmdSet.c
-	# Generate consoleCmdSet macros files
+	@# Generate consoleCmdSet macros files
 	src/consoleCmdSetMacros.sh write
-src/stringsData.c.tmp: src/stringsData.awk src/stringsData src/stringsData/*
-	# Generate stringsData file
+src/stringsData.c.tmp: src/stringsData.awk src/stringsData src/stringsData/* VERSION
+	@# Generate stringsData file
 	cd src/stringsData/ && ../stringsData.awk -v version="$(version)" * > ../stringsData.c.tmp
+src/scriptWrappers.h.tmp src/scriptWrappers.c.tmp: src/scriptWrappers.pl src/*.h
+	@# Generate scriptWrappers
+	cd src && ./scriptWrappers.pl *.h
+

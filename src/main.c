@@ -14,6 +14,7 @@
 #include "util.h"
 #include "keyboard.h"
 #include "anim.h"
+#include "script.h"
 
 static void mainKeyPress(unsigned char c, int x, int y) {
 	keyboardPress(c);
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
 	glutCreateWindow("Geometric figures");
 	keyboardInit();
 	consoleInit();
+	scriptInit();
 	figureInit();
 	drawerInit();
 	animInit();
@@ -55,17 +57,21 @@ int main(int argc, char **argv) {
 	glutSpecialUpFunc(mainSpecialKeyRelease);
 
 	path=utilExecutablePath();
-	path=strcpy(safeMalloc(sizeof(char)*strlen(path)+6), path);
+	path=strcpy(safeMalloc(sizeof(char)*strlen(path)+11), path);
 #ifdef WIN32
 	char *extension=strrchr(path, '.');
 	if (extension && (strcasecmp(extension, ".exe")==0))
 		*extension='\0';
 #endif
-	strcat(path, ".conf");
+	strcat(path, "-config.py");
 	if (file=fopen(path, "r")) {
 		fclose(file);
 		consoleCmdSource(path);
+		char *err=scriptCatchException();
+		if (err)
+			consolePrintErr(err);
 	}
+
 	free(path);
 
 	consolePrintBlock("help", "welcome");
@@ -73,5 +79,7 @@ int main(int argc, char **argv) {
 	glutMainLoop();
 
 	drawerFree();
+	scriptFinalize();
+
 	return 0;
 }

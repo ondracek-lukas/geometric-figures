@@ -31,7 +31,7 @@ extern void consolePrintMultilineAtOnce(struct utilStrList *lines, bool destroy)
 extern void consolePrintMultilineBegin();
 
 // Prints line instead (or below in multiline mode) the previous one
-extern void consolePrint(char *string);
+extern void consolePrint(char *string); // [SCRIPT_NAME: echo]
 
 // Prints one line with error message
 extern void consolePrintErr(char *string);

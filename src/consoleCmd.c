@@ -12,51 +12,11 @@
 #include "safe.h"
 #include "keyboard.h"
 #include "anim.h"
+#include "script.h"
 
 void consoleCmdSource(char *path) {
 	path=utilExpandPath(path);
-	FILE *file=fopen(path, "r");
-	char *line=0, *lineBegin, *lineEnd=0, *cmd=0, *cmdEnd=0;
-	int braces=0;
-	if (file==0) {
-		consolePrintErr("File cannot be opened");
-		return;
-	}
-	utilStrRealloc(&line, 0, 64);
-	while (lineEnd=fgets(line, 64, file)) {
-		while ((lineEnd=strchr(lineEnd, '\0'))[-1]!='\n') {
-			utilStrRealloc(&line, &lineEnd, 64);
-			if (!fgets(lineEnd, 64, file))
-				break;
-		}
-		lineBegin=line;
-		while ((*lineBegin==' ') || (*lineBegin=='\t') || (*lineBegin=='\r'))
-			lineBegin++;
-		lineEnd=lineBegin;
-		while ((*lineEnd!='\0') && (*lineEnd!='\n') && (*lineEnd!='\r') && (*lineEnd!='#'))
-			lineEnd++;
-		*lineEnd='\0';
-
-		if (cmd!=cmdEnd)
-			*(cmdEnd++)=';';
-		utilStrRealloc(&cmd, &cmdEnd, lineEnd-lineBegin+1);
-		strcpy(cmdEnd, lineBegin);
-		while (*cmdEnd!='\0')
-			switch(*(cmdEnd++)) {
-				case '{': braces++; break;
-				case '}': (braces>0) && braces--; break;
-			}
-		if (braces<=0) {
-			consoleExecuteCmd(cmd);
-			cmdEnd=cmd;
-			braces=0;
-		}
-	}
-	if (cmd!=cmdEnd)
-		consoleExecuteCmd(cmd);
-	utilStrRealloc(&line, 0, 0);
-	utilStrRealloc(&cmd, 0, 0);
-	fclose(file);
+	scriptExecFile(path);
 }
 
 void consoleCmdOpen(char *path) {

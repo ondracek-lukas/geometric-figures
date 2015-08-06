@@ -24,8 +24,12 @@
 
 
 To compile and execute the application you will need:
-  Standard Linux components (GNU make, gcc, gawk, sed, ...)
-  OpenGL, GLU, Freeglut 3.0 (debian packages freeglut3 and freeglut3-dev)
+  Standard Linux components (GNU make, gcc, sed, ...)
+  Gawk
+  Perl 5.10
+  OpenGL, GLU, Freeglut 3.0
+  Python 2.7
+On debian: gawk, perl, freeglut3, freeglut3-dev, python2.7, python2.7-dev
 
 To cross-compile the application for Windows you will also need:
   unix2dos command (dos2unix package)
@@ -33,6 +37,9 @@ To cross-compile the application for Windows you will also need:
   Freeglut library for windows (freeglut.dll),
     see http://freeglut.sourceforge.net/
     and http://www.transmissionzero.co.uk/software/freeglut-devel/
+  Python 2.7 for Windows, namely (after installation):
+    python27.dll located in C:\Windows\System32
+    header files located in C:\Python27\include
 
 
 Compiling native binaries:

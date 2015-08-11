@@ -50,6 +50,12 @@ void consoleCmdNew(char *str) {
 	drawerSetDim(dim);
 }
 
+void consoleCmdClose() {
+	consoleCmdVertexDeselect();
+	figureNew(-1);
+	drawerSetDim(-1);
+}
+
 void consoleCmdRotate(char *str) {
 	static int axis1=1, axis2=2;
 	static GLfloat angle=0;
@@ -126,4 +132,8 @@ void consoleCmdHelp(char *name) {
 
 void consoleCmdHistory() {
 	consolePrintMultilineAtOnce(consoleGetHistory(), false);
+}
+
+void consoleCmdQuit() {
+	glutLeaveMainLoop();
 }

@@ -62,7 +62,7 @@
 
 
 	// Reset all colors to their initial values
-	extern void drawerResetColors();
+	extern void drawerResetColors(); // [SCRIPT_NAME: resetColors]
 
 
 // Event handling:

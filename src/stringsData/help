@@ -3,6 +3,7 @@ help:
 
 The list of commands:
   {...}                          - block of commands
+  close                          - destroy opened space
   echo                           - write text to console
   help                           - show help
   history                        - show the history of commands

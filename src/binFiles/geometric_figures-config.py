@@ -30,7 +30,7 @@ gf.rmap("v 4 2")
 gf.map("V rot 4 2 15")
 
 # Figures:
-gf.map("<Esc> new")
+gf.map("<Esc> close")
  #0D:
 gf.map("~ o %/data/0d.dat")
  #1D:
@@ -76,27 +76,24 @@ gf.map("y set convexhull")
 
 # Predefined color modes
 gf.map("<f1> reset colors")
-gf.map('''<f2> { # 3D axis colored
-	set spacecolor=gray
-	set spacecolor-3=blue
-	set spacecolor+3=yellow
-	set spacecolor-4=transparent
-	set spacecolor+4=transparent
-}''')
-gf.map('''<f3> { # 4D axis colored
-	set spacecolor=gray
-	set spacecolor+3=transparent
-	set spacecolor-3=transparent
-	set spacecolor-4=red
-	set spacecolor+4=green
-}''')
-gf.map('''<f4> { # 3D and 4D axes colored
-	set spacecolor=gray
-	set spacecolor-3=blue
-	set spacecolor+3=yellow
-	set spacecolor-4=red
-	set spacecolor+4=green
-}''')
+gf.map('''<f2> {
+set spacecolor=gray;
+set spacecolor-3=blue;
+set spacecolor+3=yellow;
+set spacecolor-4=transparent;
+set spacecolor+4=transparent}''') # 3D axis colored
+gf.map('''<f3> {
+set spacecolor=gray;
+set spacecolor+3=transparent;
+set spacecolor-3=transparent;
+set spacecolor-4=red;
+set spacecolor+4=green}''') # 4D axis colored
+gf.map('''<f4> {
+set spacecolor=gray;
+set spacecolor-3=blue;
+set spacecolor+3=yellow;
+set spacecolor-4=red;
+set spacecolor+4=green}''') # 3D and 4D axes colored
 
 gf.map("<f5> set facecolor=0.2 gray")
 gf.map("<f6> set facecolor=0.03 white")
@@ -104,22 +101,17 @@ gf.map("<f7> set facecolor=transparent")
 
 # Predefined edges and vertices sizes
 gf.map('''<f8> {
-	set edgesize=20
-	set selvertsize=20
-}''')
+set edgesize=20;
+set selvertsize=20}''')
 gf.map('''<f9> {
-	set edgesize=10
-	set selvertsize=10
-}''')
+set edgesize=10;
+set selvertsize=10}''')
 gf.map('''<f10> {
-	set edgesize=5
-	set selvertsize=5
-}''')
+set edgesize=5;
+set selvertsize=5}''')
 gf.map('''<f11> {
-	set edgesize=2
-	set selvertsize=2
-}''')
+set edgesize=2;
+set selvertsize=2}''')
 gf.map('''<f12> {
-	set edgesize=1
-	set selvertsize=1
-}''')
+set edgesize=1;
+set selvertsize=1}''')

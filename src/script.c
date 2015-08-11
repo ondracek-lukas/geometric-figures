@@ -41,9 +41,13 @@ char *scriptEvalExpr(char *expr) {
 
 	PyObject *obj = PyRun_String(expr, Py_eval_input, mainDict, mainDict);
 	if (obj) {
-		str = PyObject_Str(obj);
-		Py_DECREF(obj);
-		return PyString_AsString(str);
+		if (obj==Py_None) {
+			return "";
+		} else {
+			str = PyObject_Str(obj);
+			Py_DECREF(obj);
+			return PyString_AsString(str);
+		}
 	} else {
 		return NULL;
 	}

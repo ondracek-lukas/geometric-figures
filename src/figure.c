@@ -147,6 +147,10 @@ void figureBoundaryChanged() {
 }
 
 void figureResetBoundary() {
+	if (figureData.dim<0) {
+		consolePrintErr("Nothing opened");
+		return;
+	}
 	int i, j;
 	boundaryChanged=1;
 	if (convexAttached) {
@@ -168,6 +172,10 @@ void figureResetBoundary() {
 }
 
 void figureResetRotation() {
+	if (figureData.dim<0) {
+		consolePrintErr("Nothing opened");
+		return;
+	}
 	matrixIdentity(figureRotMatrix, figureData.dim);
 }
 

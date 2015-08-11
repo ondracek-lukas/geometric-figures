@@ -21,6 +21,7 @@
 #include "matrix.h"
 #include "keyboard.h"
 #include "consoleCmd.h"
+#include "consoleCmds.h"
 #include "script.h"
 
 enum consolePrintMode consolePrintMode=consolePrintOneLine;
@@ -39,6 +40,7 @@ static struct utilStrList *historyActive=0;
 static int historyCount=0;
 static int historyMaxCount=20;
 
+static void initCmds();
 void consoleInit() {
 	utilStrRealloc(&consoleIn, 0, 32);
 	utilStrRealloc(&consoleOut, 0, 32);
@@ -46,6 +48,8 @@ void consoleInit() {
 	*consoleIn='\0';
 	*consoleStatus='\0';
 	*consoleOut='\0';
+
+	initCmds();
 }
 
 struct utilStrList *consoleBlock=0;
@@ -192,93 +196,84 @@ void consoleDown() {
 	}
 }
 
+#define addNew(prefix,params,expr) lastParams=params; lastExpr=expr; consoleCmdsAdd(prefix,lastParams,lastExpr)
+#define addAlias(prefix) consoleCmdsAdd(prefix,lastParams,lastExpr)
+void initCmds() {
+	int lastParams;
+	char *lastExpr;
+	addNew  ("help",             0, "gf.help(\"\")"          );
+	addNew  ("help ",            1, "gf.help(\"%\")"         );
+	addNew  ("echo ",            1, "gf.echo(\"%\")"         );
+	addNew  ("history",          0, "gf.history()"           );
+	addNew  ("map ",             1, "gf.map(\"%\")"          );
+	addNew  ("new ",             1, "gf.new(\"%\")"          );
+	addAlias("n ");
+	addNew  ("close",            0, "gf.close()"             );
+	addNew  ("open ",            1, "gf.open(\"%\")"         );
+	addAlias("o ");
+	addNew  ("quit",             0, "gf.quit()"              );
+	addAlias("q");
+	addAlias("exit");
+	addNew  ("rotate ",          1, "gf.rotate(\"%\")"       );
+	addAlias("rot ");
+	addNew  ("reset rotation",   0, "gf.resetRotation()"     );
+	addAlias("reset rot");
+	addNew  ("reset colors",     0, "gf.resetColors()"       );
+	addNew  ("reset boundary",   0, "gf.resetBoundary()"     );
+	addNew  ("rmap ",            1, "gf.rmap(\"%\")"         );
+	addNew  ("set",              0, "gf.set(\"\")"           );
+	addNew  ("set ",             1, "gf.set(\"%\")"          );
+	addNew  ("source ",          1, "gf.source(\"%\")"       );
+	addAlias("so ");
+	addNew  ("vertex add ",      1, "gf.vertexAdd(\"%\")"    );
+	addAlias("vert add");
+	addNew  ("vertex deselect",  0, "gf.vertexDeselect()"    );
+	addAlias("vertex desel");
+	addAlias("vert deselect");
+	addAlias("vert desel");
+	addNew  ("vertex move ",     1, "gf.vertexMove(\"%\")"   );
+	addAlias("vert move");
+	addNew  ("vertex next",      0, "gf.vertexNext()"        );
+	addAlias("vert next");
+	addNew  ("vertex previous",  0, "gf.vertexPrevious()"    );
+	addAlias("vertex prev");
+	addAlias("vert previous");
+	addAlias("vert prev");
+	addNew  ("vertex remove",    0, "gf.vertexRemove()"      );
+	addAlias("vertex rm");
+	addAlias("vert remove");
+	addAlias("vert rm");
+	addNew  ("vertex select ",   1, "gf.vertexSelect(\"%\")" );
+	addAlias("vertex sel");
+	addAlias("vert select");
+	addAlias("vert sel");
+	addNew  ("write ",           1, "gf.write(\"%\")"        );
+	addAlias("w ");
+}
+#undef addNew
+#undef addAlias
+
 static void executeBlock(char *cmds);
-
-#define cmdl(p, s) (strcmp(part[p], s)==0)
-	// compare part p of command with s
-#define cmd(p, s) ((strncmp(s, part[p], sizeof(s)-1)==0)?(part[p+1]=part[p]+sizeof(s)-1, 1):0)
-	// compare the beginning of part p of command with s, part[p+1]=rest of part[p]
-#define cmdw(p, s) (cmd(p, s" ") || (cmd(p, s"\0") && (part[p+1]--)))
-	// like cmd, s have to be terminated word in command
 void consoleExecuteCmd(char *cmd) {
-	DEBUG_CMDS(printf("%s\n", cmd);)
-	char *part[4];
-	for (part[0]=strchr(cmd, '\0'); (part[0]>cmd) && (part[0][-1]==' '); part[0]--);
-	part[0][0]='\0';
-	part[0]=cmd;
-
-	if (*cmd=='\0') {}
-	else if (*cmd=='{')
+	if (*cmd=='{') {
 		executeBlock(cmd+1);
-	else if cmdw(0, "set")
-		consoleCmdSet(part[1]);
-	else if (cmdw(0, "rot") || cmdw(0, "rotate"))
-		consoleCmdRotate(part[1]);
-	else if cmdw(0, "map")
-		consoleCmdMap(part[1]);
-	else if cmdw(0, "rmap")
-		consoleCmdRmap(part[1]);
-	else if (cmdw(0, "o") || cmdw(0, "open"))
-		consoleCmdOpen(part[1]);
-	else if (cmdw(0, "n") || cmdw(0, "new"))
-		consoleCmdNew(part[1]);
-	else if (cmdw(0, "w") || cmdw(0, "write"))
-		consoleCmdWrite(part[1]);
-	else if (cmdw(0, "so") || cmdw(0, "source"))
-		consoleCmdSource(part[1]);
-	else if cmdw(0, "echo")
-		consolePrint(part[1]);
-	else if (cmdw(0, "vert") || cmdw(0, "vertex")) {
-		if (figureData.dim<0)
-			consolePrintErr("Nothing opened");
-		else if (*part[1]=='\0')
-			consolePrintErr("Argument needed");
-		else if (cmdw(1, "sel") || cmdw(1, "select"))
-			consoleCmdVertexSelect(part[2]);
-		else if (cmdl(1, "desel") || cmdl(1, "deselect"))
-			consoleCmdVertexDeselect();
-		else if cmdl(1, "next")
-			consoleCmdVertexNext();
-		else if (cmdl(1, "prev") || cmdl(1, "previous"))
-			consoleCmdVertexPrevious();
-		else if cmdw(1, "move")
-			consoleCmdVertexMove(part[2]);
-		else if cmdw(1, "add")
-			consoleCmdVertexAdd(part[2]);
-		else if (cmdl(1, "rm") || cmdl(1, "remove"))
-			consoleCmdVertexRm();
-		else
-			consolePrintErr("Wrong subcommand");
-	} else if cmdw(0, "reset") {
-		if (*part[1]=='\0')
-			consolePrintErr("Argument needed: rot[ation], boundary, colors");
-		else if cmdl(1, "colors")
-			drawerResetColors();
-		else if (figureData.dim<0)
-			consolePrintErr("Norhing opened");
-		else if (cmdl(1, "rot") || cmdl(1, "rotation"))
-			figureResetRotation();
-		else if cmdl(1, "boundary")
-			figureResetBoundary();
-		else
-			consolePrintErr("Wrong command");
-	} else if cmdw(0, "help")
-		consoleCmdHelp(part[1]);
-	else if cmdl(0, "history")
-		consoleCmdHistory();
-	else if (cmdl(0, "q") || cmdl(0, "quit") || cmdl(0, "exit")) {
-		glutLeaveMainLoop();
+		return;
 	} else {
-		consolePrintErr("Wrong command");
+		char *expr=consoleCmdsToScriptExpr(cmd);
+		if (expr) {
+			char *ret=scriptEvalExpr(expr);
+			if (ret && *ret)
+				consolePrint(ret);
+			return;
+		} else {
+			scriptThrowException("Wrong command or missing parameter");
+		}
 	}
+
 	char *err=scriptCatchException();
 	if (err)
 		consolePrintErr(err);
 }
-
-#undef cmdw
-#undef cmd
-#undef cmdl
 
 static void executeBlock(char *cmds) {
 	char *cmd=cmds;
@@ -286,6 +281,7 @@ static void executeBlock(char *cmds) {
 	while (braces) {
 		switch(*cmds) {
 			case ' ':
+			case '\n':
 				if (cmd==cmds)
 					cmd++;
 				break;

@@ -36,7 +36,7 @@ extern void figureInit();
 
 
 // Resets figure to its initial rotation
-extern void figureResetRotation();
+extern void figureResetRotation(); // [SCRIPT_NAME: resetRotation]
 
 // Rotates figure in the plane of given axes by given angle
 extern void figureRotate(int axis1, int axis2, GLfloat angle);
@@ -63,7 +63,7 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	extern void figureVertexRm(int vertex);
 
 	// Removes boundary and (if convexHull) recalculate it again
-	extern void figureResetBoundary();
+	extern void figureResetBoundary(); // [SCRIPT_NAME: resetBoundary]
 	
 	// Call on figureData.boundary change
 	extern void figureBoundaryChanged();

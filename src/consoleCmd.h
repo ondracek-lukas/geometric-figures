@@ -19,6 +19,9 @@
 	// Creates new space, str should contain number of dimensions
 	extern void consoleCmdNew(char *str); // [SCRIPT_NAME: new]
 
+	// Destroys opened space
+	extern void consoleCmdClose(void); // [SCRIPT_NAME: close]
+
 	// Rotates figure, str should contain two axes and angle
 	extern void consoleCmdRotate(char *str); // [SCRIPT_NAME: rotate]
 
@@ -33,6 +36,9 @@
 
 	// Shows history of commands
 	extern void consoleCmdHistory(void); // [SCRIPT_NAME: history]
+
+	// Exits application
+	void consoleCmdQuit(void); // [SCRIPT_NAME: quit]
 
 // consoleCmdSet.c:
 
@@ -60,6 +66,6 @@
 	extern void consoleCmdVertexAdd(char *params); // [SCRIPT_NAME: vertexAdd]
 
 	// Removes the selected vertex
-	extern void consoleCmdVertexRm(void); // [SCRIPT_NAME: vertexRm]
+	extern void consoleCmdVertexRm(void); // [SCRIPT_NAME: vertexRemove]
 
 #endif

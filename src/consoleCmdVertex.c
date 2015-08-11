@@ -20,14 +20,14 @@ void consoleCmdVertexSelect(char *param) {
 }
 
 void consoleCmdVertexNext() {
-	if (figureData.count[0])
+	if ((figureData.dim>=0) && (figureData.count[0]))
 		consoleCmdVertexSelected=(consoleCmdVertexSelected+1)%figureData.count[0];
 	else
 		consolePrintErr("No vertex exists");
 }
 
 void consoleCmdVertexPrevious() {
-	if (figureData.count[0])
+	if ((figureData.dim>=0) && (figureData.count[0]))
 		if (consoleCmdVertexSelected==-1)
 			consoleCmdVertexSelected=figureData.count[0]-1;
 		else
@@ -75,6 +75,10 @@ void consoleCmdVertexMove(char *params) {
 }
 
 void consoleCmdVertexAdd(char *params) {
+	if (figureData.dim<0) {
+		consolePrintErr("There is no space yet, use new or open");
+		return;
+	}
 	GLfloat pos[figureData.dim];
 	GLfloat pos2[figureData.dim];
 

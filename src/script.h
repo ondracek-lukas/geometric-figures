@@ -5,6 +5,9 @@
 // To make function accessible from python,
 // add comment [SCRIPT_NAME: funcName] at the line of function declaration in a header file.
 // Function can be then accessed using gf.funcName().
+// Overloading supported:
+//     Functions with the same SCRIPT_NAME are processed in their order in header files,
+//     the first matching one is called.
 // Script scriptWrappers.pl scans all header files and creates necessary wrapper functions.
 
 #ifndef SCRIPT_H

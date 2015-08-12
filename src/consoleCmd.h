@@ -17,19 +17,21 @@
 	extern void consoleCmdWrite(char *path); // [SCRIPT_NAME: write]
 
 	// Creates new space, str should contain number of dimensions
-	extern void consoleCmdNew(char *str); // [SCRIPT_NAME: new]
+	extern void consoleCmdNew(int dim); // [SCRIPT_NAME: new]
 
 	// Destroys opened space
 	extern void consoleCmdClose(void); // [SCRIPT_NAME: close]
 
-	// Rotates figure, str should contain two axes and angle
-	extern void consoleCmdRotate(char *str); // [SCRIPT_NAME: rotate]
+	// Rotates figure in the plane of the given axes by the given angle
+	extern void consoleCmdRotate(float axis1, float axis2, float angle); // [SCRIPT_NAME: rotate]
 
-	// Assigns rotation to a key; str should contain key, and two axes or nothing (to cancel)
-	extern void consoleCmdRmap(char *str); // [SCRIPT_NAME: rmap]
+	// Assigns/Unassigns rotation to the key
+	extern void consoleCmdRmap(char *key, int axis1, int axis2); // [SCRIPT_NAME: rmap]
+	extern void consoleCmdRunmap(char *key);                     // [SCRIPT_NAME: rmap]
 
-	// Assigns command to a key; str should contain key, and command or nothing (to cancel)
-	extern void consoleCmdMap(char *str); // [SCRIPT_NAME: map]
+	// Assigns/Unassigns command to the key
+	extern void consoleCmdMap(char *key, char *cmd); // [SCRIPT_NAME: map]
+	extern void consoleCmdUnmap(char *key);          // [SCRIPT_NAME: map]
 
 	// Shows help, optionally to concrete command name
 	extern void consoleCmdHelp(char *name); // [SCRIPT_NAME: help]
@@ -38,7 +40,7 @@
 	extern void consoleCmdHistory(void); // [SCRIPT_NAME: history]
 
 	// Exits application
-	void consoleCmdQuit(void); // [SCRIPT_NAME: quit]
+	extern void consoleCmdQuit(void); // [SCRIPT_NAME: quit]
 
 // consoleCmdSet.c:
 
@@ -48,7 +50,7 @@
 // consoleCmdVertex.c:
 
 	// Selects vertex of given index
-	extern void consoleCmdVertexSelect(char *param); // [SCRIPT_NAME: vertexSelect]
+	extern void consoleCmdVertexSelect(int index); // [SCRIPT_NAME: vertexSelect]
 
 	// Selects next vertex
 	extern void consoleCmdVertexNext(void); // [SCRIPT_NAME: vertexNext]

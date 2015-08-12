@@ -196,58 +196,65 @@ void consoleDown() {
 	}
 }
 
-#define addNew(prefix,params,expr) lastParams=params; lastExpr=expr; consoleCmdsAdd(prefix,lastParams,lastExpr)
-#define addAlias(prefix) consoleCmdsAdd(prefix,lastParams,lastExpr)
+#define addNew(prefix, params, paramsFlags, expr) \
+	lastParams=params; \
+	lastExpr=expr; \
+	lastParamsFlags=paramsFlags; \
+	consoleCmdsAdd(prefix, lastParams, lastParamsFlags, lastExpr)
+#define addAlias(prefix) consoleCmdsAdd(prefix, lastParams, lastParamsFlags, lastExpr)
 void initCmds() {
 	int lastParams;
+	char *lastParamsFlags;
 	char *lastExpr;
-	addNew  ("help",             0, "gf.help(\"\")"          );
-	addNew  ("help ",            1, "gf.help(\"%\")"         );
-	addNew  ("echo ",            1, "gf.echo(\"%\")"         );
-	addNew  ("history",          0, "gf.history()"           );
-	addNew  ("map ",             1, "gf.map(\"%\")"          );
-	addNew  ("new ",             1, "gf.new(\"%\")"          );
+	addNew  ("help",             0, "",     "gf.help(\"\")"          ); // !!
+	addNew  ("help ",            1, "s",    "gf.help(%)"             ); // !! add directly all help pages
+	addNew  ("echo ",            1, "s",    "gf.echo(%)"             );
+	addNew  ("history",          0, "",     "gf.history()"           );
+	addNew  ("map ",            -1, "s",    "gf.map(%)"              );
+	addNew  ("new ",             1, "",     "gf.new(%)"              );
 	addAlias("n ");
-	addNew  ("close",            0, "gf.close()"             );
-	addNew  ("open ",            1, "gf.open(\"%\")"         );
+	addNew  ("close",            0, "",     "gf.close()"             );
+	addNew  ("open ",            1, "s",    "gf.open(%)"             );
 	addAlias("o ");
-	addNew  ("quit",             0, "gf.quit()"              );
+	addNew  ("quit",             0, "",     "gf.quit()"              );
 	addAlias("q");
 	addAlias("exit");
-	addNew  ("rotate ",          1, "gf.rotate(\"%\")"       );
+	addNew  ("rotate ",         -1, "",     "gf.rotate(%)"           );
 	addAlias("rot ");
-	addNew  ("reset rotation",   0, "gf.resetRotation()"     );
+	addNew  ("reset rotation",   0, "",     "gf.resetRotation()"     );
 	addAlias("reset rot");
-	addNew  ("reset colors",     0, "gf.resetColors()"       );
-	addNew  ("reset boundary",   0, "gf.resetBoundary()"     );
-	addNew  ("rmap ",            1, "gf.rmap(\"%\")"         );
-	addNew  ("set",              0, "gf.set(\"\")"           );
-	addNew  ("set ",             1, "gf.set(\"%\")"          );
-	addNew  ("source ",          1, "gf.source(\"%\")"       );
+	addNew  ("reset colors",     0, "",     "gf.resetColors()"       );
+	addNew  ("reset boundary",   0, "",     "gf.resetBoundary()"     );
+	addNew  ("rmap ",           -1, "s-",   "gf.rmap(%)"             );
+	addNew  ("set",              0, "",     "gf.set(\"\")"           ); // !!
+	addNew  ("set ",             1, "s",    "gf.set(%)"              ); // !! add directly all setters/getters
+	addNew  ("source ",          1, "s",    "gf.source(%)"           );
 	addAlias("so ");
-	addNew  ("vertex add ",      1, "gf.vertexAdd(\"%\")"    );
+	addNew  ("vertex add",       0, "",     "gf.vertexAdd(\"\")"     ); // !!
 	addAlias("vert add");
-	addNew  ("vertex deselect",  0, "gf.vertexDeselect()"    );
+	addNew  ("vertex add ",      1, "s",    "gf.vertexAdd(%)"        ); // !! variable number of arguments needed
+	addAlias("vert add ");
+	addNew  ("vertex deselect",  0, "",     "gf.vertexDeselect()"    );
 	addAlias("vertex desel");
 	addAlias("vert deselect");
 	addAlias("vert desel");
-	addNew  ("vertex move ",     1, "gf.vertexMove(\"%\")"   );
-	addAlias("vert move");
-	addNew  ("vertex next",      0, "gf.vertexNext()"        );
+	addNew  ("vertex move ",     1, "s",    "gf.vertexMove(%)"       ); // !! variable number of arguments needed
+	addAlias("vert move ");
+	addNew  ("vertex next",      0, "",     "gf.vertexNext()"        );
 	addAlias("vert next");
-	addNew  ("vertex previous",  0, "gf.vertexPrevious()"    );
+	addNew  ("vertex previous",  0, "",     "gf.vertexPrevious()"    );
 	addAlias("vertex prev");
 	addAlias("vert previous");
 	addAlias("vert prev");
-	addNew  ("vertex remove",    0, "gf.vertexRemove()"      );
+	addNew  ("vertex remove",    0, "",     "gf.vertexRemove()"      );
 	addAlias("vertex rm");
 	addAlias("vert remove");
 	addAlias("vert rm");
-	addNew  ("vertex select ",   1, "gf.vertexSelect(\"%\")" );
-	addAlias("vertex sel");
-	addAlias("vert select");
-	addAlias("vert sel");
-	addNew  ("write ",           1, "gf.write(\"%\")"        );
+	addNew  ("vertex select ",   1, "",     "gf.vertexSelect(%)"     );
+	addAlias("vertex sel ");
+	addAlias("vert select ");
+	addAlias("vert sel ");
+	addNew  ("write ",           1, "s",    "gf.write(%)"            );
 	addAlias("w ");
 }
 #undef addNew
@@ -257,14 +264,13 @@ static void executeBlock(char *cmds);
 void consoleExecuteCmd(char *cmd) {
 	if (*cmd=='{') {
 		executeBlock(cmd+1);
-		return;
 	} else {
 		char *expr=consoleCmdsToScriptExpr(cmd);
+		printf("%s\n", expr); // !! to be dependend on settable variable
 		if (expr) {
 			char *ret=scriptEvalExpr(expr);
 			if (ret && *ret)
 				consolePrint(ret);
-			return;
 		} else {
 			scriptThrowException("Wrong command or missing parameter");
 		}

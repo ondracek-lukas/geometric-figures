@@ -1,7 +1,7 @@
 # 5D hypercupe to be sourced from app
 # vim: ft=python
 
-gf.new("5")
+gf.new(5)
 
 gf.vertexAdd("-1 -1 -1 -1 -1")
 gf.vertexAdd("-1 -1 -1 -1 1")

@@ -11,12 +11,11 @@
 
 int consoleCmdVertexSelected=-1;
 
-void consoleCmdVertexSelect(char *param) {
-	int i=strtol(param, &param, 10);
-	if ((*param=='\0') && (i>0) && (i<=figureData.count[0]))
-		consoleCmdVertexSelected=i-1;
+void consoleCmdVertexSelect(int index) {
+	if ((figureData.dim>=0) && (index>0) && (index<=figureData.count[0]))
+		consoleCmdVertexSelected=index-1;
 	else
-		consolePrintErr("Wrong parameters.");
+		consolePrintErr("Wrong index");
 }
 
 void consoleCmdVertexNext() {

@@ -36,14 +36,10 @@ void consoleCmdWrite(char *path) {
 		consolePrintErr("File cannot be opened for writing");
 }
 
-void consoleCmdNew(char *str) {
-	int dim=-1;
-	if (*str!='\0') {
-		dim=strtol(str, &str, 10);
-		if ((*str!='\0') || (dim<0) || (dim>safeMaxDim)) {
-			consolePrintErr("Wrong parameters");
-			return;
-		}
+void consoleCmdNew(int dim) {
+	if ((dim<0) || (dim>safeMaxDim)) {
+		consolePrintErr("Wrong parameters");
+		return;
 	}
 	consoleCmdVertexDeselect();
 	figureNew(dim);
@@ -56,73 +52,53 @@ void consoleCmdClose() {
 	drawerSetDim(-1);
 }
 
-void consoleCmdRotate(char *str) {
-	static int axis1=1, axis2=2;
-	static GLfloat angle=0;
-	if (*str!='\0') {
-		axis1=strtol(str, &str, 10);
-		axis2=strtol(str, &str, 10);
-		angle=strtof(str, &str);
-	}
-	if ((*str!='\0') || (axis1<1) || (axis2<1) || (axis1>figureData.dim) || (axis2>figureData.dim) || (axis1==axis2)) {
+void consoleCmdRotate(float axis1, float axis2, float angle) {
+	if ((axis1<1) || (axis2<1) || (axis1>figureData.dim) || (axis2>figureData.dim) || (axis1==axis2)) {
 		consolePrintErr("Wrong parameters");
 		return;
 	}
 	figureRotate(axis1-1, axis2-1, angle);
 }
 
-static int chopKeyCode(char **str) {
-	int code;
-	char *space;
-	space=strchr(*str, ' ');
-	if (space!=0)
-		*space='\0';
-	code=keyboardCodeFromString(*str);
-	if (space!=0)
-		*space=' ';
-
-	*str=space+1;
-	return code;
+void consoleCmdMap(char *key, char *cmd) {
+	int code=keyboardCodeFromString(key);
+	if (!code) {
+		consolePrintErr("Wrong key shortcut");
+		return;
+	}
+	keyboardMap(code, cmd);
 }
 
-
-void consoleCmdMap(char *str) {
-	int code;
-
-	code=chopKeyCode(&str);
-
+void consoleCmdUnmap(char *key) {
+	int code=keyboardCodeFromString(key);
 	if (!code) {
-		consolePrintErr("Wrong shortcut");
+		consolePrintErr("Wrong key shortcut");
+		return;
+	}
+	keyboardMap(code, 0);
+}
+
+void consoleCmdRmap(char *key, int axis1, int axis2) {
+	int code=keyboardCodeFromString(key);
+	if (!code) {
+		consolePrintErr("Wrong key shortcut");
 		return;
 	}
 
-	if (*str)
-		keyboardMap(code, str);
-	else
-		keyboardMap(code, 0);
-}
-
-void consoleCmdRmap(char *str) {
-	int code, axis1, axis2;
-
-	code=chopKeyCode(&str);
-
-	if (!code) {
-		consolePrintErr("Wrong shortcut");
+	if ((axis1<1) || (axis2<1) || (axis1==axis2)) {
+		consolePrintErr("Wrong parameters");
 		return;
 	}
+	animDestroyRot(keyboardMapRot(code, animCreateRot(axis1-1, axis2-1)));
+}
 
-	if (*str) {
-		axis1=strtol(str, &str, 10);
-		axis2=strtol(str, &str, 10);
-		if ((*str!='\0') || (axis1<1) || (axis2<1) || (axis1==axis2)) {
-			consolePrintErr("Wrong parameters");
-			return;
-		}
-		animDestroyRot(keyboardMapRot(code, animCreateRot(axis1-1, axis2-1)));
-	} else {
-		keyboardMapRot(code, NULL);
+void consoleCmdRunmap(char *key) {
+	int code=keyboardCodeFromString(key);
+	if (!code) {
+		consolePrintErr("Wrong key shortcut");
+		return;
 	}
+	keyboardMapRot(code, NULL);
 }
 
 void consoleCmdHelp(char *name) {

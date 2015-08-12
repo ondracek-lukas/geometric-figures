@@ -6,11 +6,16 @@
 
 // Adds new command to the register.
 // The command consists of the prefix followed (without space) by the given number of parameters,
-// separated with spaces (ignored in double-quotes).
+// separated with spaces (ignored in double-quotes, all double-quotes are removed).
 // scriptExpr is scripting language expression with % being replaced by parameters (use %% to escape),
 // params-th % will be replaced with all remaining content.
 // If params equals -1, the first % will be replaced with comma-separated list of all parameters.
-extern bool consoleCmdsAdd(char *prefix, int params, char *scriptExpr);
+// paramsFlags should contain one char for each %;
+// if it is shorter, the last character will be repeated;
+// if it is NULL or "", - character will be repeated.
+//     -: parameter will be used "as is" as literal
+//     s: parameter will be surrounded by double-quotes as string literal
+extern bool consoleCmdsAdd(char *prefix, int params, char *paramsFlags, char *scriptExpr);
 
 // Converts command into scripting language expression.
 // Returns NULL on error.

@@ -12,6 +12,7 @@ struct trie {
 	struct trie *sibling;
 	struct trie *child;
 	char *scriptExpr;
+	char *paramsFlags;
 	int params; // -1 for variable
 };
 
@@ -35,7 +36,7 @@ static inline struct trie *trieGetChildCreate(struct trie *trie, char c) {
 	return *pTrie;
 }
 
-bool consoleCmdsAdd(char *prefix, int params, char *scriptExpr) {
+bool consoleCmdsAdd(char *prefix, int params, char *paramsFlags, char *scriptExpr) {
 	struct trie *trie=&consoleCmdsRegister;
 	for (; *prefix; prefix++)
 		trie=trieGetChildCreate(trie, *prefix);
@@ -47,6 +48,12 @@ bool consoleCmdsAdd(char *prefix, int params, char *scriptExpr) {
 
 	trie->scriptExpr=malloc(strlen(scriptExpr)+1);
 	strcpy(trie->scriptExpr, scriptExpr);
+	if (paramsFlags && *paramsFlags) {
+		trie->paramsFlags=malloc(strlen(paramsFlags));
+		strcpy(trie->paramsFlags, paramsFlags);
+	} else {
+		trie->paramsFlags="-";
+	}
 	trie->params=params;
 	return true;
 }
@@ -70,6 +77,7 @@ char *consoleCmdsToScriptExpr(char *cmd) {
 	utilStrRealloc(&scriptExpr, 0, strlen(trie->scriptExpr) + strlen(cmd) + 2);
 	char *str=scriptExpr;
 	char *format=trie->scriptExpr;
+	char *flags=trie->paramsFlags;
 	unsigned params=trie->params;
 	bool varArgs=(params==-1);
 
@@ -82,6 +90,8 @@ char *consoleCmdsToScriptExpr(char *cmd) {
 				if (params>0)
 					params--;
 				do {
+					if (*flags=='s')
+						*str++ = '"';
 					while (cmd && (*cmd==' '))
 						cmd++;
 					bool quoted= (*cmd=='"');
@@ -91,10 +101,15 @@ char *consoleCmdsToScriptExpr(char *cmd) {
 							cmd++;
 							break;
 						}
-						*str++ = *cmd;
+						if (*cmd!='"')
+							*str++ = *cmd;
 					}
+					if (*flags=='s')
+						*str++ = '"';
 					if (varArgs && *cmd)
 						*str++ = ',';
+					if(!*++flags)
+						flags--;
 				} while (varArgs && *cmd);
 			}
 		} else {

@@ -4,12 +4,10 @@
 
 # scriptWrappers.pl scans all (resp. given) header files and creates necessary wrapper functions
 
-# To make function accessible from python,
-# add comment [SCRIPT_NAME: funcName] at the line of function declaration in a header file.
-# Function can be then accessed using gf.funcName().
+# To make function accessible from python see script.h
 
-use warnings;
-use strict;
+#use warnings;
+#use strict;
 use v5.10;
 
 my $print_headers=0;
@@ -58,6 +56,7 @@ my $lastFile="";
 my $comment=0;
 my $last=0;
 my $wrappersList="";
+my %functions;
 main:
 while (<>) {
 	say STDERR "Skipping: $last" if $last;
@@ -74,6 +73,7 @@ while (<>) {
 
 	next unless $name;
 
+	my $i=@{$functions{$name}} // 0;
 	$last = $_;
 
 	my ($retType, $funcName, $params) = /\s*(.*?)\s*\b([\w\d_]+)\s*\((.*)\)/;
@@ -90,7 +90,7 @@ while (<>) {
 			next main unless @$_==2;
 		}
 
-		@params=map [getType $_->[0], $_->[1]], @params;
+		@params=map [getType $_->[0], "$_->[1]_$i"], @params;
 
 		for (@params) {
 			next main unless @$_==3;
@@ -107,28 +107,25 @@ while (<>) {
 			$lastFile=$ARGV;
 		}
 		my $localVarsDecl         = join "", map "\n\t$_->[0] $_->[2];", @params;
-		   $localVarsDecl        .= "\n\t$retType[0] ret;" if $retType[1];
+		   $localVarsDecl        .= "\n\t$retType[0] ret_$i" if $retType[1];
 		my $commaLocalVarsPtrList = join "",   map ", &$_->[2]", @params;
 		my $localVarsList         = join ", ", map "$_->[2]", @params;
 		my $format                = join "",   map $_->[1], @params;
-		my $retVarEq              = ($retType[1] ? "ret=" : "");
-		my $commaRetVar           = ($retType[1] ? ", ret" : "");
+		my $retVarEq              = ($retType[1] ? "ret_$i=" : "");
+		my $commaRetVar           = ($retType[1] ? ", ret_$i" : "");
 
 
-		say $fh <<EOF;
-extern PyObject *${funcName}Wrapped(PyObject *self, PyObject *args);
+		
+		push @{$functions{$name}}, <<EOF;
+	${localVarsDecl}
+	if(PyArg_ParseTuple(args, "$format"$commaLocalVarsPtrList)) {
+		$retVarEq$funcName($localVarsList);
+		if (PyErr_Occurred())
+			return NULL;
+		return Py_BuildValue("$retType[1]"$commaRetVar);
+	}
+	PyErr_Clear();
 EOF
-		say $fc <<EOF;
-extern PyObject *${funcName}Wrapped(PyObject *self, PyObject *args) {${localVarsDecl}
-	if(!PyArg_ParseTuple(args, "$format"$commaLocalVarsPtrList))
-		return NULL;
-	$retVarEq$funcName($localVarsList);
-	if (PyErr_Occurred())
-		return NULL;
-	return Py_BuildValue("$retType[1]"$commaRetVar);
-}
-EOF
-		$wrappersList.="\t{\"$name\", ${funcName}Wrapped, METH_VARARGS, \"\"},\n";
 	}
 	
 
@@ -140,6 +137,21 @@ EOF
 	
 
 }
+
+for (keys %functions) {
+	say $fh <<EOF;
+extern PyObject *${_}Wrapper(PyObject *self, PyObject *args);
+EOF
+	say $fc <<EOF, @{$functions{$_}}, <<EOF;
+extern PyObject *${_}Wrapper(PyObject *self, PyObject *args) {
+EOF
+	PyErr_SetString(PyExc_RuntimeError, "Wrong parameters");
+	return NULL;
+}
+EOF
+	$wrappersList.="\t{\"$_\", ${_}Wrapper, METH_VARARGS, \"\"},\n";
+}
+	
 
 say STDERR "Skipping: $last" if $last;
 

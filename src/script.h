@@ -8,6 +8,10 @@
 // Overloading supported:
 //     Functions with the same SCRIPT_NAME are processed in their order in header files,
 //     the first matching one is called.
+// Variable number of arguments supported:
+//     The last two arguments should be <type> *<arrayName> and int <arrayName>Cnt (order doesn't matter).
+//     Python function then takes all arguments before the last two
+//     followed by any number of arguments of type <type>.
 // Script scriptWrappers.pl scans all header files and creates necessary wrapper functions.
 
 #ifndef SCRIPT_H

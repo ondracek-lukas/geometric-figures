@@ -62,10 +62,10 @@
 	extern void consoleCmdVertexDeselect(void); // [SCRIPT_NAME: vertexDeselect]
 
 	// Moves the selected vertex relatively to its position to the camera by given coordinates
-	extern void consoleCmdVertexMove(char *params); // [SCRIPT_NAME: vertexMove]
+	extern void consoleCmdVertexMove(int coordsCnt, float *coords); // [SCRIPT_NAME: vertexMove]
 
 	// Adds new vertex at (optionally) given coordinates (relative to current figure rotation)
-	extern void consoleCmdVertexAdd(char *params); // [SCRIPT_NAME: vertexAdd]
+	extern void consoleCmdVertexAdd(int coordsCnt, float *coords); // [SCRIPT_NAME: vertexAdd]
 
 	// Removes the selected vertex
 	extern void consoleCmdVertexRm(void); // [SCRIPT_NAME: vertexRemove]

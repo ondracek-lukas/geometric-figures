@@ -8,6 +8,7 @@
 
 #use warnings;
 #use strict;
+#use Data::Dumper;
 use v5.10;
 
 my $print_headers=0;
@@ -26,17 +27,37 @@ sub getType($) {
 
 	my $rx_ignore      = qr/\s*(?:\b(?:extern|const)\b\s*)*/;
 	my $rx_type        = qr/(?:char\*|int|float|void)/;
-	my %format_mapping = ("char*" => "s", int => "i", float => "f", void => ""); # !! add color, ...
+	my %mapping = ( # !! add color, ...
+		"char*" => {
+			pyType   => "PyString",
+			pyFormat => "s",
+			converter=> "PyString_AsString"
+		},
+		int => {
+			pyType   => "PyInt",
+			pyFormat => "i",
+			converter=> "PyInt_AsLong"
+		},
+		float => {
+			pyType   => "PyFloat",
+			pyFormat => "f",
+			converter=> "PyFloat_AsDouble"
+		},
+		void => {
+			pyFormat => ""
+		}
+	);
 
 	s/\s*\*/\*/g;
 
-	my ($type) = /^$rx_ignore($rx_type)$rx_ignore$/;
+	my ($type, $isArray) = /^$rx_ignore($rx_type)(\*)?$rx_ignore$/;
 	return () unless defined $type;
+	$isArray //= "";
 
-	my $format = $format_mapping{$type};
-	return () unless defined $format;
+	my %mapped = %{$mapping{$type}};
+	return () unless %mapped;
 
-	return ($type, $format);
+	return (cType=>$type, isArray=>$isArray, %mapped);
 }
 
 my ($fc,$fh);
@@ -73,16 +94,16 @@ while (<>) {
 
 	next unless $name;
 
-	my $i=@{$functions{$name}} // 0;
 	$last = $_;
 
 	my ($retType, $funcName, $params) = /\s*(.*?)\s*\b([\w\d_]+)\s*\((.*)\)/;
 	next unless $retType && $funcName && defined $params;
 
-	my @retType = getType $retType;
-	next unless @retType;
+	my %retType = getType $retType;
+	next unless %retType;
 
 	my @params=();
+	my %array=();
 	if ($params !~ /^\s*(?:void\s*)?$/) {
 		@params=split /\,\s*/, $params;
 		@params=map [/(.*)\s*\b([\w\d_]+)/], @params;
@@ -90,14 +111,35 @@ while (<>) {
 			next main unless @$_==2;
 		}
 
-		@params=map [getType $_->[0], "$_->[1]_$i"], @params;
-
+		@params=map +{getType $_->[0], name=>"$_->[1]"}, @params;
 		for (@params) {
-			next main unless @$_==3;
+			%array=(name=>$_->{name}, localVarsList=>[]) if $_->{isArray};
+		}
+
+		for (my $pos=$#params; $pos>=0; $pos--) {
+			$params[$pos]{pos}=$pos;
+			if (%array) {
+				if ($params[$pos]{name} eq $array{name}) {
+					next main unless ($pos==$#params);
+					%array=(%array,%{pop @params});
+					unshift $array{localVarsList}, "$array{name}Wr";
+					next;
+				}
+				if ($params[$pos]{name} eq $array{name}."Cnt") {
+					next main unless ($pos==$#params) && ($params[$pos]{cType} eq "int");
+					pop @params;
+					unshift $array{localVarsList}, "$array{name}CntWr";
+					next;
+				}
+			}
+			next main unless defined $params[$pos]{pyType};
 		}
 	}
 
 	$last=0;
+
+	#say STDERR Dumper @params;
+	#say STDERR Dumper \%array;
 
 	if ($print_headers) {
 		say $_, " as $name";
@@ -106,25 +148,34 @@ while (<>) {
 			say $fc "\n#include \"$ARGV\"\n";
 			$lastFile=$ARGV;
 		}
-		my $localVarsDecl         = join "", map "\n\t$_->[0] $_->[2];", @params;
-		   $localVarsDecl        .= "\n\t$retType[0] ret_$i" if $retType[1];
-		my $commaLocalVarsPtrList = join "",   map ", &$_->[2]", @params;
-		my $localVarsList         = join ", ", map "$_->[2]", @params;
-		my $format                = join "",   map $_->[1], @params;
-		my $retVarEq              = ($retType[1] ? "ret_$i=" : "");
-		my $commaRetVar           = ($retType[1] ? ", ret_$i" : "");
+		my $cond                  = "argCnt" . (%array?">=":"==") . scalar @params;
+		my $localVarsList         = join ", ", map("$_->{name}Wr", @params), @{$array{localVarsList}};
+		my $retVarEq              = ($retType{pyFormat} ? "$retType{cType} retWr=" : "");
+		my $commaRetVar           = ($retType{pyFormat} ? ", retWr" : "");
+		my $paramsCnt             = scalar @params;
 
-
-		
-		push @{$functions{$name}}, <<EOF;
-	${localVarsDecl}
-	if(PyArg_ParseTuple(args, "$format"$commaLocalVarsPtrList)) {
-		$retVarEq$funcName($localVarsList);
-		if (PyErr_Occurred())
-			return NULL;
-		return Py_BuildValue("$retType[1]"$commaRetVar);
+		push @{$functions{$name}}, <<PARAMS . join("",map <<ARRAY, @params) . (%array?<<PARAMS_END:"") . <<EOF;
+	if ($cond) {
+		PyObject *obj;
+PARAMS
+		obj=PyTuple_GET_ITEM(args, $_->{pos});
+		$_->{cType} $_->{name}Wr = $_->{converter}(obj);
+ARRAY
+		int $array{name}CntWr=argCnt-$paramsCnt;
+		$array{cType} $array{name}Wr[argCnt-$paramsCnt];
+		for (int i=$paramsCnt; i<argCnt; i++) {
+			obj=PyTuple_GET_ITEM(args, i);
+			$array{name}Wr[i-$paramsCnt]=$array{converter}(obj);
+		}
+PARAMS_END
+		if (!PyErr_Occurred()) {
+			$retVarEq$funcName($localVarsList);
+			if (PyErr_Occurred())
+				return NULL;
+			return Py_BuildValue("$retType{pyFormat}"$commaRetVar);
+		}
+		PyErr_Clear();
 	}
-	PyErr_Clear();
 EOF
 	}
 	
@@ -144,6 +195,7 @@ extern PyObject *${_}Wrapper(PyObject *self, PyObject *args);
 EOF
 	say $fc <<EOF, @{$functions{$_}}, <<EOF;
 extern PyObject *${_}Wrapper(PyObject *self, PyObject *args) {
+	int argCnt=PyTuple_Size(args);
 EOF
 	PyErr_SetString(PyExc_RuntimeError, "Wrong parameters");
 	return NULL;

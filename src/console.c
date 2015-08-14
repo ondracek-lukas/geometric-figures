@@ -230,15 +230,15 @@ void initCmds() {
 	addNew  ("set ",             1, "s",    "gf.set(%)"              ); // !! add directly all setters/getters
 	addNew  ("source ",          1, "s",    "gf.source(%)"           );
 	addAlias("so ");
-	addNew  ("vertex add",       0, "",     "gf.vertexAdd(\"\")"     ); // !!
+	addNew  ("vertex add",       0, "",     "gf.vertexAdd()"         );
 	addAlias("vert add");
-	addNew  ("vertex add ",      1, "s",    "gf.vertexAdd(%)"        ); // !! variable number of arguments needed
+	addNew  ("vertex add ",     -1, "",     "gf.vertexAdd(%)"        );
 	addAlias("vert add ");
 	addNew  ("vertex deselect",  0, "",     "gf.vertexDeselect()"    );
 	addAlias("vertex desel");
 	addAlias("vert deselect");
 	addAlias("vert desel");
-	addNew  ("vertex move ",     1, "s",    "gf.vertexMove(%)"       ); // !! variable number of arguments needed
+	addNew  ("vertex move ",    -1, "",    "gf.vertexMove(%)"        );
 	addAlias("vert move ");
 	addNew  ("vertex next",      0, "",     "gf.vertexNext()"        );
 	addAlias("vert next");

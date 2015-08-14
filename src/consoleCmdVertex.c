@@ -39,19 +39,11 @@ void consoleCmdVertexDeselect() {
 	consoleCmdVertexSelected=-1;
 }
 
-static bool readCoordinates(char *str, GLfloat *coords) {
-	int i;
-	for (i=0; (i<figureData.dim) && (*str!='\0'); i++)
-		coords[i]=strtof(str, &str);
-	if (*str!='\0') {
-		return false;
+void consoleCmdVertexMove(int coordsCnt, float *coords) {
+	if (coordsCnt>figureData.dim) {
+		consolePrintErr("Too many arguments");
+		return;
 	}
-	for (; i<figureData.dim; i++)
-		coords[i]=0;
-	return true;
-}
-
-void consoleCmdVertexMove(char *params) {
 	if (consoleCmdVertexSelected<0) {
 		consolePrintErr("Nothing selected");
 		return;
@@ -59,10 +51,11 @@ void consoleCmdVertexMove(char *params) {
 	GLfloat shift[figureData.dim];
 	GLfloat pos[figureData.dim];
 	
-	if (!readCoordinates(params, shift)) {
-		consolePrintErr("Wrong parameters");
-		return;
-	}
+	int i=0;
+	for (; i<coordsCnt; i++)
+		shift[i]=coords[i];
+	for (; i<figureData.dim; i++)
+		shift[i]=0;
 
 	matrixProduct(shift, figureRotMatrix, pos, 1, figureData.dim, figureData.dim);
 	matrixAdd(pos, figureData.vertices[consoleCmdVertexSelected], figureData.dim);
@@ -73,7 +66,11 @@ void consoleCmdVertexMove(char *params) {
 	figureVertexMove(consoleCmdVertexSelected, pos);
 }
 
-void consoleCmdVertexAdd(char *params) {
+void consoleCmdVertexAdd(int coordsCnt, float *coords) {
+	if (coordsCnt>figureData.dim) {
+		consolePrintErr("Too many arguments");
+		return;
+	}
 	if (figureData.dim<0) {
 		consolePrintErr("There is no space yet, use new or open");
 		return;
@@ -81,10 +78,11 @@ void consoleCmdVertexAdd(char *params) {
 	GLfloat pos[figureData.dim];
 	GLfloat pos2[figureData.dim];
 
-	if (!readCoordinates(params, pos)) {
-		consolePrintErr("Wrong parameters");
-		return;
-	}
+	int i=0;
+	for (; i<coordsCnt; i++)
+		pos[i]=coords[i];
+	for (; i<figureData.dim; i++)
+		pos[i]=0;
 
 	matrixProduct(pos, figureRotMatrix, pos2, 1, figureData.dim, figureData.dim);
 	if (!safeCheckPos(pos2, figureData.dim)) {

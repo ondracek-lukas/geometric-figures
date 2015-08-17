@@ -36,6 +36,7 @@ extern void figureInit();
 
 
 // Resets figure to its initial rotation
+// Throws exception using script module
 extern void figureResetRotation(); // [SCRIPT_NAME: resetRotation]
 
 // Rotates figure in the plane of given axes by given angle
@@ -53,16 +54,17 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	// Saves figure to file
 	extern int figureSave(char *path);
 
-	// Move vertex with given index to given position
+	// Moves vertex with given index to given position
 	extern void figureVertexMove(int vertex, GLfloat *pos);
 
-	// Add new vertex at given position
+	// Adds new vertex at given position
 	extern int figureVertexAdd(GLfloat *pos);
 
 	// Remove vertex with given index
 	extern void figureVertexRm(int vertex);
 
-	// Removes boundary and (if convexHull) recalculate it again
+	// Removes boundary and (if convexHull) recalculates it again
+	// Throws exception using script module
 	extern void figureResetBoundary(); // [SCRIPT_NAME: resetBoundary]
 	
 	// Call on figureData.boundary change

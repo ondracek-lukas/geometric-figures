@@ -1,30 +1,30 @@
 help:
-          Press : to open the console, then write the command.
+             Press : to open the console, then write the command.
 
-The list of commands:
-  {...}                          - block of commands
-  close                          - destroy opened space
-  echo                           - write text to console
-  help                           - show help
-  history                        - show the history of commands
-  map                            - (un)assign command to key
-  n[ew]                          - create new space
-  o[pen]                         - open figure from file
-  (q[uit]|exit)                  - close the application
-  reset boundary                 - remove the figure except vertices
-  reset colors                   - set the default colors
-  reset rot[ation]               - rotate figure to its default rotation
-  rmap                           - (un)assign rotation to key
-  rot[ate]                       - rotate figure
-  set                            - show/edit settings
-  so[urce]                       - read commands from file
-  vert[ex] add                   - add new vertex
-  vert[ex] desel[ect]            - deselect the vertex
-  vert[ex] move                  - move the selected vertex
-  vert[ex] ( prev[ious] | next ) - cycle over the vertices
-  vert[ex] r[e]m[ove]            - remove the selected vertex
-  vert[ex] sel[ect]              - select specified vertex
-  w[rite]                        - write figure to file
+   The list of commands:
+        close                          - destroys opened space
+        echo                           - prints text
+        help                           - shows help
+        history                        - shows the history of commands
+        map                            - (un)assigns command to key
+        n[ew]                          - creates new space
+        o[pen]                         - opens figure from file
+        (q[uit]|exit)                  - closes the application
+        reset boundary                 - removes the figure except vertices
+        reset colors                   - sets the default colors
+        reset rot[ation]               - rotates figure to its default rotation
+        rmap                           - (un)assigns rotation to key
+        rot[ate]                       - rotates figure
+        set                            - shows/edits settings
+        so[urce]                       - executes python script
+        vert[ex] add                   - adds new vertex
+        vert[ex] desel[ect]            - deselects the vertex
+        vert[ex] move                  - moves the selected vertex
+        vert[ex] ( prev[ious] | next ) - cycles over the vertices
+        vert[ex] r[e]m[ove]            - removes the selected vertex
+        vert[ex] sel[ect]              - selects specified vertex
+        w[rite]                        - writes figure to a file
 
-                   For more help type :help <command>.
+                      For more help type :help <command>.
+For information about scripting and default configuration type :help scripting.
      For information about author and license conditions type :help about.

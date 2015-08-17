@@ -11,7 +11,7 @@
 
 struct mappedItem {
 	int code;
-	char *cmd;
+	char *expr;
 	struct animRotation *rot;
 	bool pressed;
 	struct mappedItem *next; // list of pressed
@@ -67,7 +67,7 @@ static struct mappedItem *createMappedItem(int code) {
 		mapped[i].code=code;
 		mapped[i].pressed=0;
 		mapped[i].rot=0;
-		mapped[i].cmd=0;
+		mapped[i].expr=0;
 	}
 	return mapped+i;
 }
@@ -80,14 +80,14 @@ static struct mappedItem *getMappedItem(int code) {
 		return mapped+i;
 }
 
-void keyboardMap(int code, char *cmd) {
+void keyboardMap(int code, char *expr) {
 	struct mappedItem *item = createMappedItem(code);
-	free(item->cmd);
-	if (cmd==0)
-		item->cmd=0;
+	free(item->expr);
+	if (expr==0)
+		item->expr=0;
 	else {
-		item->cmd=safeMalloc(sizeof(char)*(strlen(cmd)+1));
-		strcpy(item->cmd, cmd);
+		item->expr=safeMalloc(sizeof(char)*(strlen(expr)+1));
+		strcpy(item->expr, expr);
 	}
 }
 
@@ -138,8 +138,8 @@ void userKey(int c, bool pressed) {
 		userKeyReleaseAll();
 	}
 
-	if (pressed && item && item->cmd)
-		consoleExecuteCmd(item->cmd);
+	if (pressed && item && item->expr)
+		consoleEvalExpr(item->expr);
 
 
 }
@@ -183,6 +183,12 @@ void keyboardPress(int c) {
 			case -GLUT_KEY_DOWN:
 				consoleDown();
 				break;
+			case -GLUT_KEY_LEFT:
+				consoleLeft();
+				break;
+			case -GLUT_KEY_RIGHT:
+				consoleRight();
+				break;
 			default:
 				if ((c>=32) && (c<127)) // printable chars + space
 					consoleKeyPress(c);
@@ -192,7 +198,6 @@ void keyboardPress(int c) {
 		switch(c) {
 			case ':':
 				glutIgnoreKeyRepeat(0);
-				consoleClear();
 				consoleKeyPress(c);
 				break;
 			default:

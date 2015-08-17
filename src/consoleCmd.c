@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "console.h"
+#include "consoleCmds.h"
 #include "util.h"
 #include "figure.h"
 #include "drawer.h"
@@ -23,22 +24,22 @@ void consoleCmdOpen(char *path) {
 	consoleCmdVertexDeselect();
 	if (!figureOpen(utilExpandPath(path)))
 		if (figureData.dim>=0)
-			consolePrintErr("File cannot be opened");
+			scriptThrowException("File cannot be opened");
 		else
-			consolePrintErr("File cannot be opened or has wrong format");
+			scriptThrowException("File cannot be opened or has wrong format");
 	drawerSetDim(figureData.dim);
 }
 
 void consoleCmdWrite(char *path) {
 	if (figureData.dim<0)
-		consolePrintErr("Nothing opened");
+		scriptThrowException("Nothing opened");
 	else if (!figureSave(utilExpandPath(path)))
-		consolePrintErr("File cannot be opened for writing");
+		scriptThrowException("File cannot be opened for writing");
 }
 
 void consoleCmdNew(int dim) {
 	if ((dim<0) || (dim>safeMaxDim)) {
-		consolePrintErr("Wrong parameters");
+		scriptThrowException("Wrong parameters");
 		return;
 	}
 	consoleCmdVertexDeselect();
@@ -52,27 +53,30 @@ void consoleCmdClose() {
 	drawerSetDim(-1);
 }
 
-void consoleCmdRotate(float axis1, float axis2, float angle) {
+void consoleCmdRotate(int axis1, int axis2, float angle) {
 	if ((axis1<1) || (axis2<1) || (axis1>figureData.dim) || (axis2>figureData.dim) || (axis1==axis2)) {
-		consolePrintErr("Wrong parameters");
+		scriptThrowException("Wrong parameters");
 		return;
 	}
 	figureRotate(axis1-1, axis2-1, angle);
 }
 
-void consoleCmdMap(char *key, char *cmd) {
+void consoleCmdMap(char *key, char *cmd_or_expr) {
 	int code=keyboardCodeFromString(key);
 	if (!code) {
-		consolePrintErr("Wrong key shortcut");
+		scriptThrowException("Wrong key shortcut");
 		return;
 	}
-	keyboardMap(code, cmd);
+	char *expr=consoleCmdsToScriptExpr(cmd_or_expr);
+	if (!expr)
+		expr=cmd_or_expr;
+	keyboardMap(code, expr);
 }
 
 void consoleCmdUnmap(char *key) {
 	int code=keyboardCodeFromString(key);
 	if (!code) {
-		consolePrintErr("Wrong key shortcut");
+		scriptThrowException("Wrong key shortcut");
 		return;
 	}
 	keyboardMap(code, 0);
@@ -81,12 +85,12 @@ void consoleCmdUnmap(char *key) {
 void consoleCmdRmap(char *key, int axis1, int axis2) {
 	int code=keyboardCodeFromString(key);
 	if (!code) {
-		consolePrintErr("Wrong key shortcut");
+		scriptThrowException("Wrong key shortcut");
 		return;
 	}
 
 	if ((axis1<1) || (axis2<1) || (axis1==axis2)) {
-		consolePrintErr("Wrong parameters");
+		scriptThrowException("Wrong parameters");
 		return;
 	}
 	animDestroyRot(keyboardMapRot(code, animCreateRot(axis1-1, axis2-1)));
@@ -95,7 +99,7 @@ void consoleCmdRmap(char *key, int axis1, int axis2) {
 void consoleCmdRunmap(char *key) {
 	int code=keyboardCodeFromString(key);
 	if (!code) {
-		consolePrintErr("Wrong key shortcut");
+		scriptThrowException("Wrong key shortcut");
 		return;
 	}
 	keyboardMapRot(code, NULL);
@@ -103,11 +107,14 @@ void consoleCmdRunmap(char *key) {
 
 void consoleCmdHelp(char *name) {
 	if (!consolePrintBlock("help", name))
-		consolePrintErr("Wrong name of help page");
+		scriptThrowException("Wrong name of help page");
 }
 
 void consoleCmdHistory() {
-	consolePrintMultilineAtOnce(consoleGetHistory(), false);
+	consoleAppendMode();
+	consolePrint("--- History of commands ---");
+	consolePrintLinesList(consoleGetHistory());
+	consoleClearAfterCmdDefaultMsg();
 }
 
 void consoleCmdQuit() {

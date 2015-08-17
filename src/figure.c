@@ -10,6 +10,7 @@
 #include "safe.h"
 #include "matrix.h"
 #include "console.h"
+#include "script.h"
 
 struct figureData figureData;
 
@@ -148,7 +149,7 @@ void figureBoundaryChanged() {
 
 void figureResetBoundary() {
 	if (figureData.dim<0) {
-		consolePrintErr("Nothing opened");
+		scriptThrowException("Nothing opened");
 		return;
 	}
 	int i, j;
@@ -173,7 +174,7 @@ void figureResetBoundary() {
 
 void figureResetRotation() {
 	if (figureData.dim<0) {
-		consolePrintErr("Nothing opened");
+		scriptThrowException("Nothing opened");
 		return;
 	}
 	matrixIdentity(figureRotMatrix, figureData.dim);

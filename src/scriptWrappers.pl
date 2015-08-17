@@ -26,12 +26,17 @@ sub getType($) {
 	local $_=shift;
 
 	my $rx_ignore      = qr/\s*(?:\b(?:extern|const)\b\s*)*/;
-	my $rx_type        = qr/(?:char\*|int|float|void)/;
-	my %mapping = ( # !! add color, ...
+	my $rx_type        = qr/(?:char\*|bool|int|float|void)/;
+	my %mapping = (
 		"char*" => {
 			pyType   => "PyString",
 			pyFormat => "s",
 			converter=> "PyString_AsString"
+		},
+		bool => {
+			pyType   => "PyInt",
+			pyFormat => "i",
+			converter=> "PyInt_AsLong"
 		},
 		int => {
 			pyType   => "PyInt",

@@ -1,0 +1,39 @@
+help:scripting;help:python
+
+           The application can be extended using python scripts,
+                    which can be executed using :source.
+             This is the preferred way of defining key mapping,
+          on startup %/<name_of_executable>-config.py is executed.
+
+You can use application commands via gf module: (they throws exceptions)
+gf.close()
+gf.echo(string)
+gf.help(string_name)
+gf.history()
+gf.map(string_key, string_cmd_or_python_expr)
+gf.map(string_key)
+gf.new(int_dim)
+gf.open(string_path)
+gf.quit()
+gf.resetBoundary()
+gf.resetColors()
+gf.resetRotation()
+gf.rmap(string_key, int_axis1, int_axis2)
+gf.rmap(string_key)
+gf.rotate(int_axis1, int_axis2, float_angle)
+gf.set_<option_name>(value)         | value can be bool, int, float or color
+gf.set_<option_name>(index, value)  | according to the option,
+gf.get_<option_name>()              | colors are strings;
+gf.get_<option_name>(index)         | getters returns value of given type
+gf.source(string_path)
+gf.vertexAdd()
+gf.vertexAdd(float_coord1, ...)
+gf.vertexDeselect()
+gf.vertexMove(float_coord1, ...)
+gf.vertexPrevious()
+gf.vertexNext()
+gf.vertexSelect(index)
+gf.write(string_path)
+
+gf.consoleClearAfterCmd()     | prints msg moving printed lines up,
+gf.consoleClearAfterCmd(msg)  | only msg is cleared when typing command

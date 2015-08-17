@@ -145,45 +145,81 @@ void utilStrReallocPtrUpdate(char **ptr) {
 
 // -- string utils --
 
-int utilStrLineWidth(char *str) {
-	int width=0;
-	for (; *str; str++)
-		if (*str=='\b')
-			width--;
-		else
-			width++;
-	return width;
+void utilStrInsertChar(char *str, char c) {
+	char *str2=str;
+	while (*str2++); str2++;
+	while (str2!=str) {
+		*str2=*(str2-1);
+		str2--;
+	}
+	*str2=c;
+}
+
+void utilStrRmChars(char *str, int cnt) {
+	while (*str) {
+		*str=str[cnt];
+		str++;
+	}
 }
 
 
 // -- string list --
 
-struct utilStrList *utilStrListAddAfter(struct utilStrList *list) {
+void utilStrListAddAfter(struct utilStrList **pAfter) {
 	struct utilStrList *new=safeMalloc(sizeof(struct utilStrList));
 	new->str=0;
-	new->prev=list;
-	if (list)
-		new->next=list->next;
+	new->prev=*pAfter;
+	if (*pAfter)
+		new->next=(*pAfter)->next;
 	else
 		new->next=0;
-	if (list && list->next)
-		list->next->prev=new;
-	if (list)
-		list->next=new;
-	return new;
+	if (*pAfter && (*pAfter)->next)
+		(*pAfter)->next->prev=new;
+	if (*pAfter)
+		(*pAfter)->next=new;
+	*pAfter=new;
 }
 
-struct utilStrList *utilStrListRm(struct utilStrList *list) {
-	struct utilStrList *ret;
-	if (list->next)
-		list->next->prev=list->prev;
-	if (list->prev)
-		list->prev->next=list->next;
-	if (list->next)
-		ret=list->next;
+void utilStrListCopyAfter(struct utilStrList **pAfter, struct utilStrList *list) {
+	while (list) {
+		utilStrListAddAfter(pAfter);
+		utilStrRealloc(&(*pAfter)->str, 0, strlen(list->str)+1);
+		strcpy((*pAfter)->str, list->str);
+		list=list->next;
+	}
+}
+
+struct utilStrList *utilStrListOfLines(char *str) {
+	struct utilStrList *lines=0;
+	char *lineEnd;
+	char *str2;
+	do {
+		lineEnd=str;
+		utilStrListAddAfter(&lines);
+		while (*lineEnd && (*lineEnd!='\n'))
+			lineEnd++;
+		utilStrRealloc(&lines->str, 0, lineEnd-str+1);
+		str2=lines->str;
+		while (str!=lineEnd)
+			*str2++ = *str++;
+		*str2++='\0';
+	} while (*str++);
+	if (lines)
+		while (lines->prev)
+			lines=lines->prev;
+	return lines;
+}
+
+void utilStrListRm(struct utilStrList **pList) {
+	struct utilStrList *node=*pList;
+	if (node->next)
+		node->next->prev=node->prev;
+	if (node->prev)
+		node->prev->next=node->next;
+	if (node->next)
+		*pList=node->next;
 	else
-		ret=list->prev;
-	utilStrRealloc(&list->str, 0, 0);
-	free(list);
-	return ret;
+		*pList=node->prev;
+	utilStrRealloc(&node->str, 0, 0);
+	free(node);
 }

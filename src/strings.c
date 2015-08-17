@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "util.h"
+#include "console.h"
 
 static bool stringsEq(char *section, char *name, const char *data[], int aliases);
 
@@ -29,17 +30,17 @@ struct utilStrList *stringsGet(char *section, char *name, int *width, int *heigh
 		return 0;
 	*width=0;
 	*height=0;
-	list=utilStrListAddAfter(list);
+	utilStrListAddAfter(&list);
 	lineLen=0;
 	for (; *data; data++)
 		switch(*data) {
 			case '\n':
 				utilStrRealloc(&list->str, 0, lineLen+1);
 				list->str[lineLen]='\0';
-				if (*width<(i=utilStrLineWidth(list->str)))
+				if (*width<(i=consoleStrWidth(list->str)))
 					*width=i;
 				(*height)++;
-				list=utilStrListAddAfter(list);
+				utilStrListAddAfter(&list);
 				lineLen=0;
 				break;
 			case '\t':
@@ -53,9 +54,9 @@ struct utilStrList *stringsGet(char *section, char *name, int *width, int *heigh
 				list->str[lineLen++]=*data;
 				break;
 		}
-	list=utilStrListRm(list);
+	utilStrListRm(&list);
 	while (list) {
-		if ((i=(*width)-utilStrLineWidth(list->str))>0) {
+		if ((i=(*width)-consoleStrWidth(list->str))>0) {
 			lineEnd=strchr(list->str, '\0');
 			utilStrRealloc(&list->str, &lineEnd, i+1);
 			lineEnd[i]='\0';
@@ -68,4 +69,8 @@ struct utilStrList *stringsGet(char *section, char *name, int *width, int *heigh
 			break;
 	}
 	return list;
+}
+
+const char * const *stringsGetContent(char *section) {
+	return stringsDataGetContent(section);
 }

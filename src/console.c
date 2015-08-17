@@ -24,15 +24,60 @@
 #include "consoleCmds.h"
 #include "script.h"
 
-enum consolePrintMode consolePrintMode=consolePrintOneLine;
+static struct utilStrList *historyFirst;
+static struct utilStrList *historyLast;
+static struct utilStrList *historyActive;
+static int historyCount;
+static int historyMaxCount;
+static int cmdEnd;
+static int cmdBegin;
+static int cursorPos;
+static int cmdExecutionLevel;
 
-int consoleInLength=0;
-char *consoleIn=0;
-char *consoleOut=0;
-char *consoleStatus=0;
+static void initCmds();
+void consoleInit() {
+	utilStrRealloc(&consoleStatus, 0, 32);
+	*consoleStatus='\0';
 
-struct utilStrList *consolePrintMultilineList=0;
-static bool multilineListDestroy;
+	initCmds();
+}
+
+int consoleStrWidth(char *str) {
+	int width=0;
+	int lineWidth=0;
+	for (; *str; str++) {
+		switch (*str) {
+			case '\n':
+				if (width<lineWidth)
+					width=lineWidth;
+				lineWidth=0;
+				break;
+			case consoleSpecialBack:
+				lineWidth--;
+				break;
+			case consoleSpecialColorNormal:
+			case consoleSpecialColorRed:
+			case consoleSpecialColorGreen:
+			case consoleSpecialColorGray:
+				break;
+			default:
+				lineWidth++;
+		}
+	}
+	if (width<lineWidth)
+		width=lineWidth;
+	return width;
+}
+int consoleStrHeight(char *str) {
+	int height=1;
+	for (; *str; str++)
+		if (*str=='\n')
+			height++;
+	return height;
+}
+
+
+// -- history --
 
 static struct utilStrList *historyFirst=0;
 static struct utilStrList *historyLast=0;
@@ -40,21 +85,37 @@ static struct utilStrList *historyActive=0;
 static int historyCount=0;
 static int historyMaxCount=20;
 
-static void initCmds();
-void consoleInit() {
-	utilStrRealloc(&consoleIn, 0, 32);
-	utilStrRealloc(&consoleOut, 0, 32);
-	utilStrRealloc(&consoleStatus, 0, 32);
-	*consoleIn='\0';
-	*consoleStatus='\0';
-	*consoleOut='\0';
-
-	initCmds();
+int consoleGetHistoryMaxCount() {
+	return historyMaxCount;
 }
+
+void consoleSetHistoryMaxCount(int maxCount) {
+	historyMaxCount=maxCount;
+	for (; historyCount>historyMaxCount; historyCount--)
+		if (historyCount>1) {
+			historyFirst=historyFirst->next;
+			utilStrRealloc(&historyFirst->prev->str, 0, 0);
+			free(historyFirst->prev);
+			historyFirst->prev=0;
+		} else {
+			free(historyFirst);
+			historyFirst=0;
+			historyLast=0;
+		}
+}
+
+struct utilStrList *consoleGetHistory() {
+	return historyFirst;
+}
+
+
+
+// -- block printing --
 
 struct utilStrList *consoleBlock=0;
 int consoleBlockWidth;
 int consoleBlockHeight;
+
 bool consolePrintBlock(char *section, char *name) {
 	consoleClearBlock();
 	consoleBlock=stringsGet(section, name, &consoleBlockWidth, &consoleBlockHeight);
@@ -63,9 +124,13 @@ bool consolePrintBlock(char *section, char *name) {
 
 void consoleClearBlock() {
 	while (consoleBlock)
-		consoleBlock=utilStrListRm(consoleBlock);
+		utilStrListRm(&consoleBlock);
 }
 
+
+// -- status line --
+
+char *consoleStatus=0;
 
 bool consolePrintStatus(char *string) {
 	if (strcmp(consoleStatus, string)!=0) {
@@ -77,124 +142,197 @@ bool consolePrintStatus(char *string) {
 	}
 }
 
-void consolePrintMultilineAtOnce(struct utilStrList *lines, bool destroy) {
-	consolePrintMultilineBegin();
-	consolePrintMultilineList=lines;
-	multilineListDestroy=destroy;
+
+// -- command line printing --
+
+struct utilStrList *consoleLines=0;
+static enum mode {
+	modeNormal,
+	modeRewriteLast,
+	modeAppend
+} mode = modeNormal;
+
+void consolePrint(char *str) {
+	consolePrintLinesList(utilStrListOfLines(str));
 }
 
-void consolePrintMultilineBegin() {
-	consoleClear();
-	consolePrintMode=consolePrintMultiline;
-	multilineListDestroy=false;
-}
+void consolePrintLinesList(struct utilStrList *lines) {
+	if (cmdExecutionLevel)
+		mode=modeAppend;
+	if (mode!=modeAppend)
+		consoleClear();
+	if (lines) {
+		while (lines->prev)
+			lines=lines->prev;
+		utilStrListCopyAfter(&consoleLines, lines);
 
-void consolePrint(char *string) {
-	switch(consolePrintMode) {
-		case consolePrintMultiline:
-			consolePrintMultilineList=utilStrListAddAfter(consolePrintMultilineList);
-			utilStrRealloc(&consolePrintMultilineList->str, 0, strlen(string)+1);
-			strcpy(consolePrintMultilineList->str, string);
-			break;
-		default:
-			consoleClear();
-			utilStrRealloc(&consoleOut, 0, strlen(string)+1);
-			strcpy(consoleOut, string);
-			break;
+		struct utilStrList *lines2=consoleLines;
+		while (lines=lines->next)
+			lines2=lines2->prev;
+
+		utilStrRealloc(&lines2->str, 0, strlen(lines2->str)+2);
+		utilStrInsertChar(lines2->str, consoleSpecialColorNormal);
 	}
 }
 
-void consolePrintErr(char *string) {
-	consoleClear();
-	consolePrintMode=consolePrintOneLineErr;
-	utilStrRealloc(&consoleOut, 0, strlen(string)+1);
-	strcpy(consoleOut, string);
+void consolePrintErr(char *str) {
+	static char *str2=0;
+	utilStrRealloc(&str2, 0, strlen(str)+2);
+	*str2=consoleSpecialColorRed;
+	strcpy(str2+1, str);
+	consolePrint(str2);
 }
 
 void consoleClear() {
 	historyActive=0;
-	*consoleOut='\0';
-	*consoleIn='\0';
-	consoleInLength=0;
-	consolePrintMode=consolePrintOneLine;
-	if (multilineListDestroy)
-		while (consolePrintMultilineList)
-			consolePrintMultilineList=utilStrListRm(consolePrintMultilineList);
-	else
-		consolePrintMultilineList=0;
+	cursorPos=0;
+	mode=modeNormal;
+	while (consoleLines)
+		utilStrListRm(&consoleLines);
+}
+
+void consoleAppendMode() {
+	mode=modeAppend;
+}
+void consoleClearBeforePrinting() {
+	mode=modeNormal;
+}
+void consoleClearAfterCmdDefaultMsg() {
+	consoleClearAfterCmd("Press any key or type command to continue");
+}
+void consoleClearAfterCmd(char *msg) {
+	mode=modeAppend;
+	consolePrint(msg);
+	mode=modeRewriteLast;
+}
+
+
+// -- command line and key events handling --
+
+static int cmdEnd=0;
+static int cmdBegin=2;  // 0th is consoleSpecialColorNormal, 1st is :
+static int cursorPos=0;
+static const int cursorLen=4;
+
+static void cmdLineRealloc(int newChars) {
+	utilStrRealloc(&consoleLines->str, 0, cmdEnd+newChars);
+}
+
+static void openConsole(char *str) {
+	if ((mode==modeRewriteLast) && consoleLines) {
+		mode=modeAppend;
+		utilStrListRm(&consoleLines);
+		consolePrint(str);
+		mode=modeRewriteLast;
+	} else {
+		consoleClear();
+		consolePrint(str);
+	}
+	cmdEnd=strlen(consoleLines->str);
+	cursorPos=cmdEnd;
+	cmdLineRealloc(2);
+	consoleLines->str[cmdEnd++]=consoleSpecialColorGray;
+	consoleLines->str[cmdEnd++]='\2'; // !! ? x14 = _
+	consoleLines->str[cmdEnd++]=consoleSpecialColorNormal;
+	consoleLines->str[cmdEnd++]=consoleSpecialBack;
+	consoleLines->str[cmdEnd]='\0';
+}
+
+bool consoleIsOpen() {
+	return cursorPos;
 }
 
 void consoleKeyPress(char c) {
-	utilStrRealloc(&consoleIn, 0, ++consoleInLength+1);
-	consoleIn[consoleInLength-1]=c;
-	consoleIn[consoleInLength]='\0';
+	if (!cursorPos)
+		openConsole("");
+	cmdLineRealloc(1);
+	utilStrInsertChar(consoleLines->str+cursorPos++, c);
+	cmdEnd++;
 }
 
 void consoleBackspace() {
-	consoleIn[--consoleInLength]='\0';
-}
-
-void consoleEnter() {
-	struct utilStrList *node;
-	if (historyMaxCount) {
-		if (historyCount<historyMaxCount) {
-			node=safeMalloc(sizeof(struct utilStrList));
-			node->str=0;
-			historyCount++;
-		} else {
-			node=historyFirst;
-			historyFirst=node->next;
-			if (historyFirst)
-				historyFirst->prev=0;
-			else
-				historyLast=0;
-		}
-		node->next=0;
-		node->prev=historyLast;
-		if (historyLast)
-			historyLast->next=node;
-		else
-			historyFirst=node;
-		historyLast=node;
-		utilStrRealloc(&node->str, 0, consoleInLength+1);
-		strcpy(node->str, consoleIn);
-	}
-	consoleInLength=0; // hide command before execution
-	consoleExecuteCmd(consoleIn+1); // skip :
-	if ((consolePrintMode==consolePrintOneLine) && (consoleOut[0]=='\0'))
+	if (cursorPos>cmdBegin) {
+		utilStrRmChars(consoleLines->str + --cursorPos,1);
+		cmdEnd--;
+	} else if (cursorPos+cursorLen==cmdEnd)
 		consoleClear();
 }
 
-void consoleUp() {
-	char *s;
-	if (historyActive==0) {
-		historyActive=historyLast;
+void consoleEnter() {
+	char *cmd=consoleLines->str;
+	cmd[cmdEnd]='\0';
+	utilStrRmChars(cmd+cursorPos,cursorLen);
+	cmdEnd-=cursorLen;
+	
+	if (historyMaxCount) {
+		if (historyCount<historyMaxCount)
+			historyCount++;
+		else
+			utilStrListRm(&historyFirst);
+		utilStrListAddAfter(&historyLast);
+		if (!historyFirst)
+			historyFirst=historyLast;
+		utilStrRealloc(&historyLast->str, 0, cmdEnd+1);
+		strncpy(historyLast->str, cmd+1, cmdEnd-1);
+		historyLast->str[cmdEnd-1]='\0';
 	}
+	consoleLines->str=0;
+	consoleClear();
+	consoleExecuteCmd(cmd+cmdBegin); // skip : and consoleSpecialColorNormal
+	utilStrRealloc(&cmd, 0, 0);
+}
+
+void consoleUp() {
+	if (!historyActive)
+		historyActive=historyLast;
 	else if (historyActive->prev)
 		historyActive=historyActive->prev;
-	if (historyActive!=0) {
-		strcpy(consoleIn, historyActive->str);
-		consoleInLength=0;
-		for (s=consoleIn; *s; s++)
-			consoleInLength++;
+	if (historyActive) {
+		struct utilStrList *active=historyActive;
+		openConsole(active->str);
+		historyActive=active;
 	}
 }
 
 void consoleDown() {
-	char *s;
-	if (historyActive!=0) {
+	if (historyActive) {
 		historyActive=historyActive->next;
-		if (historyActive==0) {
-			consoleIn[1]='\0';
-			consoleInLength=1;
+		if (historyActive) {
+			struct utilStrList *active=historyActive;
+			openConsole(historyActive->str);
+			historyActive=active;
 		} else {
-			strcpy(consoleIn, historyActive->str);
-			consoleInLength=0;
-			for (s=consoleIn; *s; s++)
-				consoleInLength++;
+			openConsole(":");
 		}
 	}
 }
+
+void consoleLeft() {
+	if (cursorPos>cmdBegin) {
+		char c=consoleLines->str[cursorPos-1];
+		cursorPos--;
+		for (int i=0; i<cursorLen; i++)
+			consoleLines->str[cursorPos+i]=consoleLines->str[cursorPos+i+1];
+		consoleLines->str[cursorPos+cursorLen]=c;
+	}
+}
+
+void consoleRight() {
+	if (cursorPos+cursorLen<cmdEnd) {
+		char c=consoleLines->str[cursorPos+cursorLen];
+		cursorPos++;
+		for (int i=cursorLen-1; i>=0; i--)
+			consoleLines->str[cursorPos+i]=consoleLines->str[cursorPos+i-1];
+		consoleLines->str[cursorPos-1]=c;
+	}
+}
+
+
+// -- commands --
+
+static int cmdExecutionLevel=0; // number of consoleEvalExpr in stacktrace
+bool consoleAllowPythonExpr=false;
+bool consolePythonExprToStdout=false;
 
 #define addNew(prefix, params, paramsFlags, expr) \
 	lastParams=params; \
@@ -206,8 +344,18 @@ void initCmds() {
 	int lastParams;
 	char *lastParamsFlags;
 	char *lastExpr;
-	addNew  ("help",             0, "",     "gf.help(\"\")"          ); // !!
-	addNew  ("help ",            1, "s",    "gf.help(%)"             ); // !! add directly all help pages
+
+	addNew  ("help",             0, "",     "gf.help(\"\")"          );
+	const char * const *helpPages=stringsGetContent("help");
+	int i=0;
+	while (*helpPages) {
+		char cmd[50], expr[50];
+		sprintf(cmd, "help %s", *helpPages);
+		sprintf(expr, "gf.help(\"%s\")", *helpPages);
+		addNew(cmd,                0, "",     expr                     );
+		helpPages++;
+	}
+
 	addNew  ("echo ",            1, "s",    "gf.echo(%)"             );
 	addNew  ("history",          0, "",     "gf.history()"           );
 	addNew  ("map ",            -1, "s",    "gf.map(%)"              );
@@ -226,8 +374,9 @@ void initCmds() {
 	addNew  ("reset colors",     0, "",     "gf.resetColors()"       );
 	addNew  ("reset boundary",   0, "",     "gf.resetBoundary()"     );
 	addNew  ("rmap ",           -1, "s-",   "gf.rmap(%)"             );
-	addNew  ("set",              0, "",     "gf.set(\"\")"           ); // !!
-	addNew  ("set ",             1, "s",    "gf.set(%)"              ); // !! add directly all setters/getters
+
+	consoleCmdSetUpdateCmds();
+
 	addNew  ("source ",          1, "s",    "gf.source(%)"           );
 	addAlias("so ");
 	addNew  ("vertex add",       0, "",     "gf.vertexAdd()"         );
@@ -262,86 +411,45 @@ void initCmds() {
 
 static void executeBlock(char *cmds);
 void consoleExecuteCmd(char *cmd) {
-	if (*cmd=='{') {
-		executeBlock(cmd+1);
+	static char *tmp=0;
+	char *tmp2, *expr, *ret;
+	utilStrRealloc(&tmp, 0, strlen(cmd)+1);
+	while (*cmd==' ')
+		cmd++;
+	tmp2=stpcpy(tmp, cmd);
+	while (*--tmp2==' ');
+	*++tmp2='\0';
+	cmd=tmp;
+
+	expr=consoleCmdsToScriptExpr(cmd);
+	if (!expr && consoleAllowPythonExpr)
+		expr=cmd;
+	if (expr) {
+		consoleEvalExpr(expr);
 	} else {
-		char *expr=consoleCmdsToScriptExpr(cmd);
-		printf("%s\n", expr); // !! to be dependend on settable variable
-		if (expr) {
-			char *ret=scriptEvalExpr(expr);
-			if (ret && *ret)
-				consolePrint(ret);
-		} else {
-			scriptThrowException("Wrong command or missing parameter");
-		}
+		consolePrintErr("Wrong command or missing parameter");
 	}
+}
+
+void consoleEvalExpr(char *expr) {
+	cmdExecutionLevel++;
+
+	char *ret=scriptEvalExpr(expr);
+	if (ret && *ret)
+		consolePrint(ret);
 
 	char *err=scriptCatchException();
 	if (err)
 		consolePrintErr(err);
-}
 
-static void executeBlock(char *cmds) {
-	char *cmd=cmds;
-	int braces=1;
-	while (braces) {
-		switch(*cmds) {
-			case ' ':
-			case '\n':
-				if (cmd==cmds)
-					cmd++;
-				break;
-			case '{':
-				braces++;
-				break;
-			case '}':
-				if (braces==1) {
-					*cmds='\0';
-					consoleExecuteCmd(cmd);
-					*cmds='}';
-				}
-				braces--;
-				break;
-			case ';':
-				if (braces==1) {
-					*cmds='\0';
-					consoleExecuteCmd(cmd);
-					*cmds=';';
-					cmd=cmds+1;
-				}
-				break;
-			case '\0':
-				consoleExecuteCmd(cmd);
-				braces=0;
-				break;
-		}
-		cmds++;
+	if (consolePythonExprToStdout) {
+		if (err)
+			printf("%s # Error: %s\n", expr, err);
+		else if (ret && *ret)
+			printf("%s # Ret: %s\n", expr, ret);
+		else
+			printf("%s\n", expr, err);
 	}
-}
 
-int consoleGetHistoryMaxCount() {
-	return historyMaxCount;
-}
-
-void consoleSetHistoryMaxCount(int maxCount) {
-	historyMaxCount=maxCount;
-	for (; historyCount>historyMaxCount; historyCount--)
-		if (historyCount>1) {
-			historyFirst=historyFirst->next;
-			utilStrRealloc(&historyFirst->prev->str, 0, 0);
-			free(historyFirst->prev);
-			historyFirst->prev=0;
-		} else {
-			free(historyFirst);
-			historyFirst=0;
-			historyLast=0;
-		}
-}
-
-struct utilStrList *consoleGetHistory() {
-	return historyLast;
-}
-
-bool consoleIsOpen() {
-	return consoleInLength;
+	cmdExecutionLevel--;
 }

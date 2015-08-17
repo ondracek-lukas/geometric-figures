@@ -29,8 +29,9 @@ GLfloat drawerSpaceColorCenter[4];
 GLfloat drawerSelectedVertColor[4];
 
 static GLfloat stringColor[4];
-static GLfloat stringErrColor[4];
-static GLfloat stringStatusColor[4];
+static GLfloat stringColorRed[4];
+static GLfloat stringColorGreen[4];
+static GLfloat stringColorGray[4];
 static GLfloat scale=1;
 static GLUquadric *quadric=0;
 
@@ -43,7 +44,7 @@ static void drawEdge3D(GLfloat *coords1, GLfloat size1, GLfloat *color1, GLfloat
 static void drawFace3D(int count, GLfloat **coords);
 static void drawControls();
 static void drawRect(int x1, int y1, int x2, int y2);
-static void drawString(char *string, int x, int y, GLfloat *color);
+static void drawString(char *string, int x, int y);
 static struct utilStrList *drawStringMultiline(struct utilStrList *lines, int count, int x, int y);
 static void drawBlock();
 static void drawStatusLine();
@@ -92,14 +93,18 @@ void drawerSetBackColor(GLfloat *color) {
 		matrixCopy((GLfloat[]) {0.0f, 0.0f, 0.0f}, stringColor, 3);
 
 	if (color[0]+color[1]+color[2]<1.0)
-		matrixCopy((GLfloat[]) {1.0f, 0.0f, 0.0f}, stringErrColor, 3);
+		matrixCopy((GLfloat[]) {1.0f, 0.0f, 0.0f}, stringColorRed, 3);
 	else
-		matrixCopy((GLfloat[]) {0.5f, 0.0f, 0.0f}, stringErrColor, 3);
+		matrixCopy((GLfloat[]) {0.5f, 0.0f, 0.0f}, stringColorRed, 3);
 
 	if (color[0]+color[1]+color[2]<1.0)
-		matrixCopy((GLfloat[]) {0.0f, 1.0f, 0.0f}, stringStatusColor, 3);
+		matrixCopy((GLfloat[]) {0.0f, 1.0f, 0.0f}, stringColorGreen, 3);
 	else
-		matrixCopy((GLfloat[]) {0.0f, 0.5f, 0.0f}, stringStatusColor, 3);
+		matrixCopy((GLfloat[]) {0.0f, 0.5f, 0.0f}, stringColorGreen, 3);
+
+	matrixZero(stringColorGray, 3);
+	matrixAddScaled(stringColorGray, 0.5, stringColor, 3);
+	matrixAddScaled(stringColorGray, 0.5, drawerBackColor, 3);
 }
 
 void drawerResetColors() {
@@ -138,6 +143,7 @@ void drawerSetDim(int dim) {
 	}
 	drawerDim=dim;
 	drawerSetProjection();
+	consoleCmdSetUpdateCmds();
 }
 
 void drawerFree() {
@@ -412,28 +418,54 @@ static void drawRect(int x1, int y1, int x2, int y2) {
 	glEnd();
 }
 
-static void drawString(char *string, int x, int y, GLfloat *color) {
+static void drawString(char *str, int x, int y) {
+	GLfloat color[4];
+	glGetFloatv(GL_CURRENT_COLOR, color);
+
 	glColor4f(drawerBackColor[0], drawerBackColor[1], drawerBackColor[2], 0.8);
-	drawRect(x-1, y-5, x+utilStrLineWidth(string)*9+1, y+14);
+	drawRect(x-1, y-5, x+consoleStrWidth(str)*9+1, y+14);
 	glColor3fv(color);
 	glRasterPos2i(x, y);
+	
 
-	while (*string) {
-		if (*string=='\b') {
-			x-=9;
-			glRasterPos2i(x, y);
-		} else {
-			x+=9;
-			glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *string);
+	while (*str) {
+		switch (*str) {
+			case consoleSpecialBack:
+				x-=9;
+				glRasterPos2i(x, y);
+				break;
+			case consoleSpecialColorNormal:
+				glColor3fv(stringColor);
+				glRasterPos2i(x, y);
+				break;
+			case consoleSpecialColorRed:
+				glColor3fv(stringColorRed);
+				glRasterPos2i(x, y);
+				break;
+				break;
+			case consoleSpecialColorGreen:
+				glColor3fv(stringColorGreen);
+				glRasterPos2i(x, y);
+				break;
+				break;
+			case consoleSpecialColorGray:
+				glColor3fv(stringColorGray);
+				glRasterPos2i(x, y);
+				break;
+				break;
+			default:
+				x+=9;
+				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *str);
+				break;
 		}
-		string++;
+		str++;
 	}
 }
 
 static struct utilStrList *drawStringMultiline(struct utilStrList *lines, int count, int x, int y) {
 	int i;
 	for (i=0; lines && (!count || i<count); i++, lines=lines->next) {
-		drawString(lines->str, x, y, stringColor);
+		drawString(lines->str, x, y);
 		y-=19;
 	}
 	return lines;
@@ -448,13 +480,13 @@ static void drawBlock() {
 	y=(height+consoleBlockHeight*19)/2-10;
 	
 	if ((x<0) || (y>height-10-19)) {
-		list=utilStrListAddAfter(list);
+		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
 		strcpy(list->str, "Too small window");
-		list=utilStrListAddAfter(list);
+		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
 		sprintf(list->str, "%dx%d needed", consoleBlockWidth*9, consoleBlockHeight*19+2*19);
-		list=utilStrListAddAfter(list);
+		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
 		sprintf(list->str, "current: %dx%d", width, height);
 		list=list->prev;
@@ -463,50 +495,33 @@ static void drawBlock() {
 		y=(height>3*19?(height+3*19)/2:height)-12;
 		drawStringMultiline(list, 0, x, y);
 		while (list)
-			list=utilStrListRm(list);
-	} else
+			utilStrListRm(&list);
+	} else {
+		glColor3fv(stringColor);
 		drawStringMultiline(consoleBlock, 0, x, y);
+	}
 }
 
 static void drawStatusLine() {
 	int consoleSize=0, count;
 	struct utilStrList *lines;
 	
-	if (consolePrintMode==consolePrintOneLineErr)
-		glColor3f(1.0f, 0.0f, 0.0f);
-	else
-		glColor3f(1.0f, 1.0f, 1.0f);
+	glColor3fv(stringColor);
 
-	switch(consolePrintMode) {
-		case consolePrintOneLine:
-		case consolePrintOneLineErr:
-			consoleSize=strlen(consoleOut)+consoleInLength;
-			if (consoleOut[0]!='\0') {
-				consoleSize++;
-				drawString(consoleOut, 1, 5,
-					consolePrintMode==consolePrintOneLine?stringColor:stringErrColor);
-			} else if (consoleIsOpen()) {
-				drawString(consoleIn, 1+strlen(consoleOut)*9, 5, stringColor);
-				drawString("\2", 1+(strlen(consoleOut)+consoleInLength)*9+1, 5, stringColor);
-			}
-			break;
-		case consolePrintMultiline:
-			if (lines=consolePrintMultilineList) {
-				consoleSize=strlen(lines->str);
-				count=1;
-				while (lines->prev) {
-					count++;
-					lines=lines->prev;
-				}
-				drawStringMultiline(lines, 0, 1, 19*count-10);
-			}
-			break;
+	if (lines=consoleLines) {
+		consoleSize=consoleStrWidth(lines->str);
+		count=1;
+		while (lines->prev) {
+			count++;
+			lines=lines->prev;
+		}
+		drawStringMultiline(lines, 0, 1, 19*count-14);
 	}
 
-	glColor3f(0.0f, 1.0f, 0.0f);
+	glColor3fv(stringColorGreen);
 	if (9*(strlen(consoleStatus)+consoleSize+3)<=width)
-		drawString(consoleStatus, width-9*strlen(consoleStatus)-10, 5, stringStatusColor);
-	else if ((consoleInLength==0) && (strlen(consoleOut)==0))
-		drawString(consoleStatus, 10, 5, stringStatusColor);
+		drawString(consoleStatus, width-9*strlen(consoleStatus)-10, 5);
+	else if (!consoleLines)
+		drawString(consoleStatus, 10, 5);
 	
 }

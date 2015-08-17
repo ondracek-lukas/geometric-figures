@@ -1,6 +1,6 @@
 help:history
-                          history
+                           history
 
-               Show the history of commands.
+                Shows the history of commands.
 
-The maximum count of commands can be set with set history.
+The maximum count of commands can be set using :set history.

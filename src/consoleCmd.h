@@ -2,6 +2,9 @@
 
 // consoleCmd contains commands to be called from application command line
 
+// Functions accessible from python throws exceptions using script module,
+// they has to be catched, when used directly. (see script.h)
+
 #ifndef CONSOLE_CMD_H
 #define CONSOLE_CMD_H
 
@@ -23,15 +26,15 @@
 	extern void consoleCmdClose(void); // [SCRIPT_NAME: close]
 
 	// Rotates figure in the plane of the given axes by the given angle
-	extern void consoleCmdRotate(float axis1, float axis2, float angle); // [SCRIPT_NAME: rotate]
+	extern void consoleCmdRotate(int axis1, int axis2, float angle); // [SCRIPT_NAME: rotate]
 
 	// Assigns/Unassigns rotation to the key
 	extern void consoleCmdRmap(char *key, int axis1, int axis2); // [SCRIPT_NAME: rmap]
 	extern void consoleCmdRunmap(char *key);                     // [SCRIPT_NAME: rmap]
 
 	// Assigns/Unassigns command to the key
-	extern void consoleCmdMap(char *key, char *cmd); // [SCRIPT_NAME: map]
-	extern void consoleCmdUnmap(char *key);          // [SCRIPT_NAME: map]
+	extern void consoleCmdMap(char *key, char *cmd_or_expr); // [SCRIPT_NAME: map]
+	extern void consoleCmdUnmap(char *key);                  // [SCRIPT_NAME: map]
 
 	// Shows help, optionally to concrete command name
 	extern void consoleCmdHelp(char *name); // [SCRIPT_NAME: help]
@@ -44,8 +47,7 @@
 
 // consoleCmdSet.c:
 
-	// Shows/edits settings; str should contain variable name and optionally new value
-	extern void consoleCmdSet(char *str); // [SCRIPT_NAME: set]
+	#include "consoleCmdSet.h"
 
 // consoleCmdVertex.c:
 

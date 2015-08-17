@@ -19,4 +19,7 @@
 // width and height will be set to the length and number of lines
 extern struct utilStrList *stringsGet(char *section, char *name, int *width, int *height);
 
+// Returns array of available strings names in the given section terminated with NULL
+const char * const *stringsGetContent(char *section);
+
 #endif

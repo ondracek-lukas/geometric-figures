@@ -4,8 +4,11 @@
 	compile-all package-all clean-all clean-tmp-all
 
 LDFLAGS    = -lm
-CFLAGS     = -std=gnu99 -Wimplicit-function-declaration #-g -Wall
+CFLAGS     = -std=gnu99 -Wimplicit-function-declaration
 version    = $(shell cat VERSION)
+ifdef debug
+	CFLAGS  += -g -Wall
+endif
 
 ifeq ($(arch), win32) # Windows
 	CC       = i686-w64-mingw32-gcc

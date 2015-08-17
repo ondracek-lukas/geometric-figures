@@ -15,14 +15,14 @@ void consoleCmdVertexSelect(int index) {
 	if ((figureData.dim>=0) && (index>0) && (index<=figureData.count[0]))
 		consoleCmdVertexSelected=index-1;
 	else
-		consolePrintErr("Wrong index");
+		scriptThrowException("Wrong index");
 }
 
 void consoleCmdVertexNext() {
 	if ((figureData.dim>=0) && (figureData.count[0]))
 		consoleCmdVertexSelected=(consoleCmdVertexSelected+1)%figureData.count[0];
 	else
-		consolePrintErr("No vertex exists");
+		scriptThrowException("No vertex exist");
 }
 
 void consoleCmdVertexPrevious() {
@@ -32,7 +32,7 @@ void consoleCmdVertexPrevious() {
 		else
 			consoleCmdVertexSelected=(consoleCmdVertexSelected+figureData.count[0]-1)%figureData.count[0];
 	else
-		consolePrintErr("No vertex exists");
+		scriptThrowException("No vertex exist");
 }
 
 void consoleCmdVertexDeselect() {
@@ -41,11 +41,11 @@ void consoleCmdVertexDeselect() {
 
 void consoleCmdVertexMove(int coordsCnt, float *coords) {
 	if (coordsCnt>figureData.dim) {
-		consolePrintErr("Too many arguments");
+		scriptThrowException("Too many arguments");
 		return;
 	}
 	if (consoleCmdVertexSelected<0) {
-		consolePrintErr("Nothing selected");
+		scriptThrowException("Nothing selected");
 		return;
 	}
 	GLfloat shift[figureData.dim];
@@ -60,7 +60,7 @@ void consoleCmdVertexMove(int coordsCnt, float *coords) {
 	matrixProduct(shift, figureRotMatrix, pos, 1, figureData.dim, figureData.dim);
 	matrixAdd(pos, figureData.vertices[consoleCmdVertexSelected], figureData.dim);
 	if (!safeCheckPos(pos, figureData.dim)) {
-		consolePrintErr("Wrong position");
+		scriptThrowException("Wrong position");
 		return;
 	}
 	figureVertexMove(consoleCmdVertexSelected, pos);
@@ -68,11 +68,11 @@ void consoleCmdVertexMove(int coordsCnt, float *coords) {
 
 void consoleCmdVertexAdd(int coordsCnt, float *coords) {
 	if (coordsCnt>figureData.dim) {
-		consolePrintErr("Too many arguments");
+		scriptThrowException("Too many arguments");
 		return;
 	}
 	if (figureData.dim<0) {
-		consolePrintErr("There is no space yet, use new or open");
+		scriptThrowException("There is no space yet, use new or open");
 		return;
 	}
 	GLfloat pos[figureData.dim];
@@ -86,7 +86,7 @@ void consoleCmdVertexAdd(int coordsCnt, float *coords) {
 
 	matrixProduct(pos, figureRotMatrix, pos2, 1, figureData.dim, figureData.dim);
 	if (!safeCheckPos(pos2, figureData.dim)) {
-		consolePrintErr("Wrong position");
+		scriptThrowException("Wrong position");
 		return;
 	}
 
@@ -95,7 +95,7 @@ void consoleCmdVertexAdd(int coordsCnt, float *coords) {
 
 void consoleCmdVertexRm() {
 	if (consoleCmdVertexSelected<0) {
-		consolePrintErr("Nothing selected");
+		scriptThrowException("Nothing selected");
 		return;
 	}
 	figureVertexRm(consoleCmdVertexSelected);

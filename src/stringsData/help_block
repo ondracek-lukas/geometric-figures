@@ -1,9 +1,0 @@
-help:block;help:{};help:{...}
-        {<command>[; <command>[; ...]]}
-
-    Allow to join several commands together.
-      To be used in mapping, for example.
-
-            While reading from file,
-new line characters are replaced by semicolons,
-                  in braces.

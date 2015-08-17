@@ -1,0 +1,8 @@
+help:set stdoutpyexpr;help:set nostdoutpyexpr
+                       stdoutpyexpr (boolean)
+
+    Determines whether to print typed (or translated)
+              python expressions to stdout.
+      The output can be then used as scripting file.
+
+For more information about scripting type :help scripting.

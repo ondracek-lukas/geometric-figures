@@ -4,9 +4,9 @@ help:set
                            set [no]<variable>
                            set <variable>=<value>
 
-Print all the settings (first form) or the specified variable (second form),
+Prints all the settings (first form) or the specified variable (second form),
               question mark is required for boolean variables.
-     Set boolean variable (third form) or other variable (fourth form).
+    Sets boolean variable (third form) or another variable (fourth form).
 
     The list of variables:
         background                - color of the background
@@ -18,10 +18,12 @@ Print all the settings (first form) or the specified variable (second form),
         facecolor                 - color of the faces
         history                   - length of the history of commands
         maxfps                    - maximum frame rate
+        pyexpr                    - det. whether to allow python expressions
         selvertcolor              - color of the selected vertex
         selvertsize               - size of the selected vertex
         spacecolor[(+|-)<axis>]   - colors of the space
         speed                     - angular speed
+        stdoutpyexpr              - det. whether to print commands to stdout
         vertsize                  - size of the vertices
 
                   For more help type :help set <variable>,

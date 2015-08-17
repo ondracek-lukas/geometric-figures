@@ -1,0 +1,9 @@
+help:set pyexpr;help:set nopyexpr
+                         pyexpr    (boolean)
+
+Determines whether to allow typing of python expressions
+                in addition to commands.
+     If typed string is not recognized as command,
+   it is interpreted as python expression if allowed.
+
+ For more information about python type :help scripting.

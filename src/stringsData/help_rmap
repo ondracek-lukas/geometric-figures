@@ -1,8 +1,8 @@
 help:rmap
                     rmap <key> [<axis1> <axis2>]
 
-             Assign the plane of rotation to the key or
-          unassign previous one if axes are not specified.
+             Assigns the plane of rotation to the key or
+          unassigns previous one if axes are not specified.
 
        The key can be an ASCII character or <[c][a][s]-key>,
 where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.

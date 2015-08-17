@@ -1,8 +1,12 @@
 help:map
-                        map <key> [<command>]
+               map <key> [<command_or_python_expr>]
 
-                   Assign the command to the key
-         or unassign previous one if command is not specified.
+        Assigns the command or python expression to the key
+       or unassigns previous one if command is not specified.
 
        The key can be an ASCII character or <[c][a][s]-key>,
 where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
+
+      If the second parameter is not recognized as a command,
+                it is treated as python expression.
+                 No error is raised at this point.

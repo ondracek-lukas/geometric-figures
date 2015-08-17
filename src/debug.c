@@ -103,4 +103,30 @@ void convexLoopDetectPrint(int count, int parent, int child, int index, int next
 		next);
 }
 
+// consoleCmds.c:
+struct trie {
+	char c;
+	struct trie *sibling;
+	struct trie *child;
+	char *scriptExpr;
+	char *paramsFlags;
+	int params; // -1 for variable
+};
+
+void triePrint(struct trie *trie, int indent) {
+	if (!trie)
+		return;
+	printf("%c%c", (trie->c?trie->c:'_'), (trie->scriptExpr || trie->paramsFlags || trie->params? '*':'-'));
+	triePrint(trie->child, indent+2);
+	while (trie=trie->sibling) {
+		printf("\n%*c%c%c", indent, '|', (trie->c?trie->c:'_'), (trie->scriptExpr || trie->paramsFlags || trie->params? '*':'-'));
+		triePrint(trie->child, indent+2);
+	}
+}
+void consoleCmdsTriePrint(struct trie *trie) {
+	printf("--- TRIE START ---\n--");
+	triePrint(trie, 2);
+	printf("\n--- TRIE  END  ---\n");
+}
+
 #endif

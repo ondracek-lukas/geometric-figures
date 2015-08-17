@@ -26,8 +26,12 @@ extern void utilStrRealloc(char **ptr, char **ptr2, size_t minSize);
 extern void utilStrReallocPtrUpdate(char **ptr);
 
 
-// Returns string length reflecting \b character as in strings module
-extern int utilStrLineWidth(char *str);
+// Inserts given character before given null terminated string
+extern void utilStrInsertChar(char *str, char c);
+
+// Removes given number of characters from the beginning of the string
+extern void utilStrRmChars(char *str, int cnt);
+
 
 // List of strings:
 	struct utilStrList {
@@ -35,7 +39,19 @@ extern int utilStrLineWidth(char *str);
 		struct utilStrList *prev;
 		struct utilStrList *next;
 	};
-	extern struct utilStrList *utilStrListAddAfter(struct utilStrList *list);
-	extern struct utilStrList *utilStrListRm(struct utilStrList *list);
+	// Adds new node after given list, use utilStrRealloc(node->str, ...) before using
+	// list will point to the new node
+	void utilStrListAddAfter(struct utilStrList **list);
+
+	// Adds copy of the given list after given node
+	// after will point to the last element of list
+	void utilStrListCopyAfter(struct utilStrList **after, struct utilStrList *list);
+
+	// Creates list of lines of given string
+	struct utilStrList *utilStrListOfLines(char *str);
+
+	// Removes given node from its list, frees node->str
+	// list will point to the next element if exists, otherwise to the previous one
+	void utilStrListRm(struct utilStrList **list);
 
 #endif

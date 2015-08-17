@@ -1,7 +1,7 @@
 help:rotate;help:rot
                         rot[ate] <axis1> <axis2> <angle>
 
-Rotate figure around the origin in the plane of the axes by the specified angle.
+Rotates figure around the origin in the plane of the axes by the specified angle.
 
                            The axes are indexed from 1.
                             Axis 1 goes to the right,

@@ -8,18 +8,11 @@
 #define CONSOLE_PRIV_DRAW_H
 
 extern int consoleInLength;
-extern char *consoleIn;
-extern char *consoleOut;
 extern char *consoleStatus;
+extern struct utilStrList *consoleLines;
 extern struct utilStrList *consoleBlock;
 extern int consoleBlockWidth;
 extern int consoleBlockHeight;
-extern struct utilStrList *consolePrintMultilineList;
-extern enum consolePrintMode {
-	consolePrintOneLine,
-	consolePrintOneLineErr,
-	consolePrintMultiline
-} consolePrintMode;
 
 // defined in consoleCmdVertex.c
 	extern int consoleCmdVertexSelected;

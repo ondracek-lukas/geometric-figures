@@ -11,8 +11,33 @@
 
 struct utilStrList;
 
+// Determines whether user can type also python expressions instead of commands
+// Can be changed anytime.
+extern bool consoleAllowPythonExpr;
+
+// Determines whether typed (or translated) python expressions should be printed to stdout
+// Can be changed anytime.
+extern bool consolePythonExprToStdout;
+
+
 // Module initialization, to be called only once
 extern void consoleInit();
+
+
+enum consoleSpecialChars { // Special: 3,4,5,6,\b; Free: 7,9
+	consoleSpecialBack='\b',
+	consoleSpecialColorNormal=3,
+	consoleSpecialColorRed=4,
+	consoleSpecialColorGreen=5,
+	consoleSpecialColorGray=6
+};
+
+// Returns the length of the longest line of str
+// consoleSpecialChars are reflected
+int consoleStrWidth(char *str);
+
+// Returns number of lines of str
+int consoleStrHeight(char *str);
 
 
 // Prints block from stringsData, returns false if doesn't exist
@@ -24,8 +49,8 @@ extern void consoleClearBlock();
 // Changes status line, returns whether it was changed (otherwise it was already set)
 extern bool consolePrintStatus(char *string);
 
-// Prints multiline string, utilStrList will (or not) be destroyed on clear
-extern void consolePrintMultilineAtOnce(struct utilStrList *lines, bool destroy);
+// Prints list of lines
+extern void consolePrintLinesList(struct utilStrList *lines);
 
 // Sets multiline mode
 extern void consolePrintMultilineBegin();
@@ -37,7 +62,18 @@ extern void consolePrint(char *string); // [SCRIPT_NAME: echo]
 extern void consolePrintErr(char *string);
 
 // Clears printed line(s)
-extern void consoleClear();
+extern void consoleClear(); // [SCRIPT_NAME: consoleClear]
+
+
+// Printing will only append lines to already printed ones
+void consoleAppendMode();
+
+// Printing or opening console will clear printed lines
+extern void consoleClearBeforePrinting();
+
+// Appends msg line and clears only it while typing command
+extern void consoleClearAfterCmd(char *msg);  // [SCRIPT_NAME: consoleClearAfterCmd]
+extern void consoleClearAfterCmdDefaultMsg(); // [SCRIPT_NAME: consoleClearAfterCmd]
 
 
 // Returns whether input console line is open (: was pressed)
@@ -49,10 +85,14 @@ extern void consoleBackspace();
 extern void consoleEnter();
 extern void consoleUp();
 extern void consoleDown();
+extern void consoleLeft();
+extern void consoleRight();
 
 // Executes console command
 extern void consoleExecuteCmd(char *cmd);
 
+// Evaluates script expression
+extern void consoleEvalExpr(char *expr);
 
 // Gets/sets the length of the history
 extern int consoleGetHistoryMaxCount();

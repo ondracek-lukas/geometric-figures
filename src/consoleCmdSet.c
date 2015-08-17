@@ -10,229 +10,268 @@
 #include <math.h>
 
 #include "console.h"
+#include "consoleCmds.h"
+#include "util.h"
+#include "safe.h"
 #include "drawer.h"
 #include "matrix.h"
 #include "convex.h"
 #include "figure.h"
 #include "anim.h"
+#include "script.h"
 
 static char *colorGetter(GLfloat *variable);
 static int colorSetter(GLfloat *variable, char *value);
 
-#include "consoleCmdSetMacrosDef.c.tmp"
+#define appendToGetAllExpr(cmd) \
+	utilStrRealloc(&getAllScriptExpr, &getAllScriptExprEnd, strlen(cmd)+1); \
+	getAllScriptExprEnd=stpcpy(getAllScriptExprEnd, (cmd));
+#define addToGetAllExpr(cmd) \
+	appendToGetAllExpr(" + '\\n' + "); \
+	appendToGetAllExpr(cmd);
 
-	/* macros description:
-	variable?(NAME,    // ? is (I-integer|F-float|B-bool|C-color), non-indexed version
-		GETTER,
-		SETTER_COND,       //  not in bool version
-		SETTER
-	)
-	variables?(NAME, INDEX_MIN, INDEX_MAX, INDEX_MEANING,       // indexed version
-		GETTER,
-		SETTER_COND,       //  not in bool version
-		SETTER
-	)
-	*/
-	/* macros code:
-	 * line prefix: (i-indexed|n-non-indexed|*-both)(I-integer|-)(F-float|-)(B-bool|-)(C-color|-):
-	 * to see all versions separately run consoleCmdSetMacros.sh without parameters
-[ MACROS CODE:
-n--B-:	if (printAll || (!skipAll && ((b=(strcmp(name, NAME)==0)) || (strcmp(name, "no" NAME)==0)) && (index<0))) {
-i--B-:	if (printAll || (!skipAll && ((b=(strcmp(name, NAME)==0)) || (strcmp(name, "no" NAME)==0)))) {
-nIF-C:	if (printAll || (!skipAll && (strcmp(name, NAME)==0) && (index<0))) {
-iIF-C:	if (printAll || (!skipAll && (strcmp(name, NAME)==0))) {
-iIFBC:		if (!printAll && ((index>INDEX_MAX) || (index<INDEX_MIN)))
-iIFBC:			consolePrintErr("Wrong " INDEX_MEANING);
-iIFBC:		else
-*--B-:		if (value!=0)
-*--B-:			consolePrintErr("Cannot assign to bool");
-*--B-:		else if (printAll || (deletedChar=='?')) {
-*IF-C:		if (value==0) {
-iIFBC:			for (printAll && (index=INDEX_MIN); index<=INDEX_MAX; index++) {
-*IFBC:				GETTER
-iI---:				sprintf(answer, "  " NAME "%d=%d", index, i);
-i-F--:				sprintf(answer, "  " NAME "%d=%f", index, f);
-i---C:				sprintf(answer, "  " NAME "%d=%s", index, colorGetter(c));
-nI---:				sprintf(answer, "  " NAME "=%d", i);
-n-F--:				sprintf(answer, "  " NAME "=%f", f);
-n---C:				sprintf(answer, "  " NAME "=%s", colorGetter(c));
-*--B-:				if (b)
-i--B-:					sprintf(answer, "  " NAME "%d", index);
-n--B-:					sprintf(answer, "  " NAME);
-*--B-:				else
-i--B-:					sprintf(answer, "no" NAME "%d", index);
-n--B-:					sprintf(answer, "no" NAME);
-*IFBC:				consolePrint(answer);
-iIFBC:				if (!printAll)
-iIFBC:					break;
-iIFBC:			}
-*IFBC:		} else {
-*-F--:			f=strtof(value, &text);
-*I---:			i=strtol(value, &text, 10);
-*---C:			if (colorSetter(c, value) && SETTER_COND) {
-*IF--:			if ((*text=='\0') && SETTER_COND) {
-*IFBC:				SETTER
-*IF-C:			} else
-*IF-C:				consolePrintErr("Wrong value");
-*IFBC:		}
-*IFBC:		skipAll=!printAll;
-*IFBC:	}
-] */
+#define addCustomGetter(name, getterExpr) \
+	consoleCmdsAdd("set "name, 0, 0, getterExpr); \
+	consoleCmdsAdd("set "name"?", 0, 0, getterExpr); \
+	addToGetAllExpr(getterExpr);
+#define addCustom(name, flag, getter, setter) \
+	addCustomGetter(name, "'  "name"='+str(gf.get_"getter")"); \
+	consoleCmdsAdd("set "name"=", 1, flag, "gf.set_"setter);
+#define add(name, flag) \
+	addCustom(name, flag, name"()", name"(%)");
 
-void consoleCmdSet(char *text) {
-	int printAll, skipAll=0;
-	char *name=text;
-	char *value=0;
-	int index=INT_MIN;
-	GLfloat f;
-	int i, b;
-	GLfloat c[4];
-	char answer[80];
-	char deletedChar='\0', *deleted=0;
-	if (printAll=(*text=='\0'))
-		consolePrintMultilineBegin();
-	else {
-		while ((*text!='\0') && (*text!='=') && (*text!='?') && ((*text<'0') || (*text>'9')))
-			text++;
-		if ((*text>='0') && (*text<='9')) {
-			index=atoi(text);
-			deleted=text; deletedChar=*text;
-			*(text++)='\0';
-			while ((*text>='0') && (*text<='9'))
-				text++;
-		} else
-			index=-1;
-		if (*text=='=')
-			value=text+1;
-		else if ((*text=='?') && (text[1]=='\0'))
-			value=0;
-		else if (*text!='\0')
-			name="";
-		if (!deleted) {
-			deleted=text; deletedChar=*text;
-			*text='\0';
-		}
+#define addBoolGetter(name, getterExpr) \
+	consoleCmdsAdd("set "name"?", 0, 0, getterExpr); \
+	addToGetAllExpr(getterExpr);
+#define addBool(name) \
+	addBoolGetter(name, "(gf.get_"name"() and '  "name"' or 'no"name"')"); \
+	consoleCmdsAdd("set no"name, 0, 0, "gf.set_"name"(0)"); \
+	consoleCmdsAdd("set "name, 0, 0, "gf.set_"name"(1)");
+
+#define addArray(name, flag, minIndex, maxIndex, getter, setter) \
+	for (int i=minIndex; i<=maxIndex; i++) { \
+		char strName[30], strExpr[30], strExpr2[50]; \
+		sprintf(strName, "set "name"%d", i); \
+		sprintf(strExpr, "gf.get_"getter, i); \
+		consoleCmdsAdd(strName, 0, 0, strExpr); \
+		sprintf(strName, "set "name"%d?", i); \
+		consoleCmdsAdd(strName, 0, 0, strExpr); \
+		sprintf(strExpr2, "'  "name"%d='+str(%s)", i, strExpr); \
+		addToGetAllExpr(strExpr2); \
+		sprintf(strName, "set "name"%d=", i); \
+		sprintf(strExpr, "gf.set_"setter, i); \
+		consoleCmdsAdd(strName, 0, flag, strExpr); \
 	}
 
-	variableC("background",
-		matrixCopy(drawerBackColor, c, 4);,
-		(c[3]==1),
-		drawerSetBackColor(c);
-	)
+void consoleCmdSetUpdateCmds() {
+	consoleCmdsRmBranch("set");
+	char *getAllScriptExpr=0, *getAllScriptExprEnd=0;
+	appendToGetAllExpr("gf.echo('--- Options ---'");
 
-	variablesF("campos", 3, drawerDim, "axis",
-		f=drawerCamPos[index-1];,
-		(f>drawerVisibleRadius) && (f<=8000000),
-		drawerCamPos[index-1]=f;
-		drawerSetProjection();
-	)
-
-	variablesF("camposl", 3, drawerDim, "axis",
-		f=log(drawerCamPos[index-1])/log(2);,
-		(f=pow(2, f), (f>drawerVisibleRadius) && (f<=8000000)),
-		drawerCamPos[index-1]=f;
-		drawerSetProjection();
-	)
-
-	variableB("convexhull",
-		b=convexHull;,
-		if (convexHull=b)
-			convexAttach();
-	)
-
-	variableI("dimen",
-		i=figureData.dim;,
-		(i>=0),
-		consolePrintErr("Property is read-only");
-	)
-
-	variableF("edgesize",
-		f=drawerEdgeSize;,
-		(f>=0),
-		drawerEdgeSize=f;
-		if (drawerVertSize<drawerEdgeSize)
-			drawerVertSize=drawerEdgeSize;
-		if (drawerSelectedVertSize<drawerEdgeSize)
-			drawerSelectedVertSize=drawerEdgeSize;
-		drawerSetProjection();
-	)
-
-	variableC("facecolor",
-		matrixCopy(drawerFaceColor, c, 4);,
-		(1),
-		matrixCopy(c, drawerFaceColor, 4);
-	)
-
-	variableI("history",
-		i=consoleGetHistoryMaxCount();,
-		(i>=0),
-		consoleSetHistoryMaxCount(i);
-	)
-
-  variableI("maxfps",
-		i=1000.0/animFrameDelay;,
-		(i>0),
-		animFrameDelay=1000.0/i;
-	)
-
-	variableC("selvertcolor",
-		matrixCopy(drawerSelectedVertColor, c, 4);,
-		(1),
-		matrixCopy(c, drawerSelectedVertColor, 4);
-	)
-
-	variableF("selvertsize",
-		f=drawerSelectedVertSize;,
-		(f>=0),
-		drawerSelectedVertSize=f;
-		if (drawerVertSize>drawerSelectedVertSize)
-			drawerVertSize=drawerSelectedVertSize;
-		if (drawerEdgeSize>drawerSelectedVertSize)
-			drawerEdgeSize=drawerSelectedVertSize;
-		drawerSetProjection();
-	)
-
-	variableC("spacecolor",
-		matrixCopy(drawerSpaceColorCenter, c, 4);,
-		(c[3]==1),
-		matrixCopy(c, drawerSpaceColorCenter, 3);
-	)
-	variablesC("spacecolor-", 1, drawerDim, "axis",
-		matrixCopy(drawerSpaceColorNegative[index-1], c, 4);,
-		(1),
-		matrixCopy(c, drawerSpaceColorNegative[index-1], 4);
-	)
-	variablesC("spacecolor+", 1, drawerDim, "axis",
-		matrixCopy(drawerSpaceColorPositive[index-1], c, 4);,
-		(1),
-		matrixCopy(c, drawerSpaceColorPositive[index-1], 4);
-	)
-
-	variableF("speed",
-		f=animRotSpeed;,
-		(f>=0),
-		animRotSpeed=f;
-	)
-
-	variableF("vertsize",
-		f=drawerVertSize;,
-		(f>=0),
-		drawerVertSize=f;
-		if (drawerEdgeSize>drawerVertSize)
-			drawerEdgeSize=drawerVertSize;
-		if (drawerSelectedVertSize<drawerVertSize)
-			drawerSelectedVertSize=drawerVertSize;
-		drawerSetProjection();
-	)
-
-	if (!skipAll && !printAll)
-		consolePrintErr("Wrong variable name");
-
-	if (deleted)
-		*deleted=deletedChar;
+	add      ("background",    "s");
+	addArray ("campos",         0,    3, drawerDim,   "campos(%d)",       "campos(%d,%%)"      );
+	addArray ("camposl",        0,    3, drawerDim,   "camposl(%d)",      "camposl(%d,%%)"     );
+	addBool  ("convexhull");
+	add      ("dimen",          0 );
+	add      ("edgesize",       0 );
+	add      ("facecolor",     "s");
+	add      ("history",        0 );
+	add      ("maxfps",         0 );
+	addBool  ("pyexpr");
+	add      ("selvertcolor",  "s");
+	add      ("selvertsize",    0 );
+	if (drawerDim>=0) {
+		addCustom("spacecolor",  "s",                   "spacecolor(0)",    "spacecolor(0,%)"    );
+	}
+	addArray ("spacecolor-",   "s",   1, drawerDim,   "spacecolor(-%d)",  "spacecolor(-%d,%%)" );
+	addArray ("spacecolor+",   "s",   1, drawerDim,   "spacecolor(%d)",   "spacecolor(%d,%%)"  );
+	add      ("speed",          0 );
+	addBool  ("stdoutpyexpr");
+	add      ("vertsize",       0 );
+	appendToGetAllExpr(") or gf.consoleClearAfterCmd()");
+	consoleCmdsAdd("set", 0, 0, getAllScriptExpr);
 }
 
-#include "consoleCmdSetMacrosUndef.c.tmp"
+#undef appendToGetAllExpr
+#undef addToGetAllExpr
+#undef addCustomGetter
+#undef addCustom
+#undef add
+#undef addBoolGetter
+#undef addBool
+#undef addArray
+
+
+#define throw(msg) {scriptThrowException(msg); return 0;}
+#define parseColorAlpha() GLfloat components[4]; colorSetter(components, color)
+#define parseColor() parseColorAlpha(); if (components[3]!=1) throw("Alpha channel is not available");
+#define checkBounds(min, max, index_meaning) if ((index<min)||(index>max)) throw("Wrong "index_meaning)
+#define checkCond(cond) if (!(cond)) throw("Wrong value")
+
+char *consoleCmdGetBackground() {
+	return colorGetter(drawerBackColor);
+}
+void consoleCmdSetBackground(char *color) {
+	parseColorAlpha();
+	drawerSetBackColor(components);
+}
+
+float consoleCmdGetCampos(int index) {
+	checkBounds(3, drawerDim, "axis");
+	return drawerCamPos[index-1];
+}
+void consoleCmdSetCampos(int index, float value) {
+	checkBounds(3, drawerDim, "axis");
+	checkCond((value>drawerVisibleRadius) && (value<=8000000))
+	drawerCamPos[index-1]=value;
+	drawerSetProjection();
+}
+
+float consoleCmdGetCamposl(int index) {
+	return log(consoleCmdGetCampos(index))/log(2);
+}
+void consoleCmdSetCamposl(int index, float value) {
+	consoleCmdSetCampos(index, pow(2, value));
+}
+
+bool consoleCmdGetConvexhull() {
+	return convexHull;
+}
+void consoleCmdSetConvexhull(bool value) {
+	if (convexHull=value)
+		convexAttach();
+}
+
+int consoleCmdGetDimen() {
+	return drawerDim;
+}
+void consoleCmdSetDimen(bool value)
+	throw ("Property is read-only");
+
+float consoleCmdGetEdgesize() {
+	return drawerEdgeSize;
+}
+void consoleCmdSetEdgesize(float value) {
+	checkCond(value>=0);
+	drawerEdgeSize=value;
+	if (drawerVertSize<drawerEdgeSize)
+		drawerVertSize=drawerEdgeSize;
+	if (drawerSelectedVertSize<drawerEdgeSize)
+		drawerSelectedVertSize=drawerEdgeSize;
+	drawerSetProjection();
+}
+
+
+char *consoleCmdGetFacecolor() {
+	return colorGetter(drawerFaceColor);
+}
+void consoleCmdSetFacecolor(char *color) {
+	colorSetter(drawerFaceColor, color);
+}
+
+int consoleCmdGetHistory() {
+	return consoleGetHistoryMaxCount();
+}
+void consoleCmdSetHistory(int value) {
+	checkCond(value>=0);
+	consoleSetHistoryMaxCount(value);
+}
+
+int consoleCmdGetMaxfps() {
+	return 1000.0/animFrameDelay;
+}
+void consoleCmdSetMaxfps(int value) {
+	checkCond(value>0);
+	animFrameDelay=1000.0/value;
+}
+
+
+bool consoleCmdGetPyexpr() {
+	return consoleAllowPythonExpr;
+}
+void consoleCmdSetPyexpr(bool value) {
+	consoleAllowPythonExpr=value;
+}
+
+
+char *consoleCmdGetSelvertcolor() {
+	return colorGetter(drawerSelectedVertColor);
+}
+void consoleCmdSetSelvertcolor(char *color) {
+	colorSetter(drawerSelectedVertColor, color);
+}
+
+float consoleCmdGetSelvertsize() {
+	return drawerSelectedVertSize;
+}
+void consoleCmdSetSelvertsize(float value) {
+	checkCond(value>=0);
+	drawerSelectedVertSize=value;
+	if (drawerVertSize>drawerSelectedVertSize)
+		drawerVertSize=drawerSelectedVertSize;
+	if (drawerEdgeSize>drawerSelectedVertSize)
+		drawerEdgeSize=drawerSelectedVertSize;
+	drawerSetProjection();
+}
+
+
+char *consoleCmdGetSpacecolor(int index) {
+	checkBounds(-drawerDim, drawerDim, "axis");
+	if (index>0)
+		return colorGetter(drawerSpaceColorPositive[index-1]);
+	else if (index<0)
+		return colorGetter(drawerSpaceColorNegative[-index-1]);
+	else
+		return colorGetter(drawerSpaceColorCenter);
+}
+void consoleCmdSetSpacecolor(int index, char *color) {
+	checkBounds(-drawerDim, drawerDim, "axis");
+	if (index>0)
+		colorSetter(drawerSpaceColorPositive[index-1], color);
+	else if (index<0)
+		colorSetter(drawerSpaceColorNegative[-index-1], color);
+	else {
+		parseColor();
+		matrixCopy(components, drawerSpaceColorCenter, 3);
+	}
+}
+
+float consoleCmdGetSpeed() {
+	return animRotSpeed;
+}
+void consoleCmdSetSpeed(float value) {
+	checkCond(value>=0);
+	animRotSpeed=value;
+}
+
+
+bool consoleCmdGetStdoutpyexpr() {
+	return consolePythonExprToStdout;
+}
+void consoleCmdSetStdoutpyexpr(bool value) {
+	consolePythonExprToStdout=value;
+}
+
+
+float consoleCmdGetVertsize() {
+	return drawerVertSize;
+}
+void consoleCmdSetVertsize(float value) {
+	checkCond(value>=0);
+	drawerVertSize=value;
+	if (drawerEdgeSize>drawerVertSize)
+		drawerEdgeSize=drawerVertSize;
+	if (drawerSelectedVertSize<drawerVertSize)
+		drawerSelectedVertSize=drawerVertSize;
+	drawerSetProjection();
+}
+
+#undef throw
+#undef parseColorAlpha
+#undef parseColor
+#undef checkBounds
+#undef checkCond
+
 
 static char *colorGetter(GLfloat *variable) {
 	static char string[21];

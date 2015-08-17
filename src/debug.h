@@ -37,6 +37,8 @@ extern void convexFigBstPrintR(struct convexFigBst *bst, char *parent, char *att
 extern int convexFigBstCheck(struct convexFigBst *bst, char *str);
 extern int convexFigBstCheckR(struct convexFigBst *bst, GLfloat *min, GLfloat *max, int *depth, char *str);
 extern void convexLoopDetectPrint(int count, int parent, int child, int index, int next);
+struct trie;
+extern void consoleCmdsTriePrint(struct trie *trie);
 #endif
 
 #endif

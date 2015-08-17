@@ -17,6 +17,9 @@
 //     s: parameter will be surrounded by double-quotes as string literal
 extern bool consoleCmdsAdd(char *prefix, int params, char *paramsFlags, char *scriptExpr);
 
+// Removes all commands with the given prefix.
+extern void consoleCmdsRmBranch(char *prefix);
+
 // Converts command into scripting language expression.
 // Returns NULL on error.
 extern char *consoleCmdsToScriptExpr(char *cmd);

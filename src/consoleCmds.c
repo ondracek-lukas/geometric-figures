@@ -6,6 +6,8 @@
 #include <stdbool.h>
 
 #include "util.h"
+#include "debug.h"
+#include "safe.h"
 
 struct trie {
 	char c;
@@ -17,6 +19,14 @@ struct trie {
 };
 
 static struct trie consoleCmdsRegister;
+
+static inline struct trie **trieGetChildPtr(struct trie *trie, char c) {
+	struct trie **pTrie;
+	pTrie=&trie->child;
+	while (*pTrie && ((*pTrie)->c != c))
+		pTrie=&(*pTrie)->sibling;
+	return pTrie;
+}
 
 static inline struct trie *trieGetChild(struct trie *trie, char c) {
 	trie=trie->child;
@@ -36,6 +46,28 @@ static inline struct trie *trieGetChildCreate(struct trie *trie, char c) {
 	return *pTrie;
 }
 
+static void trieDestroy(struct trie **pTrie) {
+	while ((*pTrie)->child)
+		trieDestroy(&(*pTrie)->child);
+	struct trie *trie=*pTrie;
+	(*pTrie)=trie->sibling;
+	free(trie->scriptExpr);
+	free(trie->paramsFlags);
+	free(trie);
+}
+
+static void trieDestroyBranch(struct trie **pTrie, char *prefix) {
+	if (*prefix) {
+		if (!*pTrie)
+			return;
+		trieDestroyBranch(trieGetChildPtr(*pTrie, *prefix), prefix+1);
+		if (!(*pTrie)->child)
+			trieDestroy(pTrie);
+	} else {
+		trieDestroy(pTrie);
+	}
+}
+
 bool consoleCmdsAdd(char *prefix, int params, char *paramsFlags, char *scriptExpr) {
 	struct trie *trie=&consoleCmdsRegister;
 	for (; *prefix; prefix++)
@@ -46,23 +78,35 @@ bool consoleCmdsAdd(char *prefix, int params, char *paramsFlags, char *scriptExp
 	if (trie->scriptExpr) // Already exists
 		return false;
 
-	trie->scriptExpr=malloc(strlen(scriptExpr)+1);
+	trie->scriptExpr=safeMalloc(strlen(scriptExpr)+1);
 	strcpy(trie->scriptExpr, scriptExpr);
-	if (paramsFlags && *paramsFlags) {
-		trie->paramsFlags=malloc(strlen(paramsFlags));
-		strcpy(trie->paramsFlags, paramsFlags);
-	} else {
-		trie->paramsFlags="-";
-	}
+	if (!paramsFlags || !*paramsFlags)
+		paramsFlags="-";
+	trie->paramsFlags=safeMalloc(strlen(paramsFlags)+1);
+	strcpy(trie->paramsFlags, paramsFlags);
 	trie->params=params;
+	DEBUG_CMDS(consoleCmdsTriePrint(&consoleCmdsRegister);)
 	return true;
+}
+
+void consoleCmdsRmBranch(char *prefix) {
+	if (*prefix) {
+		struct trie **pTrie=trieGetChildPtr(&consoleCmdsRegister, *prefix);
+		if (!*pTrie)
+			return;
+		trieDestroyBranch(pTrie, prefix+1);
+	} else {
+		while (consoleCmdsRegister.child)
+			trieDestroy(&consoleCmdsRegister.child);
+	}
+	DEBUG_CMDS(consoleCmdsTriePrint(&consoleCmdsRegister);)
 }
 
 char *consoleCmdsToScriptExpr(char *cmd) {
 	static char *scriptExpr=0;
 
 	struct trie *trie=&consoleCmdsRegister;
-	for (; cmd; cmd++) {
+	for (; *cmd; cmd++) {
 		struct trie *trie2=trie;
 		trie=trieGetChild(trie, *cmd);
 		if (!trie) {
@@ -72,6 +116,9 @@ char *consoleCmdsToScriptExpr(char *cmd) {
 	}
 
 	if (!trie->scriptExpr)
+		return 0;
+
+	if ((!trie->params) && *cmd)
 		return 0;
 
 	utilStrRealloc(&scriptExpr, 0, strlen(trie->scriptExpr) + strlen(cmd) + 2);

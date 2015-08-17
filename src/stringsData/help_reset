@@ -1,16 +1,16 @@
 help:reset;help:reset boundary;help:reset colors;help:reset rotation;help:reset rot
                           reset boundary
 
-                Remove the figure except vertices.
+                Removes the figure except vertices.
      If convexhull is set, figure is immediately recalculated.
 
 
                           reset colors
 
-            Set all the colors to their default values.
+            Sets all the colors to their default values.
 It is applied to background, facecolor, selvertcolor, spacecolor*.
 
 
                           reset rot[ation]
 
-              Rotate figure to its default rotation.
+              Rotates figure to its default rotation.

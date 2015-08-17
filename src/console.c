@@ -409,7 +409,6 @@ void initCmds() {
 #undef addNew
 #undef addAlias
 
-static void executeBlock(char *cmds);
 void consoleExecuteCmd(char *cmd) {
 	static char *tmp=0;
 	char *tmp2, *expr, *ret;
@@ -431,10 +430,34 @@ void consoleExecuteCmd(char *cmd) {
 	}
 }
 
+
+static void execFile(int str_path);
+static char *execFilePath=0;
+void consoleExecFile(char *path) {
+	utilStrRealloc(&execFilePath, 0, strlen(path)+1);
+	strcpy(execFilePath, path);
+	glutTimerFunc(0, execFile, 0);
+}
+
+void execFile(int ignored) {
+	consoleCmdSource(execFilePath);
+	char *err=scriptCatchException();
+	if (err)
+		consolePrintErr(err);
+}
+
+static char *evalExprStr=0;
+static void evalExpr(int str_expr);
 void consoleEvalExpr(char *expr) {
+	utilStrRealloc(&evalExprStr, 0, strlen(expr)+1);
+	strcpy(evalExprStr, expr);
+	glutTimerFunc(0, evalExpr, 0);
+}
+
+void evalExpr(int ignored) {
 	cmdExecutionLevel++;
 
-	char *ret=scriptEvalExpr(expr);
+	char *ret=scriptEvalExpr(evalExprStr);
 	if (ret && *ret)
 		consolePrint(ret);
 
@@ -444,11 +467,11 @@ void consoleEvalExpr(char *expr) {
 
 	if (consolePythonExprToStdout) {
 		if (err)
-			printf("%s # Error: %s\n", expr, err);
+			printf("%s # Error: %s\n", evalExprStr, err);
 		else if (ret && *ret)
-			printf("%s # Ret: %s\n", expr, ret);
+			printf("%s # Ret: %s\n", evalExprStr, ret);
 		else
-			printf("%s\n", expr, err);
+			printf("%s\n", evalExprStr, err);
 	}
 
 	cmdExecutionLevel--;

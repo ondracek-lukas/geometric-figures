@@ -66,10 +66,7 @@ int main(int argc, char **argv) {
 	strcat(path, "-config.py");
 	if (file=fopen(path, "r")) {
 		fclose(file);
-		consoleCmdSource(path);
-		char *err=scriptCatchException();
-		if (err)
-			consolePrintErr(err);
+		consoleExecFile(path);
 	}
 
 	free(path);

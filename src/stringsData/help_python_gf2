@@ -1,0 +1,7 @@
+help:python gf2;help:scripting gf2
+List of other gf module functions (not accessible as commands):
+  gf.clear()  | Clears console, otherwise echo will only append new lines.
+  gf.clearAfterCmd()     | Does echo msg; only this line is cleared when typing command,
+  gf.clearAfterCmd(msg)  | the other will resist; default msg is used if not given.
+  gf.sleep(ms)  | Handles window events for at least given time and one repainting;
+                | returns False if aborted by user, script has to end as soon as possible.

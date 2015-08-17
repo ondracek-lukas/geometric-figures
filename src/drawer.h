@@ -6,6 +6,7 @@
 #define DRAWER_H
 
 #include <GL/freeglut.h>
+#include <stdbool.h>
 
 // Proportions:
 
@@ -63,6 +64,21 @@
 
 	// Reset all colors to their initial values
 	extern void drawerResetColors(); // [SCRIPT_NAME: resetColors]
+
+
+// Redisplaying
+
+	// Delay between last two finished repainting, read-only
+	extern int drawerLastDelay;
+
+	// The total count of redisplays, can overflow, read-only
+	extern unsigned drawerRedisplayCounter;
+
+	// Schedules redisplay
+	extern void drawerInvokeRedisplay();
+
+	// Returns whether there is a scheduled redisplay
+	extern bool drawerWaitingRedisplay();
 
 
 // Event handling:

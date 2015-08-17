@@ -62,7 +62,7 @@ extern void consolePrint(char *string); // [SCRIPT_NAME: echo]
 extern void consolePrintErr(char *string);
 
 // Clears printed line(s)
-extern void consoleClear(); // [SCRIPT_NAME: consoleClear]
+extern void consoleClear(); // [SCRIPT_NAME: clear]
 
 
 // Printing will only append lines to already printed ones
@@ -72,8 +72,8 @@ void consoleAppendMode();
 extern void consoleClearBeforePrinting();
 
 // Appends msg line and clears only it while typing command
-extern void consoleClearAfterCmd(char *msg);  // [SCRIPT_NAME: consoleClearAfterCmd]
-extern void consoleClearAfterCmdDefaultMsg(); // [SCRIPT_NAME: consoleClearAfterCmd]
+extern void consoleClearAfterCmd(char *msg);  // [SCRIPT_NAME: clearAfterCmd]
+extern void consoleClearAfterCmdDefaultMsg(); // [SCRIPT_NAME: clearAfterCmd]
 
 
 // Returns whether input console line is open (: was pressed)

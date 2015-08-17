@@ -102,7 +102,7 @@ void convexInteractUpdate() {
 	if (*message!='\0')
 		updateStatus();
 	consolePrintStatus(message);
-	glutPostRedisplay();
+	drawerInvokeRedisplay();
 	glutMainLoopEvent();
 	updateTime=glutGet(GLUT_ELAPSED_TIME);
 }

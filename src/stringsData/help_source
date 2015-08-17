@@ -9,4 +9,4 @@ help:source;help:so
 
 Application executes script %/<name_of_executable>-config.py on startup.
 
-       For more information about scripting type :help scripting.
+       For more information about scripting type :help python.

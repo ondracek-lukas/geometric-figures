@@ -8,6 +8,7 @@
 #include "safe.h"
 #include "convex.h"
 #include "console.h"
+#include "drawer.h"
 
 struct mappedItem {
 	int code;
@@ -27,7 +28,7 @@ static struct mappedItem mappedPressed; // head of the list
 static int mappedBS(int code, int first, int last);
 static struct mappedItem *createMappedItem(int code);
 static struct mappedItem *getMappedItem(int code);
-static void userKey(int c, bool pressed);
+static void userKey(int c, int m, bool pressed);
 static void userKeyReleaseAll();
 
 static int codeFromCM(int c, int m);
@@ -108,8 +109,7 @@ struct animRotation *keyboardGetMappedRot(int code) {
 }
 
 
-void userKey(int c, bool pressed) {
-	int m=glutGetModifiers();
+void userKey(int c, int m, bool pressed) {
 	int code=codeFromCM(c, m);
 	if (!code)
 		return;
@@ -161,10 +161,19 @@ void userKeyReleaseAll() {
 
 void keyboardPress(int c) {
 	// c is +ASCII or -GLUT_KEY
+	keyboardPressMod(c, glutGetModifiers());
+}
+
+void keyboardPressMod(int c, int mod) {
+	// c is +ASCII or -GLUT_KEY
 	consoleClearBlock();
 	if (convexInteract) {
 		userKeyReleaseAll();
 		convexInteractKeyPress(c);
+	} else if (animSleepActive) {
+		userKeyReleaseAll();
+		animSleepInterrupt(c, mod);
+		return;
 	} else if (consoleIsOpen()) {
 		userKeyReleaseAll();
 		switch(c) {
@@ -203,16 +212,16 @@ void keyboardPress(int c) {
 			default:
 				glutIgnoreKeyRepeat(1);
 				consoleClear();
-				userKey(c, 1);
+				userKey(c, mod, 1);
 				break;
 		}
-	glutPostRedisplay();
+	drawerInvokeRedisplay();
 }
 
 void keyboardRelease(int c) {
 	if (!convexInteract && !consoleIsOpen()) {
-		userKey(c, 0);
-		glutPostRedisplay();
+		userKey(c, glutGetModifiers(), 0);
+		drawerInvokeRedisplay();
 	} else
 		userKeyReleaseAll();
 }
@@ -267,6 +276,8 @@ int keyboardCodeFromString(char *s) {
 		tbl("space", 32);
 	else
 		tbl("space", -m);
+
+	tbl("tab", 9);
 
 	if (m&(2<<9)) m+='a'-1; // Ctrl+Enter = Ctrl+M, ...
 	tbl("enter", 13);  tbl("esc", 27);  tbl("bs", 8);

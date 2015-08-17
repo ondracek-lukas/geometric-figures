@@ -1,31 +1,97 @@
 # Configuration readme
 
-gf.map("?", "gf.echo(config_readme) or gf.consoleClearAfterCmd()")
-config_readme="--- Default configuration ---"
+gf.map("?", "gf.echo(config_readme) or gf.clearAfterCmd()")
 gf.echo("To see default configuration press ?")
+config_readme="--- Default configuration ---"
 
 
-# Figures:
+# Functions:
 
 def dim_ge(dim):
 	return gf.get_dimen() >= dim
 
+import random
+random.seed()
+
+# Randomly rotates opened figure in all existing axes, optionally moves with camera (resp. modifies perspective projections)
+def randomRot(allowCameraMoving):
+	maxspeed=gf.get_speed()
+	dim=gf.get_dimen()
+
+	# Create two dimensional list of angular velocities (one for every pair of axes)
+	velocities=[0]
+	for i in range(1, dim+1):
+		velocities=velocities+[[0]*i]
+
+	if allowCameraMoving:
+		# Create list of camera distances (in different levels of persp. proj.) and list of their current speeds
+		camPosL=[0]*(dim+1)
+		for i in range(3, dim+1):
+			camPosL[i]=gf.get_camposl(i)
+		camPosLAcc=[0]*(dim+1)
+
+	lastTime=gf.elapsedTime()
+	while gf.sleep(1):  # Repeat till user abort; repaint and wait at least 1ms before every course
+		t=gf.elapsedTime() # Time measuring to deal with different sleeping time
+		gf.clear(); # echo prints every line below the previous one, clearing is necessary
+		gf.echo("--- Random rotation ---")
+
+		# Rotate figure and write velocities to console
+		for i in range(1, dim+1):
+			for j in range(1, i):
+				velocities[i][j]=velocities[i][j]+(random.random()-0.5)*4
+				if velocities[i][j]>maxspeed:
+					velocities[i][j]=maxspeed
+				if velocities[i][j]<-maxspeed:
+					velocities[i][j]=-maxspeed
+				gf.echo("  {}{}: {:6.2f} deg/sec" . format(j, i, -velocities[i][j]));
+				gf.rotate(i, j, velocities[i][j]*(t-lastTime)/1000)
+
+		if allowCameraMoving:
+			# Change camera distances and write new values to console
+			for i in range(3, dim+1):
+				camPosLAcc[i]=camPosLAcc[i]+(random.random()-0.5)/64
+				if camPosLAcc[i]<0:
+					if camPosLAcc[i]<-0.01:
+						camPosLAcc[i]=-0.01
+					camPosL[i]=camPosL[i]+(camPosL[i]-0.2)*camPosLAcc[i]
+				if camPosLAcc[i]>0:
+					if camPosLAcc[i]>0.01:
+						camPosLAcc[i]=0.01
+					camPosL[i]=camPosL[i]+(10-camPosL[i])*camPosLAcc[i]
+				gf.echo("  camposl{}={:6.2f}" . format(i, camPosL[i]))
+				gf.set_camposl(i, camPosL[i])
+
+		gf.clearAfterCmd("Press TAB to toggle camera moving or any other key to stop moving"); # Remove only this line when user types command
+		lastTime=t
+	if allowCameraMoving:
+		gf.map("<tab>", "randomRot(False)"); # Tab always rotates without camera moving (default)
+	else:
+		gf.map("<tab>", "randomRot(gf.elapsedTime()<" + str(gf.elapsedTime()+50)+")"); # Pressing tab in 50ms will rotate with camera moving
+		                                                                               # If tab was used to abort rotation, the same press will resume it
+
+
+# Figures:
+
 def openAndRot(name):
 	gf.open("%/data/" + name + ".dat");
-	gf.rotate(1 ,3, 30);
-	gf.rotate(2 ,3, 20);
+	if dim_ge(3):
+		gf.rotate(1 ,3, 30)
+		gf.rotate(2 ,3, 20)
+	randomRot(False)
 def sourceAndRot(name):
 	gf.source("%/data/" + name + ".txt");
-	gf.rotate(1 ,3, 30);
-	gf.rotate(2 ,3, 20);
+	if dim_ge(3):
+		gf.rotate(1 ,3, 30)
+		gf.rotate(2 ,3, 20)
+	randomRot(False)
 
-gf.map("<Esc>", "close")
  #0D:
-gf.map("~", "o %/data/0d.dat")
+gf.map("~", "openAndRot('0d')")
  #1D:
-gf.map("`", "o %/data/1d-2.dat")
+gf.map("`", "openAndRot('1d-2')")
  #2D:
-gf.map("1", "o %/data/2d-3.dat")
+gf.map("1", "openAndRot('2d-3')")
  #3D:
 gf.map("2", "openAndRot('3d-4')")
 gf.map("3", "openAndRot('3d-6')")
@@ -53,6 +119,9 @@ Figures:
 
 
 # Rotation:
+
+ #Random:
+gf.map("<tab>", "randomRot(False)");
 
  #2D:
 gf.rmap("q", 1, 2)
@@ -88,7 +157,8 @@ config_readme+="""
 Rotations: (use shift to rotate by 15 degrees)
   2D: q-w 12(xy)
   3D: a-s 13(xz), z-x 23(yz)
-  4D: d-f 14(x4), c-v 24(y4), e-r 34(z4)"""
+  4D: d-f 14(x4), c-v 24(y4), e-r 34(z4)
+Random rotation: TAB"""
 
 
 # Modification:
@@ -96,6 +166,7 @@ Rotations: (use shift to rotate by 15 degrees)
 gf.map("p", "vertex previous")
 gf.map("n", "vertex next")
 gf.map("o", "vertex deselect")
+gf.map("<esc>", "vertex deselect")
 gf.map("P", "vertex remove")
 gf.map("N", "vertex add")
 gf.map("h", "vertex move -0.2")
@@ -111,7 +182,7 @@ config_readme+="""
 Modifications:
   Remove/add vertex:    P-N
   Select previous/next: p-n
-  Deselect:             o
+  Deselect:             o/Esc
   Move in an axis:      h-l 1(x), j-k 2(y), u-i 3(z), m-, 4"""
 
 

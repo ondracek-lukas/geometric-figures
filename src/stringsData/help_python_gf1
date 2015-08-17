@@ -1,0 +1,30 @@
+help:python gf1;help:scripting gf1
+List of commands to be accessed via python:
+  gf.close()
+  gf.echo(string)
+  gf.help(string_name)
+  gf.history()
+  gf.map(string_key, string_cmd_or_python_expr)
+  gf.map(string_key)
+  gf.new(int_dim)
+  gf.open(string_path)
+  gf.quit()
+  gf.resetBoundary()
+  gf.resetColors()
+  gf.resetRotation()
+  gf.rmap(string_key, int_axis1, int_axis2)
+  gf.rmap(string_key)
+  gf.rotate(int_axis1, int_axis2, float_angle)
+  gf.set_<option_name>(value)         | value can be bool, int, float or color
+  gf.set_<option_name>(index, value)  | according to the option,
+  gf.get_<option_name>()              | colors are strings;
+  gf.get_<option_name>(index)         | getters returns value of given type.
+  gf.source(string_path)
+  gf.vertexAdd()
+  gf.vertexAdd(float_coord1, ...)
+  gf.vertexDeselect()
+  gf.vertexMove(float_coord1, ...)
+  gf.vertexPrevious()
+  gf.vertexNext()
+  gf.vertexSelect(index)
+  gf.write(string_path)

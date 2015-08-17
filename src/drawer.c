@@ -6,6 +6,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "safe.h"
 #include "matrix.h"
@@ -27,13 +28,17 @@ GLfloat (*drawerSpaceColorPositive)[4]=0;
 GLfloat (*drawerSpaceColorNegative)[4]=0;
 GLfloat drawerSpaceColorCenter[4];
 GLfloat drawerSelectedVertColor[4];
+int drawerLastDelay=1;
+unsigned drawerRedisplayCounter=0;
 
+static bool redisplayNeeded=false;
 static GLfloat stringColor[4];
 static GLfloat stringColorRed[4];
 static GLfloat stringColorGreen[4];
 static GLfloat stringColorGray[4];
 static GLfloat scale=1;
 static GLUquadric *quadric=0;
+static int lastTime=0;
 
 int width=0, height=0;
 
@@ -70,6 +75,14 @@ void drawerResize(int w, int h) {
 	drawerSetProjection();
 }
 
+void drawerInvokeRedisplay() {
+	redisplayNeeded=true;
+	glutPostRedisplay();
+}
+bool drawerWaitingRedisplay() {
+	return redisplayNeeded;
+}
+
 void drawerDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -78,6 +91,12 @@ void drawerDisplay() {
 
 	glFlush();
 	glutSwapBuffers();
+
+	int time=glutGet(GLUT_ELAPSED_TIME);
+	drawerLastDelay=time-lastTime;
+	lastTime=time;
+	redisplayNeeded=false;
+	drawerRedisplayCounter++;
 }
 
 void drawerSetBackColor(GLfloat *color) {

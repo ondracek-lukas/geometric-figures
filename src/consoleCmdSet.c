@@ -60,7 +60,7 @@ static int colorSetter(GLfloat *variable, char *value);
 		addToGetAllExpr(strExpr2); \
 		sprintf(strName, "set "name"%d=", i); \
 		sprintf(strExpr, "gf.set_"setter, i); \
-		consoleCmdsAdd(strName, 0, flag, strExpr); \
+		consoleCmdsAdd(strName, 1, flag, strExpr); \
 	}
 
 void consoleCmdSetUpdateCmds() {

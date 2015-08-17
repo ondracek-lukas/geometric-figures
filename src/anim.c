@@ -4,7 +4,9 @@
 
 #include <GL/freeglut.h>
 #include <stdio.h>
+#include <time.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "keyboard.h"
 #include "figure.h"
@@ -12,9 +14,15 @@
 #include "console.h"
 #include "util.h"
 #include "safe.h"
+#include "drawer.h"
 
-int animFrameDelay=33;   // ms
-GLfloat animRotSpeed=90; // degrees per second
+int animFrameDelay=33;           // ms
+const int animResponseDelay=100;
+GLfloat animRotSpeed=90;         // degrees per second
+bool animSleepActive=false;
+bool animRedisplayNeeded=false;
+static int sleepInterruptedCode=0;
+static int sleepInterruptedMod;
 
 struct animRotation {
 	int axis1, axis2;
@@ -71,13 +79,20 @@ void animStopRot(struct animRotation *rot) {
 }
 
 void frame(int value) {
-	char *string=0;
+	char str[100], *str2;
 	int time=glutGet(GLUT_ELAPSED_TIME);
 	int delay=time-lastTime;
 	int rots=0;
 
-	lastTime=time;
 	glutTimerFunc(animFrameDelay, frame, 0);
+	if (!animSleepActive && sleepInterruptedCode) {
+		int code=sleepInterruptedCode;
+		sleepInterruptedCode=0;
+		keyboardPressMod(code, sleepInterruptedMod);
+		return;
+	}
+
+	lastTime=time;
 
 	if (convexInteract)
 		return;
@@ -90,14 +105,66 @@ void frame(int value) {
 			consolePrintErr("Wrong axes");
 	}
 
-	utilStrRealloc(&string, 0, 50);
-	if (rots)
-		sprintf(string, "%3d FPS, %d rotations, scale %.3f", 1000/delay, rots, figureScale);
-	else
-		sprintf(string, "scale %.3f", figureScale);
-
-	if (consolePrintStatus(string) || rots) {
-		glutPostRedisplay();
+	str2=str;
+	if (rots || animSleepActive) {
+		sprintf(str2, "%3d FPS, ", 1000/drawerLastDelay);
+		while (*str2) str2++;
 	}
-	utilStrRealloc(&string, 0, 0);
+	if (rots) {
+		sprintf(str2, "%d rotations, ", rots);
+		while (*str2) str2++;
+	}
+	sprintf(str2, "scale %.3f", figureScale);
+
+	if (consolePrintStatus(str) || rots || animRedisplayNeeded) {
+		animRedisplayNeeded=false;
+		drawerInvokeRedisplay();
+	}
+}
+
+bool animSleep(int ms) {
+	if (sleepInterruptedCode) {
+		return false;
+	}
+	int time = glutGet(GLUT_ELAPSED_TIME);
+	int returnAt = time + ms;
+	int wakeAt, wakeAfter;
+	struct timespec sleepTime;
+	int redisplayCounter=drawerRedisplayCounter;
+	sleepTime.tv_sec=0;
+	animSleepActive=true;
+	animRedisplayNeeded=true;
+	
+	while ((redisplayCounter==drawerRedisplayCounter) || ((ms=returnAt-time)>0)) {
+		wakeAfter=animFrameDelay/4;
+		if (wakeAfter > animResponseDelay)
+			wakeAfter=animResponseDelay;
+		if (wakeAfter > ms)
+			wakeAfter=ms;
+		wakeAt=time+wakeAfter;
+
+		glutMainLoopEvent();
+		if (sleepInterruptedCode)
+			break;
+
+		time = glutGet(GLUT_ELAPSED_TIME);
+		wakeAfter=wakeAt-time;
+		if (wakeAfter>0) {
+			sleepTime.tv_nsec=wakeAfter*1000;
+			nanosleep(&sleepTime, 0);
+		}
+		time = glutGet(GLUT_ELAPSED_TIME);
+	}
+	glutMainLoopEvent();
+	animSleepActive=false;
+	return !sleepInterruptedCode;
+}
+
+void animSleepInterrupt(int c, int mod) {
+	sleepInterruptedCode=c;
+	sleepInterruptedMod=mod;
+}
+
+int animGetTime() {
+	return glutGet(GLUT_ELAPSED_TIME);
 }

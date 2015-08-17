@@ -26,5 +26,5 @@ help:
         w[rite]                        - writes figure to a file
 
                       For more help type :help <command>.
-For information about scripting and default configuration type :help scripting.
+For information about scripting and default configuration type :help python.
      For information about author and license conditions type :help about.

@@ -26,6 +26,9 @@ extern struct animRotation *keyboardGetMappedRot(int code);
 	// Keyboard press
 	extern void keyboardPress(int c);
 
+	// Keyboard press, doesn't call glutGetModifiers()
+	extern void keyboardPressMod(int c, int mod);
+
 	// Keyboard release
 	extern void keyboardRelease(int c);
 

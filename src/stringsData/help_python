@@ -1,5 +1,4 @@
 help:python;help:scripting
-
      The application can be extended using python scripts,
               which can be executed using :source.
        This is the preferred way of defining key mapping,

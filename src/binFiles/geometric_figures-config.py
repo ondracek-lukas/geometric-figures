@@ -30,9 +30,9 @@ def randomRot(allowCameraMoving):
 			camPosL[i]=gf.get_camposl(i)
 		camPosLAcc=[0]*(dim+1)
 
-	lastTime=gf.elapsedTime()
+	lastTime=gf.time()
 	while gf.sleep(1):  # Repeat till user abort; repaint and wait at least 1ms before every course
-		t=gf.elapsedTime() # Time measuring to deal with different sleeping time
+		t=gf.time() # Time measuring to deal with different sleeping time
 		gf.clear(); # echo prints every line below the previous one, clearing is necessary
 		gf.echo("--- Random rotation ---")
 
@@ -67,7 +67,7 @@ def randomRot(allowCameraMoving):
 	if allowCameraMoving:
 		gf.map("<tab>", "randomRot(False)"); # Tab always rotates without camera moving (default)
 	else:
-		gf.map("<tab>", "randomRot(gf.elapsedTime()<" + str(gf.elapsedTime()+50)+")"); # Pressing tab in 50ms will rotate with camera moving
+		gf.map("<tab>", "randomRot(gf.time()<" + str(gf.time()+50)+")"); # Pressing tab in 50ms will rotate with camera moving
 		                                                                               # If tab was used to abort rotation, the same press will resume it
 
 

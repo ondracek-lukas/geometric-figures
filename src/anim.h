@@ -52,6 +52,6 @@ extern bool animSleep(int ms); // [SCRIPT_NAME: sleep]
 extern void animSleepInterrupt(int code, int mod);
 
 // Returns time in ms from the start of app
-int animGetTime(); // [SCRIPT_NAME: elapsedTime]
+int animGetTime(); // [SCRIPT_NAME: time]
 
 #endif

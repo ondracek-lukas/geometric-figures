@@ -12,6 +12,7 @@
 #include "convex.h"
 #include "convexFig.h"
 #include "convexSpace.h"
+#include "drawer.h"
 
 bool convexInteract=0;
 char *convexInteractAborted=0;

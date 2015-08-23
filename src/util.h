@@ -29,6 +29,9 @@ extern void utilStrReallocPtrUpdate(char **ptr);
 // Inserts given character before given null terminated string
 extern void utilStrInsertChar(char *str, char c);
 
+// Inserts given chars string before given null terminated str string
+extern void utilStrInsertChars(char *str, char *chars);
+
 // Removes given number of characters from the beginning of the string
 extern void utilStrRmChars(char *str, int cnt);
 
@@ -46,6 +49,11 @@ extern void utilStrRmChars(char *str, int cnt);
 	// Adds copy of the given list after given node
 	// after will point to the last element of list
 	void utilStrListCopyAfter(struct utilStrList **after, struct utilStrList *list);
+
+	// Adds the given list after given node
+	// after will point to the last element of list
+	// list will be still valid pointer
+	void utilStrListMoveAfter(struct utilStrList **after, struct utilStrList *list);
 
 	// Creates list of lines of given string
 	struct utilStrList *utilStrListOfLines(char *str);

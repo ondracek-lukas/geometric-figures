@@ -146,13 +146,20 @@ void utilStrReallocPtrUpdate(char **ptr) {
 // -- string utils --
 
 void utilStrInsertChar(char *str, char c) {
+	char chars[2];
+	chars[0]=c;
+	chars[1]='\0';
+	utilStrInsertChars(str, chars);
+}
+
+void utilStrInsertChars(char *str, char *chars) {
+	int cnt=strlen(chars);
 	char *str2=str;
-	while (*str2++); str2++;
-	while (str2!=str) {
-		*str2=*(str2-1);
-		str2--;
-	}
-	*str2=c;
+	while (*str2++);
+	while (str2--!=str)
+		*(str2+cnt)=*str2;
+	while (*chars)
+		*str++ = *chars++;
 }
 
 void utilStrRmChars(char *str, int cnt) {
@@ -187,6 +194,24 @@ void utilStrListCopyAfter(struct utilStrList **pAfter, struct utilStrList *list)
 		strcpy((*pAfter)->str, list->str);
 		list=list->next;
 	}
+}
+
+void utilStrListMoveAfter(struct utilStrList **pAfter, struct utilStrList *list) {
+	if (!list)
+		return;
+	struct utilStrList *before=NULL;
+	if (*pAfter)
+		before=(*pAfter)->next;
+	if (list->prev)
+		list->prev->next=NULL;
+	list->prev=*pAfter;
+	if (*pAfter)
+		(*pAfter)->next=list;
+	else
+		*pAfter=list;
+	while ((*pAfter)->next)
+		*pAfter=(*pAfter)->next;
+	(*pAfter)->next=before;
 }
 
 struct utilStrList *utilStrListOfLines(char *str) {

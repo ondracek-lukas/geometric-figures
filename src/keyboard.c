@@ -186,6 +186,9 @@ void keyboardPressMod(int c, int mod) {
 			case 8: // backspace
 				consoleBackspace();
 				break;
+			case 9: // tab
+				consoleTab();
+				break;
 			case -GLUT_KEY_UP:
 				consoleUp();
 				break;

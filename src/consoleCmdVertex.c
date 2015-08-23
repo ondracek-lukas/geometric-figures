@@ -8,6 +8,7 @@
 #include "console.h"
 #include "matrix.h"
 #include "safe.h"
+#include "script.h"
 
 int consoleCmdVertexSelected=-1;
 

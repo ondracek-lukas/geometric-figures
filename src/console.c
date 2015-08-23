@@ -211,11 +211,46 @@ void consoleClearAfterCmd(char *msg) {
 
 static int cmdEnd=0;
 static int cmdBegin=2;  // 0th is consoleSpecialColorNormal, 1st is :
-static int cursorPos=0;
-static const int cursorLen=4;
+static int completionEnd=0;
+struct utilStrList *completions=0;
+
+static char cursor[]={
+	consoleSpecialColorGray,
+	'\x14',
+	consoleSpecialColorNormal,
+	consoleSpecialBack,
+	'\0'};
+static char cursorLen=sizeof(cursor)-1;
 
 static void cmdLineRealloc(int newChars) {
-	utilStrRealloc(&consoleLines->str, 0, cmdEnd+newChars);
+	utilStrRealloc(&consoleLines->str, 0, (cmdEnd>completionEnd?cmdEnd:completionEnd)+newChars+1);
+}
+
+static void setCursorPos(int pos) {
+	if (cursorPos) {
+		utilStrRmChars(consoleLines->str+cursorPos, cursorLen);
+		if (cursorPos<cmdEnd)
+			cmdEnd-=cursorLen;
+		if (completionEnd) {
+			completionEnd-=cursorLen;
+			consoleLines->str[cmdEnd]=consoleSpecialColorGray;
+		}
+	} else if(pos) {
+		cmdLineRealloc(cursorLen);
+	}
+	cursorPos=pos;
+	if (cursorPos) {
+		utilStrInsertChars(consoleLines->str+cursorPos, cursor);
+		if (cursorPos<=cmdEnd)
+			cmdEnd+=cursorLen;
+		else
+			consoleLines->str[cursorPos+2]=consoleSpecialColorGray;
+		if (completionEnd) {
+			completionEnd+=cursorLen;
+			if (cursorPos>cmdEnd)
+				consoleLines->str[cmdEnd]=consoleSpecialColorBlue;
+		}
+	}
 }
 
 static void openConsole(char *str) {
@@ -229,40 +264,85 @@ static void openConsole(char *str) {
 		consolePrint(str);
 	}
 	cmdEnd=strlen(consoleLines->str);
-	cursorPos=cmdEnd;
-	cmdLineRealloc(2);
-	consoleLines->str[cmdEnd++]=consoleSpecialColorGray;
-	consoleLines->str[cmdEnd++]='\2'; // !! ? x14 = _
-	consoleLines->str[cmdEnd++]=consoleSpecialColorNormal;
-	consoleLines->str[cmdEnd++]=consoleSpecialBack;
-	consoleLines->str[cmdEnd]='\0';
+	setCursorPos(cmdEnd);
 }
 
 bool consoleIsOpen() {
 	return cursorPos;
 }
 
+void showActiveCompletion() {
+	consoleLines->str[cmdEnd]='\0';
+	completionEnd=0;
+	if (completions) {
+		completionEnd=strlen(completions->str);
+		cmdLineRealloc(completionEnd+2);
+		consoleLines->str[cmdEnd]=consoleSpecialColorGray;
+		strcpy(consoleLines->str+cmdEnd+1, completions->str);
+		completionEnd+=1+cmdEnd;
+	}
+}
+
+void updateCompletions() {
+	consoleLines->str[cmdEnd]='\0';
+	while (completions)
+		utilStrListRm(&completions);
+	completions=consoleCmdsComplete(consoleLines->str+cmdBegin);
+	showActiveCompletion();
+}
+
+void applyCompletion() {
+	if (cursorPos>cmdEnd) {
+		int pos=cursorPos;
+		setCursorPos(0);
+		consoleLines->str[pos]='\0';
+		utilStrRmChars(consoleLines->str+cmdEnd, 1);
+		cmdEnd=pos-1;
+		setCursorPos(cmdEnd);
+	} else {
+		consoleLines->str[cmdEnd]='\0';
+	}
+	completionEnd=0;
+}
+
+
 void consoleKeyPress(char c) {
 	if (!cursorPos)
 		openConsole("");
+	applyCompletion();
+
+	int pos=cursorPos;
+	setCursorPos(0);
 	cmdLineRealloc(1);
-	utilStrInsertChar(consoleLines->str+cursorPos++, c);
+	utilStrInsertChar(consoleLines->str+pos, c);
 	cmdEnd++;
+
+	updateCompletions();
+
+	setCursorPos(pos+1);
 }
 
 void consoleBackspace() {
 	if (cursorPos>cmdBegin) {
-		utilStrRmChars(consoleLines->str + --cursorPos,1);
-		cmdEnd--;
+		if (cursorPos<=cmdEnd) {
+			int pos=cursorPos;
+			setCursorPos(0);
+			utilStrRmChars(consoleLines->str + --pos, 1);
+			cmdEnd--;
+			updateCompletions();
+			setCursorPos(pos);
+		} else {
+			setCursorPos(cmdEnd);
+		}
 	} else if (cursorPos+cursorLen==cmdEnd)
 		consoleClear();
 }
 
 void consoleEnter() {
 	char *cmd=consoleLines->str;
+	applyCompletion();
 	cmd[cmdEnd]='\0';
-	utilStrRmChars(cmd+cursorPos,cursorLen);
-	cmdEnd-=cursorLen;
+	setCursorPos(0);
 	
 	if (historyMaxCount) {
 		if (historyCount<historyMaxCount)
@@ -309,21 +389,37 @@ void consoleDown() {
 
 void consoleLeft() {
 	if (cursorPos>cmdBegin) {
-		char c=consoleLines->str[cursorPos-1];
-		cursorPos--;
-		for (int i=0; i<cursorLen; i++)
-			consoleLines->str[cursorPos+i]=consoleLines->str[cursorPos+i+1];
-		consoleLines->str[cursorPos+cursorLen]=c;
+		if (cursorPos==cmdEnd+1)
+			setCursorPos(cursorPos-2);
+		else
+			setCursorPos(cursorPos-1);
 	}
 }
 
 void consoleRight() {
-	if (cursorPos+cursorLen<cmdEnd) {
-		char c=consoleLines->str[cursorPos+cursorLen];
-		cursorPos++;
-		for (int i=cursorLen-1; i>=0; i--)
-			consoleLines->str[cursorPos+i]=consoleLines->str[cursorPos+i-1];
-		consoleLines->str[cursorPos-1]=c;
+	if ((cursorPos+cursorLen<cmdEnd) || (cursorPos+cursorLen<completionEnd)) {
+		if (cursorPos+cursorLen==cmdEnd)
+			setCursorPos(cursorPos+2);
+		else
+			setCursorPos(cursorPos+1);
+	}
+}
+
+void consoleTab() {
+	if (completions) {
+		int pos=cursorPos;
+		setCursorPos(0);
+		if (pos==completionEnd) {
+			if (completions->next)
+				completions=completions->next;
+			else while (completions->prev)
+				completions=completions->prev;
+			showActiveCompletion();
+		}
+		if (*completions->str=='\0')
+			setCursorPos(cmdEnd);
+		else
+			setCursorPos(completionEnd);
 	}
 }
 
@@ -334,84 +430,94 @@ static int cmdExecutionLevel=0; // number of consoleEvalExpr in stacktrace
 bool consoleAllowPythonExpr=false;
 bool consolePythonExprToStdout=false;
 
-#define addNew(prefix, params, paramsFlags, expr) \
+#define addNew(prefix, expr, params, paramsFlags) \
 	lastParams=params; \
 	lastExpr=expr; \
 	lastParamsFlags=paramsFlags; \
-	consoleCmdsAdd(prefix, lastParams, lastParamsFlags, lastExpr)
-#define addAlias(prefix) consoleCmdsAdd(prefix, lastParams, lastParamsFlags, lastExpr)
+	consoleCmdsAdd(prefix, lastExpr, lastParams, lastParamsFlags, false)
+#define addAlias(prefix) consoleCmdsAdd(prefix, lastExpr, lastParams, lastParamsFlags, true)
 void initCmds() {
 	int lastParams;
 	char *lastParamsFlags;
 	char *lastExpr;
 
-	addNew  ("help",             0, "",     "gf.help(\"\")"          );
+	addNew  ("help",            "gf.help(\"\")",           0, ""     );
 	const char * const *helpPages=stringsGetContent("help");
-	int i=0;
 	while (*helpPages) {
 		char cmd[50], expr[50];
 		sprintf(cmd, "help %s", *helpPages);
 		sprintf(expr, "gf.help(\"%s\")", *helpPages);
-		addNew(cmd,                0, "",     expr                     );
+		addNew(cmd,               expr,                      0, ""     );
 		helpPages++;
 	}
 
-	addNew  ("echo ",            1, "s",    "gf.echo(%)"             );
-	addNew  ("history",          0, "",     "gf.history()"           );
-	addNew  ("map ",            -1, "s",    "gf.map(%)"              );
-	addNew  ("new ",             1, "",     "gf.new(%)"              );
+	addNew  ("echo ",           "gf.echo(%)",              1, "s"    );
+	addNew  ("history",         "gf.history()",            0, ""     );
+	addNew  ("map ",            "gf.map(%)",              -1, "s"    );
+	addNew  ("new ",            "gf.new(%)",               1, ""     );
 	addAlias("n ");
-	addNew  ("close",            0, "",     "gf.close()"             );
-	addNew  ("open ",            1, "s",    "gf.open(%)"             );
+	addNew  ("close",           "gf.close()",              0, ""     );
+	addNew  ("open ",           "gf.open(%)",              1, "p"    );
 	addAlias("o ");
-	addNew  ("quit",             0, "",     "gf.quit()"              );
+	addNew  ("quit",            "gf.quit()",               0, ""     );
 	addAlias("q");
 	addAlias("exit");
-	addNew  ("rotate ",         -1, "",     "gf.rotate(%)"           );
+	addNew  ("rotate ",         "gf.rotate(%)",           -1, ""     );
 	addAlias("rot ");
-	addNew  ("reset rotation",   0, "",     "gf.resetRotation()"     );
+	addNew  ("reset rotation",  "gf.resetRotation()",      0, ""     );
 	addAlias("reset rot");
-	addNew  ("reset colors",     0, "",     "gf.resetColors()"       );
-	addNew  ("reset boundary",   0, "",     "gf.resetBoundary()"     );
-	addNew  ("rmap ",           -1, "s-",   "gf.rmap(%)"             );
+	addNew  ("reset colors",    "gf.resetColors()",        0, ""     );
+	addNew  ("reset boundary",  "gf.resetBoundary()",      0, ""     );
+	addNew  ("rmap ",           "gf.rmap(%)",             -1, "s-"   );
 
 	consoleCmdSetUpdateCmds();
 
-	addNew  ("source ",          1, "s",    "gf.source(%)"           );
+	addNew  ("source ",         "gf.source(%)",            1, "p"    );
 	addAlias("so ");
-	addNew  ("vertex add",       0, "",     "gf.vertexAdd()"         );
+	addNew  ("vertex add",      "gf.vertexAdd()",          0, ""     );
 	addAlias("vert add");
-	addNew  ("vertex add ",     -1, "",     "gf.vertexAdd(%)"        );
+	addNew  ("vertex add ",     "gf.vertexAdd(%)",        -1, ""     );
 	addAlias("vert add ");
-	addNew  ("vertex deselect",  0, "",     "gf.vertexDeselect()"    );
+	addNew  ("vertex deselect", "gf.vertexDeselect()",     0, ""     );
 	addAlias("vertex desel");
 	addAlias("vert deselect");
 	addAlias("vert desel");
-	addNew  ("vertex move ",    -1, "",    "gf.vertexMove(%)"        );
+	addNew  ("vertex move ",    "gf.vertexMove(%)",       -1, ""    );
 	addAlias("vert move ");
-	addNew  ("vertex next",      0, "",     "gf.vertexNext()"        );
+	addNew  ("vertex next",     "gf.vertexNext()",         0, ""     );
 	addAlias("vert next");
-	addNew  ("vertex previous",  0, "",     "gf.vertexPrevious()"    );
+	addNew  ("vertex previous", "gf.vertexPrevious()",     0, ""     );
 	addAlias("vertex prev");
 	addAlias("vert previous");
 	addAlias("vert prev");
-	addNew  ("vertex remove",    0, "",     "gf.vertexRemove()"      );
+	addNew  ("vertex remove",   "gf.vertexRemove()",       0, ""     );
 	addAlias("vertex rm");
 	addAlias("vert remove");
 	addAlias("vert rm");
-	addNew  ("vertex select ",   1, "",     "gf.vertexSelect(%)"     );
+	addNew  ("vertex select ",  "gf.vertexSelect(%)",      1, ""     );
 	addAlias("vertex sel ");
 	addAlias("vert select ");
 	addAlias("vert sel ");
-	addNew  ("write ",           1, "s",    "gf.write(%)"            );
+	addNew  ("write ",          "gf.write(%)",             1, "p"    );
 	addAlias("w ");
+
+	consoleCmdsAddColor("black",       "#000000",  false);
+	consoleCmdsAddColor("white",       "#ffffff",  false);
+	consoleCmdsAddColor("red",         "#ff0000",  false);
+	consoleCmdsAddColor("green",       "#00ff00",  false);
+	consoleCmdsAddColor("blue",        "#0000ff",  false);
+	consoleCmdsAddColor("yellow",      "#ffff00",  false);
+	consoleCmdsAddColor("cyan",        "#00ffff",  false);
+	consoleCmdsAddColor("purple",      "#ff00ff",  false);
+	consoleCmdsAddColor("gray",        "#808080",  false);
+	consoleCmdsAddColor("transparent", "#00000000", true);
 }
 #undef addNew
 #undef addAlias
 
 void consoleExecuteCmd(char *cmd) {
 	static char *tmp=0;
-	char *tmp2, *expr, *ret;
+	char *tmp2, *expr;
 	utilStrRealloc(&tmp, 0, strlen(cmd)+1);
 	while (*cmd==' ')
 		cmd++;
@@ -471,7 +577,7 @@ void evalExpr(int ignored) {
 		else if (ret && *ret)
 			printf("%s # Ret: %s\n", evalExprStr, ret);
 		else
-			printf("%s\n", evalExprStr, err);
+			printf("%s\n", evalExprStr);
 	}
 
 	cmdExecutionLevel--;

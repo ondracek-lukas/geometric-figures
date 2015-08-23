@@ -24,12 +24,13 @@ extern bool consolePythonExprToStdout;
 extern void consoleInit();
 
 
-enum consoleSpecialChars { // Special: 3,4,5,6,\b; Free: 7,9
+enum consoleSpecialChars { // Special: 3,4,5,6,7,\b; Free: 9
 	consoleSpecialBack='\b',
 	consoleSpecialColorNormal=3,
 	consoleSpecialColorRed=4,
 	consoleSpecialColorGreen=5,
-	consoleSpecialColorGray=6
+	consoleSpecialColorBlue=6,
+	consoleSpecialColorGray=7
 };
 
 // Returns the length of the longest line of str
@@ -87,12 +88,16 @@ extern void consoleUp();
 extern void consoleDown();
 extern void consoleLeft();
 extern void consoleRight();
+extern void consoleTab();
 
-// Executes console command
+// Invokes executing command
 extern void consoleExecuteCmd(char *cmd);
 
-// Evaluates script expression
+// Invokes evaluating python expression
 extern void consoleEvalExpr(char *expr);
+
+// Invokes executing python script file
+extern void consoleExecFile(char *path);
 
 // Gets/sets the length of the history
 extern int consoleGetHistoryMaxCount();

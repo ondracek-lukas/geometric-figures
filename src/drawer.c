@@ -23,10 +23,10 @@ GLfloat drawerEdgeSize=20;
 GLfloat drawerSelectedVertSize=30;
 const GLfloat drawerVisibleRadius=1.1;
 GLfloat drawerFaceColor[4];
-GLfloat drawerBackColor[4];
+GLfloat drawerBackColor[4]={0,0,0,1};
 GLfloat (*drawerSpaceColorPositive)[4]=0;
 GLfloat (*drawerSpaceColorNegative)[4]=0;
-GLfloat drawerSpaceColorCenter[4];
+GLfloat drawerSpaceColorCenter[4]={0,0,0,1};
 GLfloat drawerSelectedVertColor[4];
 int drawerLastDelay=1;
 unsigned drawerRedisplayCounter=0;
@@ -35,6 +35,7 @@ static bool redisplayNeeded=false;
 static GLfloat stringColor[4];
 static GLfloat stringColorRed[4];
 static GLfloat stringColorGreen[4];
+static GLfloat stringColorBlue[4];
 static GLfloat stringColorGray[4];
 static GLfloat scale=1;
 static GLUquadric *quadric=0;
@@ -106,20 +107,20 @@ void drawerSetBackColor(GLfloat *color) {
 		drawerBackColor[2]=color[2],
 		1);
 
-	if (color[0]+color[1]+color[2]<1.5)
+	if (0.299*color[0]+0.587*color[1]+0.114*color[2]<0.5) {
 		matrixCopy((GLfloat[]) {1.0f, 1.0f, 1.0f}, stringColor, 3);
-	else
+		if (color[0]<0.75)
+			matrixCopy((GLfloat[]) {1.0f, 0.3f, 0.3f}, stringColorRed, 3);
+		else
+			matrixCopy((GLfloat[]) {1.0f, 0.7f, 0.7f}, stringColorRed, 3);
+		matrixCopy((GLfloat[]) {0.05f, 0.9f, 0.05f}, stringColorGreen, 3);
+		matrixCopy((GLfloat[]) {0.5f, 0.5f, 1.0f}, stringColorBlue, 3);
+	} else {
 		matrixCopy((GLfloat[]) {0.0f, 0.0f, 0.0f}, stringColor, 3);
-
-	if (color[0]+color[1]+color[2]<1.0)
-		matrixCopy((GLfloat[]) {1.0f, 0.0f, 0.0f}, stringColorRed, 3);
-	else
-		matrixCopy((GLfloat[]) {0.5f, 0.0f, 0.0f}, stringColorRed, 3);
-
-	if (color[0]+color[1]+color[2]<1.0)
-		matrixCopy((GLfloat[]) {0.0f, 1.0f, 0.0f}, stringColorGreen, 3);
-	else
-		matrixCopy((GLfloat[]) {0.0f, 0.5f, 0.0f}, stringColorGreen, 3);
+		matrixCopy((GLfloat[]) {0.7f, 0.0f, 0.0f}, stringColorRed, 3);
+		matrixCopy((GLfloat[]) {0.0f, 0.7f, 0.0f}, stringColorGreen, 3);
+		matrixCopy((GLfloat[]) {0.0f, 0.0f, 1.0f}, stringColorBlue, 3);
+	}
 
 	matrixZero(stringColorGray, 3);
 	matrixAddScaled(stringColorGray, 0.5, stringColor, 3);
@@ -461,11 +462,13 @@ static void drawString(char *str, int x, int y) {
 				glColor3fv(stringColorRed);
 				glRasterPos2i(x, y);
 				break;
-				break;
 			case consoleSpecialColorGreen:
 				glColor3fv(stringColorGreen);
 				glRasterPos2i(x, y);
 				break;
+			case consoleSpecialColorBlue:
+				glColor3fv(stringColorBlue);
+				glRasterPos2i(x, y);
 				break;
 			case consoleSpecialColorGray:
 				glColor3fv(stringColorGray);
@@ -499,6 +502,7 @@ static void drawBlock() {
 	y=(height+consoleBlockHeight*19)/2-10;
 	
 	if ((x<0) || (y>height-10-19)) {
+		glColor3fv(stringColorRed);
 		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
 		strcpy(list->str, "Too small window");

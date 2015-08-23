@@ -21,7 +21,7 @@
 #include "script.h"
 
 static char *colorGetter(GLfloat *variable);
-static int colorSetter(GLfloat *variable, char *value);
+static bool colorSetter(GLfloat *variable, char *value);
 
 #define appendToGetAllExpr(cmd) \
 	utilStrRealloc(&getAllScriptExpr, &getAllScriptExprEnd, strlen(cmd)+1); \
@@ -31,36 +31,36 @@ static int colorSetter(GLfloat *variable, char *value);
 	appendToGetAllExpr(cmd);
 
 #define addCustomGetter(name, getterExpr) \
-	consoleCmdsAdd("set "name, 0, 0, getterExpr); \
-	consoleCmdsAdd("set "name"?", 0, 0, getterExpr); \
+	consoleCmdsAdd("set "name, getterExpr, 0, 0, false); \
+	consoleCmdsAdd("set "name"?", getterExpr, 0, 0, true); \
 	addToGetAllExpr(getterExpr);
 #define addCustom(name, flag, getter, setter) \
 	addCustomGetter(name, "'  "name"='+str(gf.get_"getter")"); \
-	consoleCmdsAdd("set "name"=", 1, flag, "gf.set_"setter);
+	consoleCmdsAdd("set "name"=", "gf.set_"setter, 1, flag, false);
 #define add(name, flag) \
 	addCustom(name, flag, name"()", name"(%)");
 
 #define addBoolGetter(name, getterExpr) \
-	consoleCmdsAdd("set "name"?", 0, 0, getterExpr); \
+	consoleCmdsAdd("set "name"?", getterExpr, 0, 0, false); \
 	addToGetAllExpr(getterExpr);
 #define addBool(name) \
 	addBoolGetter(name, "(gf.get_"name"() and '  "name"' or 'no"name"')"); \
-	consoleCmdsAdd("set no"name, 0, 0, "gf.set_"name"(0)"); \
-	consoleCmdsAdd("set "name, 0, 0, "gf.set_"name"(1)");
+	consoleCmdsAdd("set no"name, "gf.set_"name"(0)", 0, 0, false); \
+	consoleCmdsAdd("set "name, "gf.set_"name"(1)", 0, 0, false);
 
 #define addArray(name, flag, minIndex, maxIndex, getter, setter) \
 	for (int i=minIndex; i<=maxIndex; i++) { \
 		char strName[30], strExpr[30], strExpr2[50]; \
 		sprintf(strName, "set "name"%d", i); \
 		sprintf(strExpr, "gf.get_"getter, i); \
-		consoleCmdsAdd(strName, 0, 0, strExpr); \
+		consoleCmdsAdd(strName, strExpr, 0, 0, false); \
 		sprintf(strName, "set "name"%d?", i); \
-		consoleCmdsAdd(strName, 0, 0, strExpr); \
+		consoleCmdsAdd(strName, strExpr, 0, 0, true); \
 		sprintf(strExpr2, "'  "name"%d='+str(%s)", i, strExpr); \
 		addToGetAllExpr(strExpr2); \
 		sprintf(strName, "set "name"%d=", i); \
 		sprintf(strExpr, "gf.set_"setter, i); \
-		consoleCmdsAdd(strName, 1, flag, strExpr); \
+		consoleCmdsAdd(strName, strExpr, 1, flag, false); \
 	}
 
 void consoleCmdSetUpdateCmds() {
@@ -68,28 +68,28 @@ void consoleCmdSetUpdateCmds() {
 	char *getAllScriptExpr=0, *getAllScriptExprEnd=0;
 	appendToGetAllExpr("gf.echo('--- Options ---'");
 
-	add      ("background",    "s");
+	add      ("background",    "c");
 	addArray ("campos",         0,    3, drawerDim,   "campos(%d)",       "campos(%d,%%)"      );
 	addArray ("camposl",        0,    3, drawerDim,   "camposl(%d)",      "camposl(%d,%%)"     );
 	addBool  ("convexhull");
 	add      ("dimen",          0 );
 	add      ("edgesize",       0 );
-	add      ("facecolor",     "s");
+	add      ("facecolor",     "C");
 	add      ("history",        0 );
 	add      ("maxfps",         0 );
 	addBool  ("pyexpr");
-	add      ("selvertcolor",  "s");
+	add      ("selvertcolor",  "C");
 	add      ("selvertsize",    0 );
 	if (drawerDim>=0) {
-		addCustom("spacecolor",  "s",                   "spacecolor(0)",    "spacecolor(0,%)"    );
+		addCustom("spacecolor",  "c",                   "spacecolor(0)",    "spacecolor(0,%)"    );
 	}
-	addArray ("spacecolor-",   "s",   1, drawerDim,   "spacecolor(-%d)",  "spacecolor(-%d,%%)" );
-	addArray ("spacecolor+",   "s",   1, drawerDim,   "spacecolor(%d)",   "spacecolor(%d,%%)"  );
+	addArray ("spacecolor-",   "C",   1, drawerDim,   "spacecolor(-%d)",  "spacecolor(-%d,%%)" );
+	addArray ("spacecolor+",   "C",   1, drawerDim,   "spacecolor(%d)",   "spacecolor(%d,%%)"  );
 	add      ("speed",          0 );
 	addBool  ("stdoutpyexpr");
 	add      ("vertsize",       0 );
-	appendToGetAllExpr(") or gf.consoleClearAfterCmd()");
-	consoleCmdsAdd("set", 0, 0, getAllScriptExpr);
+	appendToGetAllExpr(") or gf.clearAfterCmd()");
+	consoleCmdsAdd("set", getAllScriptExpr, 0, 0, false);
 }
 
 #undef appendToGetAllExpr
@@ -103,7 +103,7 @@ void consoleCmdSetUpdateCmds() {
 
 
 #define throw(msg) {scriptThrowException(msg); return 0;}
-#define parseColorAlpha() GLfloat components[4]; colorSetter(components, color)
+#define parseColorAlpha() GLfloat components[4]; if(!colorSetter(components, color)) return
 #define parseColor() parseColorAlpha(); if (components[3]!=1) throw("Alpha channel is not available");
 #define checkBounds(min, max, index_meaning) if ((index<min)||(index>max)) throw("Wrong "index_meaning)
 #define checkCond(cond) if (!(cond)) throw("Wrong value")
@@ -281,55 +281,31 @@ static char *colorGetter(GLfloat *variable) {
 	r=variable[0]*255;
 	g=variable[1]*255;
 	b=variable[2]*255;
-	if (variable[3]>=0)
+	if ((variable[3]>=0)&&(variable[3]<1))
 		sprintf(string, "#%.2X%.2X%.2X%.2X", a, r, g, b);
 	else
 		sprintf(string, "#%.2X%.2X%.2X", r, g, b);
 	return string;
 }
 
-static int colorSetter(GLfloat *variable, char *value) {
+static bool colorSetter(GLfloat *variable, char *value) {
 	unsigned int ai=255, ri, gi, bi;
 	float a, r, g, b;
 	char string[10];
+	if (*value!='#') {
+		value=consoleCmdsColorNameToCode(value, true);
+		if (!value) {
+			scriptThrowException("Wrong color");
+			return false;
+		}
+	}
 	if ((sscanf(value, "#%2X%2X%2X%2X%1s", &ai, &ri, &gi, &bi, string)==4) || (ai=255, sscanf(value, "#%2X%2X%2X%1s", &ri, &gi, &bi, string)==3)) {
-		a=1.0f*ai/255;
-		r=1.0f*ri/255;
-		g=1.0f*gi/255;
-		b=1.0f*bi/255;
-	} else if (sscanf(value, "%f #%2X%2X%2X%1s", &a, &ri, &gi, &bi, string)==4) {
-		r=1.0f*ri/255;
-		g=1.0f*gi/255;
-		b=1.0f*bi/255;
-	} else if ((sscanf(value, "%f %f %f %f%1s", &a, &r, &g, &b, string)==4) || (a=1, sscanf(value, "%f %f %f%1s", &r, &g, &b, string)==3)) {
-	} else if ((sscanf(value, "%f %10s", &a, string)==2) || (a=1, sscanf(value, "%20s", string))) {
-		if (strcmp(string, "red")==0)
-			{r=1;g=0;b=0;}
-		else if (strcmp(string, "green")==0)
-			{r=0;g=1;b=0;}
-		else if (strcmp(string, "blue")==0)
-			{r=0;g=0;b=1;}
-		else if (strcmp(string, "yellow")==0)
-			{r=1;g=1;b=0;}
-		else if (strcmp(string, "cyan")==0)
-			{r=0;g=1;b=1;}
-		else if (strcmp(string, "purple")==0)
-			{r=1;g=0;b=1;}
-		else if (strcmp(string, "white")==0)
-			{r=1;g=1;b=1;}
-		else if (strcmp(string, "black")==0)
-			{r=0;g=0;b=0;}
-		else if (strcmp(string, "gray")==0)
-			{r=0.5;g=0.5;b=0.5;}
-		else if ((a==1) && (strcmp(string, "transparent")==0))
-			{a=0;r=0;g=0;b=0;}
-		else
-			return 0;
-	} else
-		return 0;
-	variable[3]=a;
-	variable[0]=r;
-	variable[1]=g;
-	variable[2]=b;
-	return 1;
+		variable[3]=1.0f*ai/255;
+		variable[0]=1.0f*ri/255;
+		variable[1]=1.0f*gi/255;
+		variable[2]=1.0f*bi/255;
+		return true;
+	}
+	scriptThrowException("Wrong color");
+	return false;
 }

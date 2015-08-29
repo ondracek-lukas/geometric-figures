@@ -9,6 +9,7 @@
 #include "util.h"
 #include "debug.h"
 #include "safe.h"
+#include "script.h"
 
 #define isDelim(c) (((c)<'0')||(((c)>'9')&&((c)<'A'))||(((c)>'Z')&&((c)<'a'))||((c)>'z'))
 
@@ -57,25 +58,32 @@ static inline struct trie *trieGetChildCreate(struct trie *trie, char c) {
 	return *pTrie;
 }
 
-static void trieDestroy(struct trie **pTrie) {
-	while ((*pTrie)->child)
-		trieDestroy(&(*pTrie)->child);
-	struct trie *trie=*pTrie;
-	(*pTrie)=trie->sibling;
-	free(trie->scriptExpr);
-	free(trie->paramsFlags);
-	free(trie);
+static void trieDestroy(struct trie **pTrie, enum importance imp) {
+	for (struct trie **pt=&(*pTrie)->child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))
+		trieDestroy(pt, imp);
+
+	if (!(*pTrie)->scriptExpr || ((*pTrie)->importance == imp)) {
+		if ((*pTrie)->child) {
+			(*pTrie)->scriptExpr=0;
+		} else {
+			struct trie *t=*pTrie;
+			(*pTrie)=t->sibling;
+			free(t->scriptExpr);
+			free(t->paramsFlags);
+			free(t);
+		}
+	}
 }
 
-static void trieDestroyBranch(struct trie **pTrie, char *prefix) {
+static void trieDestroyBranch(struct trie **pTrie, char *prefix, enum importance imp) {
 	if (*prefix) {
 		if (!*pTrie)
 			return;
-		trieDestroyBranch(trieGetChildPtr(*pTrie, *prefix), prefix+1);
-		if (!(*pTrie)->child)
-			trieDestroy(pTrie);
+		trieDestroyBranch(trieGetChildPtr(*pTrie, *prefix), prefix+1, imp);
+		if (!(*pTrie)->child && !(*pTrie)->scriptExpr)
+			trieDestroy(pTrie, imp);
 	} else {
-		trieDestroy(pTrie);
+		trieDestroy(pTrie, imp);
 	}
 }
 
@@ -249,10 +257,13 @@ void consoleCmdsRmBranch(char *prefix) {
 		struct trie **pTrie=trieGetChildPtr(&commands, *prefix);
 		if (!*pTrie)
 			return;
-		trieDestroyBranch(pTrie, prefix+1);
+		trieDestroyBranch(pTrie, prefix+1, builtinCmd);
+		trieDestroyBranch(pTrie, prefix+1, builtinAliasCmd);
 	} else {
-		while (commands.child)
-			trieDestroy(&commands.child);
+		for (struct trie **pt=&commands.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt)) {
+			trieDestroy(pt, builtinCmd);
+			trieDestroy(pt, builtinAliasCmd);
+		}
 	}
 	DEBUG_CMDS(consoleCmdsTriePrint(&commands);)
 }
@@ -305,6 +316,36 @@ struct utilStrList *consoleCmdsComplete(char *prefix) {
 	return NULL;
 }
 
+void consoleCmdsUserAdd2(char *prefix, char *scriptExpr) {
+	consoleCmdsUserAdd(prefix, scriptExpr, 0, NULL);
+}
+void consoleCmdsUserAdd3(char *prefix, char *scriptExpr, int params) {
+	consoleCmdsUserAdd(prefix, scriptExpr, params, NULL);
+}
+void consoleCmdsUserAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags) {
+	if (!trieAdd(
+		&commands,
+		prefix,
+		scriptExpr,
+		params,
+		paramsFlags,
+		userCmd
+	)) scriptThrowException("The command would be ambiguous");
+}
+void consoleCmdsUserRmBranch(char *prefix) {
+	if (*prefix) {
+		struct trie **pTrie=trieGetChildPtr(&commands, *prefix);
+		if (!*pTrie)
+			return;
+		trieDestroyBranch(pTrie, prefix+1, userCmd);
+	} else {
+		for (struct trie **pt=&commands.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))
+			trieDestroy(pt, userCmd);
+	}
+}
+void consoleCmdsUserRmAll() {
+	consoleCmdsUserRmBranch("");
+}
 
 // -- path completion --
 
@@ -355,20 +396,6 @@ struct utilStrList *consoleCmdsPathComplete(char *prefix) {
 struct trie colors;
 struct trie colorsWithAlpha;
 
-bool consoleCmdsAddColor(char *colorName, char *colorCode, bool hasAlphaChannel) {
-	return trieAdd(
-		&colorsWithAlpha,
-		colorName,
-		colorCode,
-		0, 0, builtinCmd
-	) && (hasAlphaChannel || trieAdd(
-		&colors,
-		colorName,
-		colorCode,
-		0, 0, builtinCmd
-	));
-}
-
 struct utilStrList *consoleCmdsColorComplete(char *prefix, bool withAlphaChannel) {
 	struct trie *trie=(withAlphaChannel? &colorsWithAlpha:&colors);
 	struct utilStrList *list=0;
@@ -407,9 +434,93 @@ struct utilStrList *consoleCmdsColorComplete(char *prefix, bool withAlphaChannel
 	return list;
 }
 
-char *consoleCmdsColorNameToCode(char *name, bool withAlphaChannel) {
-	if (withAlphaChannel)
-		return trieTranslate(&colorsWithAlpha, name);
-	else
-		return trieTranslate(&colors, name);
+#define normalizeColorChar(dst, src) \
+	if (((src>='0') && (src<='9')) || \
+	    ((src>='A') && (src<='F'))) \
+		dst=src; \
+	else if ((src>='a') && (src<='f')) \
+		dst=src-'a'+'A'; \
+	else { \
+		ret=0; \
+		break; \
+	}
+
+char *consoleCmdsColorNormalize(char *color) {
+	char *ret=0;
+	static char lastColor[8];
+	if (*color=='#') {
+		lastColor[0]='#';
+		ret=lastColor;
+		for (int i=1; i<7; i++)
+			normalizeColorChar(lastColor[i], color[i]);
+		lastColor[7]='\0';
+		if (color[7])
+			ret=0;
+	} else {
+		ret=trieTranslate(&colors, color);
+		if (ret) {
+			strcpy(lastColor, ret);
+			ret=lastColor;
+		}
+	}
+	if (!ret)
+		scriptThrowException("Wrong color");
+	return ret;
+}
+
+char *consoleCmdsColorANormalize(char *color) {
+	char *ret=0;
+	static char lastColor[10];
+	if (*color=='#') {
+		lastColor[0]='#';
+		if (strlen(color)==7) {
+			ret=lastColor;
+			lastColor[1]='F';
+			lastColor[2]='F';
+			for (int i=1; i<7; i++)
+				normalizeColorChar(lastColor[i+2], color[i]);
+		} else if (strlen(color)==9) {
+			ret=lastColor;
+			for (int i=1; i<9; i++)
+				normalizeColorChar(lastColor[i], color[i]);
+		}
+		lastColor[10]='\0';
+	} else {
+		ret=trieTranslate(&colorsWithAlpha, color);
+		if (ret) {
+			strcpy(lastColor, ret);
+			ret=lastColor;
+		}
+	}
+	if (!ret)
+		scriptThrowException("Wrong color");
+	return ret;
+}
+
+#undef normalizeColorChar
+
+void consoleCmdsColorAdd(char *alias, char *color) {
+	char *normalizedAlpha=consoleCmdsColorANormalize(color);
+	if (!normalizedAlpha)
+		return;
+	char *normalized=     consoleCmdsColorNormalize(color);
+	scriptCatchException();
+
+	if (trieAdd(&colorsWithAlpha, alias, normalizedAlpha, 0, 0, userCmd)) {
+		if (normalized) {
+			if (trieAdd(&colors, alias, normalized, 0, 0, userCmd))
+				return;
+		} else {
+			return;
+		}
+	}
+
+	scriptThrowException("Color alias already exists");
+}
+
+void consoleCmdsColorRemoveAll() {
+	for (struct trie **pt=&colors.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))
+		trieDestroy(pt, userCmd);
+	for (struct trie **pt=&colorsWithAlpha.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))
+		trieDestroy(pt, userCmd);
 }

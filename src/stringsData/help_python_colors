@@ -1,0 +1,17 @@
+help:python colors;help:scripting colors
+To see the basics about types see :help set types.
+To see the basics about scripting see :help set python.
+
+gf.addColorAlias(alias, color)
+  Creates named color or named color with opacity
+  according to the given color.
+gf.resetColorAliases()
+  Removes all named colors.
+
+gf.normalizeColor(color)
+gf.normalizeColorAlpha(color)
+  Returns the color in the normalized form:
+    #RRGGBB, or #AARRGGBB resp.
+    (all letters A-F are capital)
+  Trying to return a color with opacity without it
+  is treated as exception.

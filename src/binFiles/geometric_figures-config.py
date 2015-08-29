@@ -4,11 +4,31 @@ gf.map("?", "gf.echo(config_readme) or gf.clearAfterCmd()")
 gf.echo("To see default configuration press ?")
 config_readme="--- Default configuration ---"
 
+# Color aliases:
+
+gf.addColorAlias("black",       "#000000");
+gf.addColorAlias("white",       "#ffffff");
+gf.addColorAlias("red",         "#ff0000");
+gf.addColorAlias("green",       "#00ff00");
+gf.addColorAlias("blue",        "#0000ff");
+gf.addColorAlias("yellow",      "#ffff00");
+gf.addColorAlias("cyan",        "#00ffff");
+gf.addColorAlias("purple",      "#ff00ff");
+gf.addColorAlias("gray",        "#808080");
+gf.addColorAlias("transparent", "#00000000");
+config_readme+="""
+Named colors: black, white, red, green, blue, yellow, cyan, purple, gray, transparent"""
 
 # Functions:
 
 def dim_ge(dim):
 	return gf.get_dimen() >= dim
+
+def colorToTuple(color):
+	color=gf.normalizeColorAlpha(color)
+	return tuple(ord(c) for c in color[1:].decode("hex"))
+def tupleToColor(tupl):
+	return "#{:02X}{:02X}{:02X}{:02X}".format(*tupl)
 
 import random
 random.seed()
@@ -68,7 +88,7 @@ def randomRot(allowCameraMoving):
 		gf.map("<tab>", "randomRot(False)"); # Tab always rotates without camera moving (default)
 	else:
 		gf.map("<tab>", "randomRot(gf.time()<" + str(gf.time()+50)+")"); # Pressing tab in 50ms will rotate with camera moving
-		                                                                               # If tab was used to abort rotation, the same press will resume it
+		                                                                 # If tab was used to abort rotation, the same press will resume it
 
 
 # Figures:
@@ -234,8 +254,8 @@ gf.map("<f2>", "spacecolor3D()")   # 3D axis colored
 gf.map("<f3>", "spacecolor4D()")   # 4D axis colored
 gf.map("<f4>", "spacecolor3D4D()") # 3D and 4D axes colored
 
-gf.map("<f5>", "set facecolor=0.2 gray")
-gf.map("<f6>", "set facecolor=0.03 white")
+gf.map("<f5>", "set facecolor=" + tupleToColor((int(255*0.2), 128, 128, 128)))
+gf.map("<f6>", "set facecolor= " + tupleToColor((int(255*0.03), 255, 255, 255)))
 gf.map("<f7>", "set facecolor=transparent")
 
 config_readme+="""

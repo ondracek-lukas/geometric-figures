@@ -163,10 +163,9 @@ void utilStrInsertChars(char *str, char *chars) {
 }
 
 void utilStrRmChars(char *str, int cnt) {
-	while (*str) {
+	do {
 		*str=str[cnt];
-		str++;
-	}
+	} while (*str++);
 }
 
 

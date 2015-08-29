@@ -252,25 +252,6 @@ static void setCursorPos(int pos) {
 		}
 	}
 }
-
-static void openConsole(char *str) {
-	if ((mode==modeRewriteLast) && consoleLines) {
-		mode=modeAppend;
-		utilStrListRm(&consoleLines);
-		consolePrint(str);
-		mode=modeRewriteLast;
-	} else {
-		consoleClear();
-		consolePrint(str);
-	}
-	cmdEnd=strlen(consoleLines->str);
-	setCursorPos(cmdEnd);
-}
-
-bool consoleIsOpen() {
-	return cursorPos;
-}
-
 void showActiveCompletion() {
 	consoleLines->str[cmdEnd]='\0';
 	completionEnd=0;
@@ -303,6 +284,26 @@ void applyCompletion() {
 		consoleLines->str[cmdEnd]='\0';
 	}
 	completionEnd=0;
+}
+
+static void openConsole(char *str) {
+	if ((mode==modeRewriteLast) && consoleLines) {
+		mode=modeAppend;
+		utilStrListRm(&consoleLines);
+		cursorPos=0;
+		consolePrint(str);
+		mode=modeRewriteLast;
+	} else {
+		consoleClear();
+		consolePrint(str);
+	}
+	cmdEnd=strlen(consoleLines->str);
+	setCursorPos(cmdEnd);
+	updateCompletions();
+}
+
+bool consoleIsOpen() {
+	return cursorPos;
 }
 
 
@@ -339,9 +340,8 @@ void consoleBackspace() {
 }
 
 void consoleEnter() {
-	char *cmd=consoleLines->str;
 	applyCompletion();
-	cmd[cmdEnd]='\0';
+	consoleLines->str[cmdEnd]='\0';
 	setCursorPos(0);
 	
 	if (historyMaxCount) {
@@ -353,9 +353,10 @@ void consoleEnter() {
 		if (!historyFirst)
 			historyFirst=historyLast;
 		utilStrRealloc(&historyLast->str, 0, cmdEnd+1);
-		strncpy(historyLast->str, cmd+1, cmdEnd-1);
+		strncpy(historyLast->str, consoleLines->str+1, cmdEnd-1);
 		historyLast->str[cmdEnd-1]='\0';
 	}
+	char *cmd=consoleLines->str;
 	consoleLines->str=0;
 	consoleClear();
 	consoleExecuteCmd(cmd+cmdBegin); // skip : and consoleSpecialColorNormal
@@ -443,13 +444,14 @@ void initCmds() {
 
 	addNew  ("help",            "gf.help(\"\")",           0, ""     );
 	const char * const *helpPages=stringsGetContent("help");
-	while (*helpPages) {
+	do {
+		if (!**helpPages)
+			continue;
 		char cmd[50], expr[50];
 		sprintf(cmd, "help %s", *helpPages);
 		sprintf(expr, "gf.help(\"%s\")", *helpPages);
 		addNew(cmd,               expr,                      0, ""     );
-		helpPages++;
-	}
+	} while (*++helpPages);
 
 	addNew  ("echo ",           "gf.echo(%)",              1, "s"    );
 	addNew  ("history",         "gf.history()",            0, ""     );
@@ -500,17 +502,6 @@ void initCmds() {
 	addAlias("vert sel ");
 	addNew  ("write ",          "gf.write(%)",             1, "p"    );
 	addAlias("w ");
-
-	consoleCmdsAddColor("black",       "#000000",  false);
-	consoleCmdsAddColor("white",       "#ffffff",  false);
-	consoleCmdsAddColor("red",         "#ff0000",  false);
-	consoleCmdsAddColor("green",       "#00ff00",  false);
-	consoleCmdsAddColor("blue",        "#0000ff",  false);
-	consoleCmdsAddColor("yellow",      "#ffff00",  false);
-	consoleCmdsAddColor("cyan",        "#00ffff",  false);
-	consoleCmdsAddColor("purple",      "#ff00ff",  false);
-	consoleCmdsAddColor("gray",        "#808080",  false);
-	consoleCmdsAddColor("transparent", "#00000000", true);
 }
 #undef addNew
 #undef addAlias

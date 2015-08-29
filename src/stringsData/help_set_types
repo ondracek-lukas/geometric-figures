@@ -1,20 +1,16 @@
 help:set types
-                                  set:  variable types
-
-Boolean:                   has only two allowed values true or false
-                           set [no]<variable_name>  - sets the value
-                           set [no]<variable_name>? - gets the value
+                               set:  variable types
 
 
-Integer:                                [(+|-)]<digits>
+Boolean:              has only two allowed values true or false
+                      set [no]<variable_name>  - sets the value
+                      set [no]<variable_name>? - gets the value
 
 
-Real number:                 [(+|-)]<digits>[.<digits>][e<digits>]
+Number:                            Python literal
 
 
-Color:                          #<hex_red><hex_green><hex_blue>          |  hex  from  00 to  ff
-                        (black|red|green|blue|cyan|purple|yellow|white)  |
-                                                                         |
-                                                                         |
-Color with opacity:       #<hex_alpha><hex_red><hex_green><hex_blue>     |
-                                          transparent                    |
+Color:                     #<hex_red><hex_green><hex_blue>       | hex from 00 to ff
+                                    <named_color>                |
+Color with opacity:  #<hex_alpha><hex_red><hex_green><hex_blue>  | for named colors
+                              <named_color_with_opacity>         | see :help python colors

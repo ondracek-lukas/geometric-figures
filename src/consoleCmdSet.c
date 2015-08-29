@@ -290,15 +290,10 @@ static char *colorGetter(GLfloat *variable) {
 
 static bool colorSetter(GLfloat *variable, char *value) {
 	unsigned int ai=255, ri, gi, bi;
-	float a, r, g, b;
 	char string[10];
-	if (*value!='#') {
-		value=consoleCmdsColorNameToCode(value, true);
-		if (!value) {
-			scriptThrowException("Wrong color");
-			return false;
-		}
-	}
+	value=consoleCmdsColorANormalize(value);
+	if (!value)
+		return false;
 	if ((sscanf(value, "#%2X%2X%2X%2X%1s", &ai, &ri, &gi, &bi, string)==4) || (ai=255, sscanf(value, "#%2X%2X%2X%1s", &ri, &gi, &bi, string)==3)) {
 		variable[3]=1.0f*ai/255;
 		variable[0]=1.0f*ri/255;

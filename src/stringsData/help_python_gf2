@@ -6,3 +6,10 @@ List of other gf module functions (not accessible as commands):
   gf.sleep(ms)  | Handles window events for at least given time and one repainting;
                 | returns False if aborted by user, script has to end as soon as possible.
   gf.time()  | Returns time for which application is running in msec
+  gf.addCommand(cmd, pyexpr)                |
+  gf.addCommand(cmd, pyexpr, pCnt, pFlags)  | Creates/destroys user command(s),
+  gf.removeCommands(prefix)                 | see :help python commands
+  gf.addColorAlias(alias, color)  |
+  gf.resetColorAliases()          |
+  gf.normalizeColor(color)        | Manages color format,
+  gf.normalizeColorAlpha(color)   | see :help python colors

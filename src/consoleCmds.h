@@ -29,14 +29,29 @@ extern char *consoleCmdsToScriptExpr(char *cmd);
 // Returns possible completions to given command prefix
 extern struct utilStrList *consoleCmdsComplete(char *prefix);
 
+// User versions, throws exceptions using script module
+void consoleCmdsUserAdd2(char *prefix, char *scriptExpr);                               // [SCRIPT_NAME: addCommand]
+void consoleCmdsUserAdd3(char *prefix, char *scriptExpr, int params);                   // [SCRIPT_NAME: addCommand]
+void consoleCmdsUserAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags); // [SCRIPT_NAME: addCommand]
+void consoleCmdsUserRmBranch(char *prefix);                                             // [SCRIPT_NAME: removeCommands]
+void consoleCmdsUserRmAll();                                                            // [SCRIPT_NAME: removeCommands]
+
+
 // Returns possible completions to given path
 extern struct utilStrList *consoleCmdsPathComplete(char *prefix);
 
-// Adds new color name (colors without alpha are accessible even as colors with alpha)
-extern bool consoleCmdsAddColor(char *colorName, char *colorCode, bool hasAlphaChannel);
 
 // Returns possible completions to given color (+ mask #[AA]RRGGBB)
 extern struct utilStrList *consoleCmdsColorComplete(char *prefix, bool withAlphaChannel);
 
-// Translates color name to color code
-extern char *consoleCmdsColorNameToCode(char *name, bool withAlphaChannel);
+// The following functions throws exceptions using script module:
+
+	// Adds new color name
+	void consoleCmdsColorAdd(char *alias, char *color);  // [SCRIPT_NAME: addColorAlias]
+
+	// Removes all named colors
+	void consoleCmdsColorRemoveAll();                    // [SCRIPT_NAME: resetColorAliases]
+
+	// Returns the color in a normalized form #RRGGBB, resp. #AARRGGBB
+	char *consoleCmdsColorNormalize(char *color);        // [SCRIPT_NAME: normalizeColor]
+	char *consoleCmdsColorANormalize(char *color);       // [SCRIPT_NAME: normalizeColorAlpha]

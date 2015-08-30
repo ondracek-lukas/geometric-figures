@@ -150,7 +150,7 @@ while (<>) {
 		say $_, " as $name";
 	} else {
 		if ($lastFile ne $ARGV) {
-			say $fc "\n#include \"$ARGV\"\n";
+			say $fc "#include \"$ARGV\"";
 			$lastFile=$ARGV;
 		}
 		my $cond                  = "argCnt" . (%array?">=":"==") . scalar @params;
@@ -158,10 +158,10 @@ while (<>) {
 		my $retVarEq              = ($retType{pyFormat} ? "$retType{cType} retWr=" : "");
 		my $commaRetVar           = ($retType{pyFormat} ? ", retWr" : "");
 		my $paramsCnt             = scalar @params;
+		my $objDecl               = (%array || @params ? "\n\t\tPyObject *obj;" : "");
 
 		push @{$functions{$name}}, <<PARAMS . join("",map <<ARRAY, @params) . (%array?<<PARAMS_END:"") . <<EOF;
-	if ($cond) {
-		PyObject *obj;
+	if ($cond) {$objDecl
 PARAMS
 		obj=PyTuple_GET_ITEM(args, $_->{pos});
 		$_->{cType} $_->{name}Wr = $_->{converter}(obj);
@@ -194,10 +194,10 @@ EOF
 
 }
 
+say $fc "";
+
 for (keys %functions) {
-	say $fh <<EOF;
-extern PyObject *${_}Wrapper(PyObject *self, PyObject *args);
-EOF
+	say $fh "extern PyObject *${_}Wrapper(PyObject *self, PyObject *args);";
 	say $fc <<EOF, @{$functions{$_}}, <<EOF;
 extern PyObject *${_}Wrapper(PyObject *self, PyObject *args) {
 	int argCnt=PyTuple_Size(args);
@@ -213,6 +213,7 @@ EOF
 say STDERR "Skipping: $last" if $last;
 
 say $fh <<EOF;
+
 static PyMethodDef scriptWrappersList[] = {
 $wrappersList	{NULL, NULL, 0, NULL}
 };

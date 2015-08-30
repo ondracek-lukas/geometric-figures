@@ -59,11 +59,11 @@ def randomRot(allowCameraMoving):
 		# Rotate figure and write velocities to console
 		for i in range(1, dim+1):
 			for j in range(1, i):
-				velocities[i][j]=velocities[i][j]+(random.random()-0.5)*4
-				if velocities[i][j]>maxspeed:
-					velocities[i][j]=maxspeed
-				if velocities[i][j]<-maxspeed:
-					velocities[i][j]=-maxspeed
+				velocities[i][j]=velocities[i][j]+(random.random()-0.5)*maxspeed/20
+				if velocities[i][j]>maxspeed/2:
+					velocities[i][j]=maxspeed/2
+				if velocities[i][j]<-maxspeed/2:
+					velocities[i][j]=-maxspeed/2
 				gf.echo("  {}{}: {:6.2f} deg/sec" . format(j, i, -velocities[i][j]));
 				gf.rotate(i, j, velocities[i][j]*(t-lastTime)/1000)
 
@@ -94,16 +94,19 @@ def randomRot(allowCameraMoving):
 # Figures:
 
 def openAndRot(name):
+	gf.set_convexhull(False)
 	gf.open("%/data/" + name + ".dat");
 	if dim_ge(3):
 		gf.rotate(1 ,3, 30)
 		gf.rotate(2 ,3, 20)
+	defaultColors() # defined below
 	randomRot(False)
 def sourceAndRot(name):
-	gf.source("%/data/" + name + ".txt");
+	gf.source("%/data/" + name + ".py");
 	if dim_ge(3):
 		gf.rotate(1 ,3, 30)
 		gf.rotate(2 ,3, 20)
+	defaultColors() # defined below
 	randomRot(False)
 
  #0D:
@@ -135,7 +138,7 @@ Figures:
   2D: 1 triangle
   3D: 2 tetrahedron, 3 cube,      4 octahedron,            5 dodecahedron, 6 icosahedron
   4D: 7 pentachoron, 8 tesseract, 9 16-cell,    0 24-cell, - 120-cell,     = 600 cell
-  5D:                + penteract (changes color settings, sets convexhull)"""
+  5D:                + penteract"""
 
 
 # Rotation:
@@ -217,40 +220,58 @@ config_readme+="""
 Settings:
   Reset boundary:         b
   Reset rotation:         g
-  Convex hull generation: y begin, t stop"""
+  Convex hull generation: y start, t stop"""
 
 
 # Predefined color modes
 
 def resetSpaceColor():
 	if dim_ge(0):
-		gf.set_spacecolor( 0, "gray");
+		gf.set_spacecolor( 0, "white");
 	for dim in range(1, gf.get_dimen()+1):
 		gf.set_spacecolor( dim, "transparent");
 		gf.set_spacecolor(-dim, "transparent");
-def setSpaceColor3D():
-	if dim_ge(3):
-		gf.set_spacecolor(-3, "blue")
-		gf.set_spacecolor( 3, "yellow")
-def setSpaceColor4D():
-	if dim_ge(4):
-		gf.set_spacecolor(-4, "red")
-		gf.set_spacecolor( 4, "green")
 
 def spacecolor3D():
 	resetSpaceColor()
-	setSpaceColor3D()
-def spacecolor4D():
-	resetSpaceColor()
-	setSpaceColor4D()
+	gf.set_spacecolor(-3, "blue")
+	gf.set_spacecolor( 3, "yellow")
 def spacecolor3D4D():
 	resetSpaceColor()
-	setSpaceColor3D()
-	setSpaceColor4D()
+	gf.set_spacecolor(-3, "blue")
+	gf.set_spacecolor( 3, "yellow")
+	gf.set_spacecolor( 4, "red")
+	gf.set_spacecolor(-4, "green")
+def spacecolor4D():
+	resetSpaceColor()
+	gf.set_spacecolor( 4, "red")
+	gf.set_spacecolor(-4, "green")
+def spacecolor5D():
+	resetSpaceColor()
+	gf.set_spacecolor( 4, "red")
+	gf.set_spacecolor(-4, "green")
+	gf.set_spacecolor( 5, "blue")
+	gf.set_spacecolor(-5, "yellow")
+
+def defaultColors():
+	dim=gf.get_dimen()
+	if dim >= 5:
+		spacecolor5D()
+	elif dim == 4:
+		spacecolor4D()
+	else:
+		resetSpaceColor()
+	if dim >= 2:
+		if dim <= 3:
+			a=(1,0.75)[dim-2]
+		else:
+			a=0.5/dim
+		b=1.0/(dim-1)
+		gf.set_facecolor(tupleToColor(tuple([int(255*a), int(128-b*128), int(128-b*64), int(127+b*128)])));
 
 gf.map("<f1>", "reset colors")
 
-gf.map("<f2>", "spacecolor3D()")   # 3D axis colored
+gf.map("<f2>", "defaultColors()")  # 3D axis colored
 gf.map("<f3>", "spacecolor4D()")   # 4D axis colored
 gf.map("<f4>", "spacecolor3D4D()") # 3D and 4D axes colored
 
@@ -260,9 +281,9 @@ gf.map("<f7>", "set facecolor=transparent")
 
 config_readme+="""
 Colors:
-  Restore defaults: F1
-  Colored axes:     F2 3(z),     F3 4,        F4 both 3(z) and 4
-  Face color:       F5 20% gray, F6 3% white, F7 transparent"""
+  Restore defaults: F1 app colors, F2 config colors
+  Colored axes:     F3 4,          F4 both 3(z) and 4
+  Face color:       F5 20% gray,   F6 3% white, F7 transparent"""
 
 
 # Predefined edges and vertices sizes
@@ -281,6 +302,11 @@ gf.map("<f12>", "setSizes( 1,  1,  1)")
 config_readme+="""
 Size of vertices and edges: (in the origin)
   F8 20px, F9 10px, F10 5px, F11 2px, F12 1px"""
+
+# Default settings
+
+gf.set_speed(60);
+gf.set_vertsize(10);
 
 
 # End of configuration readme

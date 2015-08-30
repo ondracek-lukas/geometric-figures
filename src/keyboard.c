@@ -186,6 +186,9 @@ void keyboardPressMod(int c, int mod) {
 			case 8: // backspace
 				consoleBackspace();
 				break;
+			case 127: // delete
+				consoleDelete();
+				break;
 			case 9: // tab
 				consoleTab();
 				break;
@@ -200,6 +203,12 @@ void keyboardPressMod(int c, int mod) {
 				break;
 			case -GLUT_KEY_RIGHT:
 				consoleRight();
+				break;
+			case -GLUT_KEY_HOME:
+				consoleHome();
+				break;
+			case -GLUT_KEY_END:
+				consoleEnd();
 				break;
 			default:
 				if ((c>=32) && (c<127)) // printable chars + space

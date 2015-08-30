@@ -1,5 +1,4 @@
 # 5D hypercupe to be sourced from app
-# vim: ft=python
 
 gf.new(5)
 
@@ -38,12 +37,6 @@ gf.vertexAdd( 1, 1, 1, 1, 1)
 gf.vertexDeselect()
 
 gf.set_convexhull(True)
+gf.set_convexhull(False)
 
 gf.set_campos(5, 3)
-
-gf.set_spacecolor( 4, "red")
-gf.set_spacecolor(-4, "green")
-gf.set_spacecolor( 5, "blue")
-gf.set_spacecolor(-5, "yellow")
-gf.set_spacecolor( 0, "white")
-gf.set_facecolor ("#19ffffff")

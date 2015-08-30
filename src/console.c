@@ -339,6 +339,13 @@ void consoleBackspace() {
 		consoleClear();
 }
 
+void consoleDelete() {
+	if ((cursorPos+cursorLen<cmdEnd) || (cursorPos+cursorLen<completionEnd)) {
+		consoleRight();
+		consoleBackspace();
+	}
+}
+
 void consoleEnter() {
 	applyCompletion();
 	consoleLines->str[cmdEnd]='\0';
@@ -404,6 +411,18 @@ void consoleRight() {
 		else
 			setCursorPos(cursorPos+1);
 	}
+}
+
+void consoleHome() {
+	setCursorPos(cmdBegin);
+}
+
+void consoleEnd() {
+	setCursorPos(0);
+	if (completionEnd>cmdEnd)
+		setCursorPos(completionEnd);
+	else
+		setCursorPos(cmdEnd);
 }
 
 void consoleTab() {

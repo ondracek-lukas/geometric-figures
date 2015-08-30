@@ -115,10 +115,10 @@ static bool trieAdd(struct trie *trie, char *prefix, char *scriptExpr, int param
 	return true;
 }
 
-static bool parseParam(char **dst, char **src, bool allRemaining) {
+static bool parseParam(char **dst, char **src, bool allRemaining, bool escaped) {
 	while (*src && (**src==' '))
 		(*src)++;
-	bool quoted= (**src=='"');
+	bool quoted= (**src=='"') && !allRemaining;
 	(*src)+=quoted;
 	for (; **src; (*src)++) {
 		if (!allRemaining && (**src==(quoted?'"':' '))) {
@@ -126,8 +126,9 @@ static bool parseParam(char **dst, char **src, bool allRemaining) {
 			**dst='\0';
 			return false; // not opened
 		}
-		if (**src!='"')
-			*(*dst)++ = **src;
+		if (escaped && ((**src=='\\') || (**src=='"')))
+			*(*dst)++ = '\\';
+		*(*dst)++ = **src;
 	}
 	**dst='\0';
 	return true; // opened
@@ -169,7 +170,7 @@ static char *trieTranslate(struct trie *trie, char *cmd) {
 				do {
 					if (*flags!='-')
 						*str++ = '"';
-					parseParam(&str, &cmd, !params);
+					parseParam(&str, &cmd, !params, (*flags!='-'));
 					if (*flags!='-')
 						*str++ = '"';
 					if (varArgs && *cmd)
@@ -299,7 +300,7 @@ struct utilStrList *consoleCmdsComplete(char *prefix) {
 			char *paramEnd=param;
 			if (params>0)
 				params--;
-			opened=parseParam(&paramEnd, &prefix, !params);
+			opened=parseParam(&paramEnd, &prefix, !params, false);
 			if (*prefix && *(flags+1))
 				flags++;
 		}
@@ -352,20 +353,17 @@ void consoleCmdsUserRmAll() {
 struct utilStrList *consoleCmdsPathComplete(char *prefix) {
 	char *path=utilExpandPath(prefix);
 	static char *tmp=0;
+	utilStrRealloc(&tmp, 0, strlen(path)+1);
 	prefix=tmp;
-	utilStrRealloc(&prefix, 0, strlen(path)+1);
 	if (prefix!=path) {
 		strcpy(prefix, path);
 		path=prefix;
 	}
-	prefix=rindex(path, '/');
-	if (prefix) {
-		*prefix='\0';
-		prefix++;
-	} else {
-		prefix=path;
-		path="./";
-	}
+	prefix=utilFileNameFromPath(path);
+	if (prefix==path)
+		path=".";
+	else
+		*(prefix-1)='\0';
 	int prefixLen=strlen(prefix);
 
 	DIR *dir=opendir(path);

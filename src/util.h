@@ -1,6 +1,6 @@
 // Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
-// util contains common useful functions
+// util contains common useful functions including portable versions of non-portable ones
 
 #ifndef UTIL_H
 #define UTIL_H
@@ -13,6 +13,9 @@ extern char *utilExpandPath(char *ipath);
 
 // Returns path of the application
 extern char *utilExecutablePath();
+
+// Returns pointer to a filename in the given path
+char *utilFileNameFromPath(char *path);
 
 
 // Reallocs ptr the way that from ptr2 (another pointer in ptr block) is minSize bytes available
@@ -44,22 +47,32 @@ extern void utilStrRmChars(char *str, int cnt);
 	};
 	// Adds new node after given list, use utilStrRealloc(node->str, ...) before using
 	// list will point to the new node
-	void utilStrListAddAfter(struct utilStrList **list);
+	extern void utilStrListAddAfter(struct utilStrList **list);
 
 	// Adds copy of the given list after given node
 	// after will point to the last element of list
-	void utilStrListCopyAfter(struct utilStrList **after, struct utilStrList *list);
+	extern void utilStrListCopyAfter(struct utilStrList **after, struct utilStrList *list);
 
 	// Adds the given list after given node
 	// after will point to the last element of list
 	// list will be still valid pointer
-	void utilStrListMoveAfter(struct utilStrList **after, struct utilStrList *list);
+	extern void utilStrListMoveAfter(struct utilStrList **after, struct utilStrList *list);
 
 	// Creates list of lines of given string
-	struct utilStrList *utilStrListOfLines(char *str);
+	extern struct utilStrList *utilStrListOfLines(char *str);
 
 	// Removes given node from its list, frees node->str
 	// list will point to the next element if exists, otherwise to the previous one
-	void utilStrListRm(struct utilStrList **list);
+	extern void utilStrListRm(struct utilStrList **list);
+
+
+// POSIX stpcpy reimplemented for Windows
+extern char *utilStpcpy(char *dest, const char *src);
+#ifdef WIN32
+#define stpcpy utilStpcpy
+#endif
+
+// Portable function to suspend thread
+extern void utilSleep(int ms);
 
 #endif

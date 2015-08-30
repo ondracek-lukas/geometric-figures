@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifndef WIN32
+#include <time.h>
+#endif
 #include <GL/freeglut.h>
 #include <math.h>
 
@@ -84,6 +87,20 @@ char *utilExecutablePath() {
 		}
 	}
 	return path;
+}
+
+char *utilFileNameFromPath(char *path) {
+	char *name=strrchr(path, '/');
+#ifdef WIN32
+	char *backslash=strchr(path, '\\');
+	if (backslash>name)
+		name=backslash;
+#endif
+	if (name) {
+		return name+1;
+	} else {
+		return path;
+	}
 }
 
 
@@ -246,4 +263,24 @@ void utilStrListRm(struct utilStrList **pList) {
 		*pList=node->prev;
 	utilStrRealloc(&node->str, 0, 0);
 	free(node);
+}
+
+// -- other portable functions --
+
+char *utilStpcpy(char *dest, const char *src) {
+	do {
+		*dest=*src;
+	} while (dest++, *src++);
+	return dest-1;
+}
+
+void utilSleep(int ms) {
+#ifdef WIN32
+	Sleep(ms);
+#else
+	struct timespec sleepTime;
+	sleepTime.tv_sec=0;
+	sleepTime.tv_nsec=ms*1000;
+	nanosleep(&sleepTime, 0);
+#endif
 }

@@ -83,11 +83,14 @@ extern bool consoleIsOpen();
 // Key press events handling on console
 extern void consoleKeyPress(char c);
 extern void consoleBackspace();
+extern void consoleDelete();
 extern void consoleEnter();
 extern void consoleUp();
 extern void consoleDown();
 extern void consoleLeft();
 extern void consoleRight();
+extern void consoleHome();
+extern void consoleEnd();
 extern void consoleTab();
 
 // Invokes executing command

@@ -129,9 +129,7 @@ bool animSleep(int ms) {
 	int time = glutGet(GLUT_ELAPSED_TIME);
 	int returnAt = time + ms;
 	int wakeAt, wakeAfter;
-	struct timespec sleepTime;
 	int redisplayCounter=drawerRedisplayCounter;
-	sleepTime.tv_sec=0;
 	animSleepActive=true;
 	animRedisplayNeeded=true;
 	
@@ -150,8 +148,7 @@ bool animSleep(int ms) {
 		time = glutGet(GLUT_ELAPSED_TIME);
 		wakeAfter=wakeAt-time;
 		if (wakeAfter>0) {
-			sleepTime.tv_nsec=wakeAfter*1000;
-			nanosleep(&sleepTime, 0);
+			utilSleep(wakeAfter);
 		}
 		time = glutGet(GLUT_ELAPSED_TIME);
 	}

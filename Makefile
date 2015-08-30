@@ -20,7 +20,7 @@ ifeq ($(arch), win32) # Windows
 	suff     = -win32
 	pkg      = zip
 	txtext   = .txt
-	version  = for Windows
+	version += for Windows
 else                  # Linux (native/32/64)
 	LDFLAGS += -lglut -lGLU -lGL -lpython2.7
 	CFLAGS  += -I/usr/include/python2.7

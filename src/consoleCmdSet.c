@@ -102,11 +102,13 @@ void consoleCmdSetUpdateCmds() {
 #undef addArray
 
 
-#define throw(msg) {scriptThrowException(msg); return 0;}
+#define throwS(msg) {scriptThrowException(msg); return;}
+#define throwG(msg) {scriptThrowException(msg); return 0;}
 #define parseColorAlpha() GLfloat components[4]; if(!colorSetter(components, color)) return
-#define parseColor() parseColorAlpha(); if (components[3]!=1) throw("Alpha channel is not available");
-#define checkBounds(min, max, index_meaning) if ((index<min)||(index>max)) throw("Wrong "index_meaning)
-#define checkCond(cond) if (!(cond)) throw("Wrong value")
+#define parseColor() parseColorAlpha(); if (components[3]!=1) throwS("Alpha channel is not available");
+#define checkBoundsG(min, max, index_meaning) if ((index<min)||(index>max)) throwG("Wrong "index_meaning)
+#define checkBoundsS(min, max, index_meaning) if ((index<min)||(index>max)) throwS("Wrong "index_meaning)
+#define checkCond(cond) if (!(cond)) throwS("Wrong value")
 
 char *consoleCmdGetBackground() {
 	return colorGetter(drawerBackColor);
@@ -117,11 +119,11 @@ void consoleCmdSetBackground(char *color) {
 }
 
 float consoleCmdGetCampos(int index) {
-	checkBounds(3, drawerDim, "axis");
+	checkBoundsG(3, drawerDim, "axis");
 	return drawerCamPos[index-1];
 }
 void consoleCmdSetCampos(int index, float value) {
-	checkBounds(3, drawerDim, "axis");
+	checkBoundsS(3, drawerDim, "axis");
 	checkCond((value>drawerVisibleRadius) && (value<=8000000))
 	drawerCamPos[index-1]=value;
 	drawerSetProjection();
@@ -146,7 +148,7 @@ int consoleCmdGetDimen() {
 	return drawerDim;
 }
 void consoleCmdSetDimen(bool value)
-	throw ("Property is read-only");
+	throwS ("Property is read-only");
 
 float consoleCmdGetEdgesize() {
 	return drawerEdgeSize;
@@ -216,7 +218,7 @@ void consoleCmdSetSelvertsize(float value) {
 
 
 char *consoleCmdGetSpacecolor(int index) {
-	checkBounds(-drawerDim, drawerDim, "axis");
+	checkBoundsG(-drawerDim, drawerDim, "axis");
 	if (index>0)
 		return colorGetter(drawerSpaceColorPositive[index-1]);
 	else if (index<0)
@@ -225,7 +227,7 @@ char *consoleCmdGetSpacecolor(int index) {
 		return colorGetter(drawerSpaceColorCenter);
 }
 void consoleCmdSetSpacecolor(int index, char *color) {
-	checkBounds(-drawerDim, drawerDim, "axis");
+	checkBoundsS(-drawerDim, drawerDim, "axis");
 	if (index>0)
 		colorSetter(drawerSpaceColorPositive[index-1], color);
 	else if (index<0)
@@ -266,10 +268,12 @@ void consoleCmdSetVertsize(float value) {
 	drawerSetProjection();
 }
 
-#undef throw
+#undef throwG
+#undef throwS
 #undef parseColorAlpha
 #undef parseColor
-#undef checkBounds
+#undef checkBoundsG
+#undef checkBoundsS
 #undef checkCond
 
 

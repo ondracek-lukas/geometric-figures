@@ -13,7 +13,7 @@ gf.addCommand(cmd, pyexpr, pCnt, pFlags)
            0: No other characters after cmd are allowed. (default)
   pFlags: String, one character per one paramter, the last one is repeated:
              -: parameter will be used "as is" as literal (default)
-             s: parameter will be surrounded by double-quotes as string literal
+             s: parameter will be used as string literal
              p: also string but treated as path with autocompletion
              c: also string but treated as color with autocompletion
              C: as previous but allows opacity channel
@@ -21,3 +21,6 @@ gf.removeCommands(prefix)
 gf.removeCommands()
   Removes all user commands with given prefix.
   (default: removes all user commands)
+
+If a parameter (except the pCnt-th one) begins with double-quote,
+its terminating character is the next double-quote (instead of space).

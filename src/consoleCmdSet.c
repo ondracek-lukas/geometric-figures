@@ -19,6 +19,7 @@
 #include "figure.h"
 #include "anim.h"
 #include "script.h"
+#include "hid.h"
 
 static char *colorGetter(GLfloat *variable);
 static bool colorSetter(GLfloat *variable, char *value);
@@ -75,8 +76,10 @@ void consoleCmdSetUpdateCmds() {
 	add      ("dimen",          0 );
 	add      ("edgesize",       0 );
 	add      ("facecolor",     "C");
+	addBool  ("grabmouse");
 	add      ("history",        0 );
 	add      ("maxfps",         0 );
+	add      ("mousesens",      0 );
 	addBool  ("pyexpr");
 	add      ("selvertcolor",  "C");
 	add      ("selvertsize",    0 );
@@ -163,12 +166,18 @@ void consoleCmdSetEdgesize(float value) {
 	drawerSetProjection();
 }
 
-
 char *consoleCmdGetFacecolor() {
 	return colorGetter(drawerFaceColor);
 }
 void consoleCmdSetFacecolor(char *color) {
 	colorSetter(drawerFaceColor, color);
+}
+
+bool consoleCmdGetGrabmouse() {
+	return hidGrabMouse;
+}
+void consoleCmdSetGrabmouse(bool value) {
+	hidGrabMouse=value;
 }
 
 int consoleCmdGetHistory() {
@@ -187,6 +196,12 @@ void consoleCmdSetMaxfps(int value) {
 	animFrameDelay=1000.0/value;
 }
 
+float consoleCmdGetMousesens() {
+	return hidMouseSensitivity;
+}
+void consoleCmdSetMousesens(float value) {
+	hidMouseSensitivity=value;
+}
 
 bool consoleCmdGetPyexpr() {
 	return consoleAllowPythonExpr;
@@ -194,7 +209,6 @@ bool consoleCmdGetPyexpr() {
 void consoleCmdSetPyexpr(bool value) {
 	consoleAllowPythonExpr=value;
 }
-
 
 char *consoleCmdGetSelvertcolor() {
 	return colorGetter(drawerSelectedVertColor);
@@ -215,7 +229,6 @@ void consoleCmdSetSelvertsize(float value) {
 		drawerEdgeSize=drawerSelectedVertSize;
 	drawerSetProjection();
 }
-
 
 char *consoleCmdGetSpacecolor(int index) {
 	checkBoundsG(-drawerDim, drawerDim, "axis");
@@ -246,14 +259,12 @@ void consoleCmdSetSpeed(float value) {
 	animRotSpeed=value;
 }
 
-
 bool consoleCmdGetStdoutpyexpr() {
 	return consolePythonExprToStdout;
 }
 void consoleCmdSetStdoutpyexpr(bool value) {
 	consolePythonExprToStdout=value;
 }
-
 
 float consoleCmdGetVertsize() {
 	return drawerVertSize;

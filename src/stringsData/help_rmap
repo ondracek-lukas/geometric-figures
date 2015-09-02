@@ -1,17 +1,28 @@
 help:rmap
-                    rmap <key> [<axis1> <axis2>]
+                           rmap <event> [<axis1> <axis2>]
 
-             Assigns the plane of rotation to the key or
-          unassigns previous one if axes are not specified.
+              Assigns the plane of rotation to the long-lasting event or
+                  unassigns previous one if axes are not specified.
 
-       The key can be an ASCII character or <[c][a][s]-key>,
-where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
+             The event can be an ASCII character or <[c][a][s]-key>,
+         where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
+          Key can be also ASCII character or one of enter, esc, bs, delete,
+             up, down, left, right, home, end, pageup, pagedown, insert,
+                             f1..f12, mouse0..mouse9.
+                 Mouse buttons are numbered according to freeglut,
+it would be 0 left, 1 center, 2 right, 3/4 vertical wheel, 5/6 horizontal wheel, ...
+     The figure is being rotated while the key (with modifiers) is being held.
+                 (use :set speed for setting the angular velocity)
 
-                    The axes are indexed from 1.
-                     Axis 1 goes to the right,
-                         axis 2 goes up,
-             axis 3 and every next go to the camera.
-                  The order of the axes matters.
-                     The angle is in degrees.
+The event can also be mouse axis with specified modifiers and mouse buttons pressed:
+               <[c][a][s]-mouse[0][1][2][3][4][5][6][7][8][9](x|y)>.
+                    At least one mouse button has to be pressed.
+The figure is being rotated while the mouse is moving (holding modifiers and buttons).
+                 (use :set mousesens for setting mouse sensitivity)
 
-  The figure will be rotating all the time the key is being held.
+                            The axes are indexed from 1.
+                             Axis 1 goes to the right,
+                                 axis 2 goes up,
+                     axis 3 and every next go to the camera.
+                          The order of the axes matters.
+                             The angle is in degrees.

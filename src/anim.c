@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "keyboard.h"
+#include "hid.h"
 #include "figure.h"
 #include "convex.h"
 #include "console.h"
@@ -21,8 +21,7 @@ const int animResponseDelay=100;
 GLfloat animRotSpeed=90;         // degrees per second
 bool animSleepActive=false;
 bool animRedisplayNeeded=false;
-static int sleepInterruptedCode=0;
-static int sleepInterruptedMod;
+static bool sleepInterrupted=false;
 
 struct animRotation {
 	int axis1, axis2;
@@ -78,6 +77,16 @@ void animStopRot(struct animRotation *rot) {
 	rot->next=0;
 }
 
+bool animCustomRot(struct animRotation *rot, GLfloat angle) {
+	if ((rot->axis1<figureData.dim) && (rot->axis2<figureData.dim)) {
+		figureRotate(rot->axis1, rot->axis2, angle);
+		return true;
+	} else {
+		consolePrintErr("Wrong axes");
+		return false;
+	}
+}
+
 void frame(int value) {
 	char str[100], *str2;
 	int time=glutGet(GLUT_ELAPSED_TIME);
@@ -85,10 +94,9 @@ void frame(int value) {
 	int rots=0;
 
 	glutTimerFunc(animFrameDelay, frame, 0);
-	if (!animSleepActive && sleepInterruptedCode) {
-		int code=sleepInterruptedCode;
-		sleepInterruptedCode=0;
-		keyboardPressMod(code, sleepInterruptedMod);
+	if (!animSleepActive && sleepInterrupted) {
+		sleepInterrupted=false;
+		hidInvokeWaitingEvents();
 		return;
 	}
 
@@ -97,13 +105,8 @@ void frame(int value) {
 	if (convexInteract)
 		return;
 
-	for (struct animRotation *r=activeRots; r; r=r->next) {
-		if ((r->axis1<figureData.dim) && (r->axis2<figureData.dim)) {
-			figureRotate(r->axis1, r->axis2, animRotSpeed*delay/1000);
-			rots++;
-		} else
-			consolePrintErr("Wrong axes");
-	}
+	for (struct animRotation *r=activeRots; r; r=r->next)
+		rots+=animCustomRot(r, animRotSpeed*delay/1000);
 
 	str2=str;
 	if (rots || animSleepActive) {
@@ -123,7 +126,7 @@ void frame(int value) {
 }
 
 bool animSleep(int ms) {
-	if (sleepInterruptedCode) {
+	if (sleepInterrupted) {
 		return false;
 	}
 	int time = glutGet(GLUT_ELAPSED_TIME);
@@ -142,7 +145,7 @@ bool animSleep(int ms) {
 		wakeAt=time+wakeAfter;
 
 		glutMainLoopEvent();
-		if (sleepInterruptedCode)
+		if (sleepInterrupted)
 			break;
 
 		time = glutGet(GLUT_ELAPSED_TIME);
@@ -154,12 +157,11 @@ bool animSleep(int ms) {
 	}
 	glutMainLoopEvent();
 	animSleepActive=false;
-	return !sleepInterruptedCode;
+	return !sleepInterrupted;
 }
 
-void animSleepInterrupt(int c, int mod) {
-	sleepInterruptedCode=c;
-	sleepInterruptedMod=mod;
+void animSleepInterrupt() {
+	sleepInterrupted=true;
 }
 
 int animGetTime() {

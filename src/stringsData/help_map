@@ -1,12 +1,26 @@
 help:map
-               map <key> [<command_or_python_expr>]
+                       map <event> [<command_or_python_expr>]
 
-        Assigns the command or python expression to the key
-       or unassigns previous one if command is not specified.
+               Assigns the command or python expression to the event
+               or unassigns previous one if command is not specified.
 
-       The key can be an ASCII character or <[c][a][s]-key>,
-where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift.
+             The event can be an ASCII character or <[c][a][s][r]-key>,
+         where the pre-hyphen characters are the modifiers Ctrl, Alt, Shift
+                      and Release event (instead of press).
+          Key can be also ASCII character or one of enter, esc, bs, delete,
+             up, down, left, right, home, end, pageup, pagedown, insert,
+                             f1..f12, mouse0..mouse9.
+                 Mouse buttons are numbered according to freeglut,
+it would be 0 left, 1 center, 2 right, 3/4 vertical wheel, 5/6 horizontal wheel, ...
 
-      If the second parameter is not recognized as a command,
-                it is treated as python expression.
-                 No error is raised at this point.
+The event can also be mouse axis with specified modifiers and mouse buttons pressed:
+               <[c][a][s]-mouse[0][1][2][3][4][5][6][7][8][9](x|y)>.
+                    At least one mouse button has to be pressed.
+                     In this case the command has to contain %,
+  which will be substitued by the mouse position difference in the axis in pixels
+                            since the last command call.
+  The command will be called on every mouse move with given modifiers and buttons.
+
+             If the second parameter is not recognized as a command,
+                       it is treated as python expression.
+                        No error is raised at this point.

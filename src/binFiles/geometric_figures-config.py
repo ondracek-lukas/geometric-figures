@@ -93,52 +93,70 @@ def randomRot(allowCameraMoving):
 
 # Figures:
 
-def openAndRot(name):
+import os;
+lastLoaded="3d"
+def loadRelative(offset):
+	files=os.listdir(gf.expandPath("%/data"))
+	files.sort()
+	try:
+		i=files.index(lastLoaded)
+	except:
+		i=-1
+	i= (i+offset) % len(files)
+	loadAndRot(files[i])
+
+def loadAndRot(name):
+	global lastLoaded
 	gf.set_convexhull(False)
-	gf.open("%/data/" + name + ".dat");
+	if name.endswith(".py"):
+		gf.source("%/data/" + name)
+	else:
+		gf.open("%/data/" + name);
+	lastLoaded=name
 	if dim_ge(3):
 		gf.rotate(1 ,3, 30)
 		gf.rotate(2 ,3, 20)
 	defaultColors() # defined below
-	randomRot(False)
-def sourceAndRot(name):
-	gf.source("%/data/" + name + ".py");
-	if dim_ge(3):
-		gf.rotate(1 ,3, 30)
-		gf.rotate(2 ,3, 20)
-	defaultColors() # defined below
-	randomRot(False)
+	gf.echo("File " + name + " loaded...")
+	if gf.sleep(2000): # Wait 2s for user interrupt
+		randomRot(False)
 
  #0D:
-gf.map("~", "openAndRot('0d')")
+gf.map("~", "loadAndRot('0d.dat')")
  #1D:
-gf.map("`", "openAndRot('1d-2')")
+gf.map("`", "loadAndRot('1d-2.dat')")
  #2D:
-gf.map("1", "openAndRot('2d-3')")
+gf.map("1", "loadAndRot('2d-3.dat')")
  #3D:
-gf.map("2", "openAndRot('3d-4')")
-gf.map("3", "openAndRot('3d-6')")
-gf.map("4", "openAndRot('3d-8')")
-gf.map("5", "openAndRot('3d-12')")
-gf.map("6", "openAndRot('3d-20')")
+gf.map("2", "loadAndRot('3d-04.dat')")
+gf.map("3", "loadAndRot('3d-06.dat')")
+gf.map("4", "loadAndRot('3d-08.dat')")
+gf.map("5", "loadAndRot('3d-12.dat')")
+gf.map("6", "loadAndRot('3d-20.dat')")
  #4D:
-gf.map("7", "openAndRot('4d-5')")
-gf.map("8", "openAndRot('4d-8')")
-gf.map("9", "openAndRot('4d-16')")
-gf.map("0", "openAndRot('4d-24')")
-gf.map("-", "openAndRot('4d-120')")
-gf.map("=", "openAndRot('4d-600')")
+gf.map("7", "loadAndRot('4d-005.dat')")
+gf.map("8", "loadAndRot('4d-008.dat')")
+gf.map("9", "loadAndRot('4d-016.dat')")
+gf.map("0", "loadAndRot('4d-024.dat')")
+gf.map("-", "loadAndRot('4d-120.dat')")
+gf.map("=", "loadAndRot('4d-600.dat')")
  #5D:
-gf.map("+", "sourceAndRot('5d-10')")
+gf.map("_", "loadAndRot('5d-010.py')")
+gf.map("+", "loadAndRot('5d-032.dat')")
+ #Relative:
+gf.map("<mouse3>", "loadRelative(-1)")
+gf.map("<mouse4>", "loadRelative(1)")
+
 
 config_readme+="""
 Figures:
   0D: ~ point
   1D: ` abscissa
-  2D: 1 triangle
+  2D: 1 triangle,      square,      pentagon,     hexagon
   3D: 2 tetrahedron, 3 cube,      4 octahedron,            5 dodecahedron, 6 icosahedron
   4D: 7 pentachoron, 8 tesseract, 9 16-cell,    0 24-cell, - 120-cell,     = 600 cell
-  5D:                + penteract"""
+  5D:                _ penteract, + 32-cell
+  Next/previous: mouse wheel"""
 
 
 # Rotation:
@@ -157,10 +175,12 @@ gf.rmap("a", 1, 3)
 gf.map("A", "rot 1 3 15")
 gf.rmap("s", 3, 1)
 gf.map("S", "rot 3 1 15")
+gf.rmap("<mouse0x>", 3, 1)
 gf.rmap("z", 2, 3)
 gf.map("Z", "rot 2 3 15")
 gf.rmap("x", 3, 2)
 gf.map("X", "rot 3 2 15")
+gf.rmap("<mouse0y>", 3, 2);
 
  #4D:
 gf.rmap("e", 3, 4)
@@ -171,18 +191,40 @@ gf.rmap("d", 1, 4)
 gf.map("D", "rot 1 4 15")
 gf.rmap("f", 4, 1)
 gf.map("F", "rot 4 1 15")
+gf.rmap("<mouse2x>", 4, 1)
 gf.rmap("c", 2, 4)
 gf.map("C", "rot 2 4 15")
 gf.rmap("v", 4, 2)
 gf.map("V", "rot 4 2 15")
+gf.rmap("<mouse2y>", 4, 2)
 
 config_readme+="""
 Rotations: (use shift to rotate by 15 degrees)
   2D: q-w 12(xy)
-  3D: a-s 13(xz), z-x 23(yz)
-  4D: d-f 14(x4), c-v 24(y4), e-r 34(z4)
+  3D: a-s 13(xz), z-x 23(yz), holding left mouse button
+  4D: d-f 14(x4), c-v 24(y4), e-r 34(z4), holding right mouse button
 Random rotation: TAB"""
 
+# Perspective setting:
+def advanceCamposl(axis, by):
+	if not dim_ge(axis):
+		return; # Silently suppress exception
+	value=gf.get_camposl(axis)+by;
+	if value>10:
+		value=10;
+	if value<0.14:
+		value=0.14
+	gf.set_camposl(axis, value);
+	gf.clear();
+	gf.echo("--- Setting camposl ---");
+	for i in range(3, gf.get_dimen()+1):
+		gf.echo("  camposl" + str(i) + "=" + str(gf.get_camposl(i)))
+	gf.clearAfterCmd();
+gf.map("<mouse1x>", "advanceCamposl(3, %/100.0)");
+gf.map("<mouse1y>", "advanceCamposl(4, %/100.0)");
+
+config_readme+="""
+Perspective projection: holding middle mouse button - x camposl3, y camposl4"""
 
 # Modification:
 

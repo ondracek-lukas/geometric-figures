@@ -49,8 +49,7 @@ extern void convexDestroyHull();
 	extern bool convexInteract;
 
 	// Key press event on convexInteract module
-	extern void convexInteractKeyPress(int c);
-
+	extern void convexInteractKeyPress();
 
 
 // Internal convex* data structures

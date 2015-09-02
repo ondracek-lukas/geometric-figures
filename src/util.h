@@ -9,7 +9,7 @@
 
 // Expands path starting with ~/ (home directory) or %/ (app location)
 // Returned path is valid till next call (if expanded)
-extern char *utilExpandPath(char *ipath);
+extern char *utilExpandPath(char *ipath);  // [SCRIPT_NAME: expandPath]
 
 // Returns path of the application
 extern char *utilExecutablePath();

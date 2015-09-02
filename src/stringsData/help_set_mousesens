@@ -1,0 +1,6 @@
+help:set mousesens;help:set nomousesens
+                   mousesens  (real number)
+
+Mouse sensitivity when rotating using mouse move
+            mapped with rmap command
+              in degrees per pixel.

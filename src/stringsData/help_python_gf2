@@ -13,3 +13,4 @@ List of other gf module functions (not accessible as commands):
   gf.resetColorAliases()          |
   gf.normalizeColor(color)        | Manages color format,
   gf.normalizeColorAlpha(color)   | see :help python colors
+  gf.expandPath()  | Expands %/ and ~/

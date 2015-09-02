@@ -11,7 +11,7 @@
 #include "figure.h"
 #include "drawer.h"
 #include "safe.h"
-#include "keyboard.h"
+#include "hid.h"
 #include "anim.h"
 #include "script.h"
 
@@ -62,7 +62,7 @@ void consoleCmdRotate(int axis1, int axis2, float angle) {
 }
 
 void consoleCmdMap(char *key, char *cmd_or_expr) {
-	int code=keyboardCodeFromString(key);
+	int code=hidCodeFromString(key);
 	if (!code) {
 		scriptThrowException("Wrong key shortcut");
 		return;
@@ -70,20 +70,20 @@ void consoleCmdMap(char *key, char *cmd_or_expr) {
 	char *expr=consoleCmdsToScriptExpr(cmd_or_expr);
 	if (!expr)
 		expr=cmd_or_expr;
-	keyboardMap(code, expr);
+	hidMap(code, expr);
 }
 
 void consoleCmdUnmap(char *key) {
-	int code=keyboardCodeFromString(key);
+	int code=hidCodeFromString(key);
 	if (!code) {
 		scriptThrowException("Wrong key shortcut");
 		return;
 	}
-	keyboardMap(code, 0);
+	hidMap(code, 0);
 }
 
 void consoleCmdRmap(char *key, int axis1, int axis2) {
-	int code=keyboardCodeFromString(key);
+	int code=hidCodeFromString(key);
 	if (!code) {
 		scriptThrowException("Wrong key shortcut");
 		return;
@@ -93,16 +93,16 @@ void consoleCmdRmap(char *key, int axis1, int axis2) {
 		scriptThrowException("Wrong parameters");
 		return;
 	}
-	animDestroyRot(keyboardMapRot(code, animCreateRot(axis1-1, axis2-1)));
+	animDestroyRot(hidMapRot(code, animCreateRot(axis1-1, axis2-1)));
 }
 
 void consoleCmdRunmap(char *key) {
-	int code=keyboardCodeFromString(key);
+	int code=hidCodeFromString(key);
 	if (!code) {
 		scriptThrowException("Wrong key shortcut");
 		return;
 	}
-	keyboardMapRot(code, NULL);
+	hidMapRot(code, NULL);
 }
 
 void consoleCmdHelp(char *name) {

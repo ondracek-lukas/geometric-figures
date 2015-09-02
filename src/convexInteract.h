@@ -13,7 +13,7 @@
 	extern bool convexInteract;
 
 	// Key press event on convexInteract module
-	extern void convexInteractKeyPress(int c);
+	extern void convexInteractKeyPress();
 
 // Determines whether convex hull generation was aborted (e.g. by user)
 extern char *convexInteractAborted;

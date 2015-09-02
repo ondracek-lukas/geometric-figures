@@ -115,6 +115,6 @@ void convexInteractAbort(char *msg) {
 	convexInteractAborted=msg;
 }
 
-void convexInteractKeyPress(int c) {
+void convexInteractKeyPress() {
 	convexInteractAbort("Boundary update was aborted by user");
 }

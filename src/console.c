@@ -19,7 +19,7 @@
 #include "anim.h"
 #include "debug.h"
 #include "matrix.h"
-#include "keyboard.h"
+#include "hid.h"
 #include "consoleCmd.h"
 #include "consoleCmds.h"
 #include "script.h"
@@ -548,32 +548,43 @@ void consoleExecuteCmd(char *cmd) {
 
 
 static void execFile(int str_path);
-static char *execFilePath=0;
+static struct utilStrList *execFilePaths=0;
+static struct utilStrList *execFilePathsEnd=0;
 void consoleExecFile(char *path) {
-	utilStrRealloc(&execFilePath, 0, strlen(path)+1);
-	strcpy(execFilePath, path);
+	utilStrListAddAfter(&execFilePathsEnd);
+	if (!execFilePaths)
+		execFilePaths=execFilePathsEnd;
+	utilStrRealloc(&execFilePathsEnd->str, 0, strlen(path)+1);
+	strcpy(execFilePathsEnd->str, path);
 	glutTimerFunc(0, execFile, 0);
 }
 
 void execFile(int ignored) {
-	consoleCmdSource(execFilePath);
+	consoleCmdSource(execFilePaths->str);
 	char *err=scriptCatchException();
 	if (err)
 		consolePrintErr(err);
+	utilStrListRm(&execFilePaths);
+	if (!execFilePaths)
+		execFilePathsEnd=0;
 }
 
-static char *evalExprStr=0;
+static struct utilStrList *evalExprStrs=0;
+static struct utilStrList *evalExprStrsEnd=0;
 static void evalExpr(int str_expr);
 void consoleEvalExpr(char *expr) {
-	utilStrRealloc(&evalExprStr, 0, strlen(expr)+1);
-	strcpy(evalExprStr, expr);
+	utilStrListAddAfter(&evalExprStrsEnd);
+	if (!evalExprStrs)
+		evalExprStrs=evalExprStrsEnd;
+	utilStrRealloc(&evalExprStrsEnd->str, 0, strlen(expr)+1);
+	strcpy(evalExprStrsEnd->str, expr);
 	glutTimerFunc(0, evalExpr, 0);
 }
 
 void evalExpr(int ignored) {
 	cmdExecutionLevel++;
 
-	char *ret=scriptEvalExpr(evalExprStr);
+	char *ret=scriptEvalExpr(evalExprStrs->str);
 	if (ret && *ret)
 		consolePrint(ret);
 
@@ -583,12 +594,15 @@ void evalExpr(int ignored) {
 
 	if (consolePythonExprToStdout) {
 		if (err)
-			printf("%s # Error: %s\n", evalExprStr, err);
+			printf("%s # Error: %s\n", evalExprStrs->str, err);
 		else if (ret && *ret)
-			printf("%s # Ret: %s\n", evalExprStr, ret);
+			printf("%s # Ret: %s\n", evalExprStrs->str, ret);
 		else
-			printf("%s\n", evalExprStr);
+			printf("%s\n", evalExprStrs->str);
 	}
+	utilStrListRm(&evalExprStrs);
+	if (!evalExprStrs)
+		evalExprStrsEnd=0;
 
 	cmdExecutionLevel--;
 }

@@ -30,6 +30,7 @@ GLfloat drawerSpaceColorCenter[4]={0,0,0,1};
 GLfloat drawerSelectedVertColor[4];
 int drawerLastDelay=1;
 unsigned drawerRedisplayCounter=0;
+int drawerWidth=0, drawerHeight=0;
 
 static bool redisplayNeeded=false;
 static GLfloat stringColor[4];
@@ -40,8 +41,6 @@ static GLfloat stringColorGray[4];
 static GLfloat scale=1;
 static GLUquadric *quadric=0;
 static int lastTime=0;
-
-int width=0, height=0;
 
 static void calcSpaceColor(GLfloat *color, GLfloat *pos);
 static void drawFigure();
@@ -70,9 +69,9 @@ void drawerInit() {
 }
 
 void drawerResize(int w, int h) {
-	width=w;
-	height=h;
-	glViewport(0, 0, width, height);
+	drawerWidth=w;
+	drawerHeight=h;
+	glViewport(0, 0, drawerWidth, drawerHeight);
 	drawerSetProjection();
 }
 
@@ -174,32 +173,32 @@ void drawerFree() {
 }
 
 void drawerSetProjection() {
-	if ((drawerDim<0) || (width==0) || (height==0))
+	if ((drawerDim<0) || (drawerWidth==0) || (drawerHeight==0))
 		return;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if (drawerDim<3) {
-		if (height<width)
+		if (drawerHeight<drawerWidth)
 			glOrtho(
-				-drawerVisibleRadius*width/height, drawerVisibleRadius*width/height,
+				-drawerVisibleRadius*drawerWidth/drawerHeight, drawerVisibleRadius*drawerWidth/drawerHeight,
 				-drawerVisibleRadius, drawerVisibleRadius,
 				-drawerVisibleRadius, drawerVisibleRadius);
 		else
 			glOrtho(
 				-drawerVisibleRadius, drawerVisibleRadius,
-				-drawerVisibleRadius*height/width, drawerVisibleRadius*height/width,
+				-drawerVisibleRadius*drawerHeight/drawerWidth, drawerVisibleRadius*drawerHeight/drawerWidth,
 				-drawerVisibleRadius, drawerVisibleRadius);
 	} else {
 		GLfloat r=sqrt((drawerCamPos[2]-drawerVisibleRadius)/(drawerCamPos[2]+drawerVisibleRadius))*drawerVisibleRadius;
-		if (height<width)
-			glFrustum(-r*width/height, r*width/height, -r, r, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
+		if (drawerHeight<drawerWidth)
+			glFrustum(-r*drawerWidth/drawerHeight, r*drawerWidth/drawerHeight, -r, r, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
 		else
-			glFrustum(-r, r, -r*height/width, r*height/width, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
+			glFrustum(-r, r, -r*drawerHeight/drawerWidth, r*drawerHeight/drawerWidth, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
 	}
-	if (height<width)
-		scale=drawerVisibleRadius/height;
+	if (drawerHeight<drawerWidth)
+		scale=drawerVisibleRadius/drawerHeight;
 	else
-		scale=drawerVisibleRadius/width;
+		scale=drawerVisibleRadius/drawerWidth;
 
 	if (drawerVisibleRadius<scale*drawerSelectedVertSize/2) {
 		drawerSelectedVertSize=drawerVisibleRadius/scale*2;
@@ -419,7 +418,7 @@ static void drawControls() {
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(0, width, 0, height, -1, 1);
+	glOrtho(0, drawerWidth, 0, drawerHeight, -1, 1);
 
 	drawStatusLine();
 	drawBlock();
@@ -498,10 +497,10 @@ static void drawBlock() {
 	struct utilStrList *list=0;
 	if (!consoleBlock)
 		return;
-	x=(width-consoleBlockWidth*9)/2;
-	y=(height+consoleBlockHeight*19)/2-10;
+	x=(drawerWidth-consoleBlockWidth*9)/2;
+	y=(drawerHeight+consoleBlockHeight*19)/2-10;
 	
-	if ((x<0) || (y>height-10-19)) {
+	if ((x<0) || (y>drawerHeight-10-19)) {
 		glColor3fv(stringColorRed);
 		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
@@ -511,11 +510,11 @@ static void drawBlock() {
 		sprintf(list->str, "%dx%d needed", consoleBlockWidth*9, consoleBlockHeight*19+2*19);
 		utilStrListAddAfter(&list);
 		utilStrRealloc(&list->str, 0, 20);
-		sprintf(list->str, "current: %dx%d", width, height);
+		sprintf(list->str, "current: %dx%d", drawerWidth, drawerHeight);
 		list=list->prev;
 		list=list->prev;
-		x=(width>17*9?(width-17*9)/2:0);
-		y=(height>3*19?(height+3*19)/2:height)-12;
+		x=(drawerWidth>17*9?(drawerWidth-17*9)/2:0);
+		y=(drawerHeight>3*19?(drawerHeight+3*19)/2:drawerHeight)-12;
 		drawStringMultiline(list, 0, x, y);
 		while (list)
 			utilStrListRm(&list);
@@ -542,8 +541,8 @@ static void drawStatusLine() {
 	}
 
 	glColor3fv(stringColorGreen);
-	if (9*(strlen(consoleStatus)+consoleSize+3)<=width)
-		drawString(consoleStatus, width-9*strlen(consoleStatus)-10, 5);
+	if (9*(strlen(consoleStatus)+consoleSize+3)<=drawerWidth)
+		drawString(consoleStatus, drawerWidth-9*strlen(consoleStatus)-10, 5);
 	else if (!consoleLines)
 		drawString(consoleStatus, 10, 5);
 	

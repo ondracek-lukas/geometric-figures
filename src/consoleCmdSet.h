@@ -32,11 +32,17 @@ void consoleCmdSetEdgesize(float value);              // [SCRIPT_NAME: set_edges
 char *consoleCmdGetFacecolor();                       // [SCRIPT_NAME: get_facecolor]
 void consoleCmdSetFacecolor(char *color);             // [SCRIPT_NAME: set_facecolor]
 
+bool consoleCmdGetGrabmouse();                        // [SCRIPT_NAME: get_grabmouse]
+void consoleCmdSetGrabmouse(bool value);              // [SCRIPT_NAME: set_grabmouse]
+
 int consoleCmdGetHistory();                           // [SCRIPT_NAME: get_history]
 void consoleCmdSetHistory(int value);                 // [SCRIPT_NAME: set_history]
 
 int consoleCmdGetMaxfps();                            // [SCRIPT_NAME: get_maxfps]
 void consoleCmdSetMaxfps(int value);                  // [SCRIPT_NAME: set_maxfps]
+
+float consoleCmdGetMousesens();                       // [SCRIPT_NAME: get_mousesens]
+void consoleCmdSetMousesens(float value);             // [SCRIPT_NAME: set_mousesens]
 
 bool consoleCmdGetPyexpr();                           // [SCRIPT_NAME: get_pyexpr]
 void consoleCmdSetPyexpr(bool value);                 // [SCRIPT_NAME: set_pyexpr]

@@ -10,6 +10,9 @@
 
 // Proportions:
 
+	// Window size, read-only
+	extern int drawerWidth, drawerHeight;
+
 	// Sphere of this radius located in the origin is always visible
 	extern const GLfloat drawerVisibleRadius;
 

@@ -41,15 +41,17 @@ extern void animInit(void);
 	// Stops rotation
 	extern void animStopRot(struct animRotation *rot);
 
+	// Applies rotation by given angle, returns true on success
+	extern bool animCustomRot(struct animRotation *rot, GLfloat angle);
+
 // Determines whether redisplay is needed in next frame, can be set (not cleared) anytime
 extern bool animRedisplayNeeded;
 
 // Handles events for given time, then returns
 extern bool animSleep(int ms); // [SCRIPT_NAME: sleep]
 
-// Interrupts sleeping with given key code and modifiers,
-// key press event will be then invoked again
-extern void animSleepInterrupt(int code, int mod);
+// Interrupts sleeping, events waiting in hid module will be invoked
+extern void animSleepInterrupt();
 
 // Returns time in ms from the start of app
 int animGetTime(); // [SCRIPT_NAME: time]

@@ -9,35 +9,40 @@
 #include "matrix.h"
 #include "safe.h"
 #include "script.h"
+#include "drawer.h"
 
 int consoleCmdVertexSelected=-1;
 
 void consoleCmdVertexSelect(int index) {
-	if ((figureData.dim>=0) && (index>0) && (index<=figureData.count[0]))
+	if ((figureData.dim>=0) && (index>0) && (index<=figureData.count[0])) {
 		consoleCmdVertexSelected=index-1;
-	else
+		drawerInvokeRedisplay();
+	} else
 		scriptThrowException("Wrong index");
 }
 
 void consoleCmdVertexNext() {
-	if ((figureData.dim>=0) && (figureData.count[0]))
+	if ((figureData.dim>=0) && (figureData.count[0])) {
 		consoleCmdVertexSelected=(consoleCmdVertexSelected+1)%figureData.count[0];
-	else
+		drawerInvokeRedisplay();
+	} else
 		scriptThrowException("No vertex exist");
 }
 
 void consoleCmdVertexPrevious() {
-	if ((figureData.dim>=0) && (figureData.count[0]))
+	if ((figureData.dim>=0) && (figureData.count[0])) {
 		if (consoleCmdVertexSelected==-1)
 			consoleCmdVertexSelected=figureData.count[0]-1;
 		else
 			consoleCmdVertexSelected=(consoleCmdVertexSelected+figureData.count[0]-1)%figureData.count[0];
-	else
+		drawerInvokeRedisplay();
+	} else
 		scriptThrowException("No vertex exist");
 }
 
 void consoleCmdVertexDeselect() {
 	consoleCmdVertexSelected=-1;
+	drawerInvokeRedisplay();
 }
 
 void consoleCmdVertexMove(int coordsCnt, float *coords) {

@@ -35,6 +35,10 @@ extern struct animRotation *hidGetMappedRot(int code);
 	// Mouse move event, to be called just before button press and while holding it
 	extern void hidMouseMoveEvent(int x, int y, int modifiers);
 
+	// Idle event, to be called when nothing is happening
+	// Returns whether callback was called
+	extern bool hidIdleEvent();
+
 	// Invokes all events waiting from anim sleeping
 	extern void hidInvokeWaitingEvents();
 

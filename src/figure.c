@@ -11,6 +11,7 @@
 #include "matrix.h"
 #include "console.h"
 #include "script.h"
+#include "drawer.h"
 
 struct figureData figureData;
 
@@ -45,6 +46,7 @@ void figureNew(int dim) {
 		setDim(dim);
 	if (convexHull)
 		convexAttach();
+	drawerInvokeRedisplay();
 }
 
 int figureSave(char *path) {
@@ -72,6 +74,7 @@ int figureSave(char *path) {
 }
 
 int figureOpen(char *path) {
+	drawerInvokeRedisplay();
 	FILE *f;
 	GLint i, j, k;
 	f=fopen(path, "rb");
@@ -145,6 +148,7 @@ static int checkTopology() {
 
 void figureBoundaryChanged() {
 	boundaryChanged=1;
+	drawerInvokeRedisplay();
 }
 
 void figureResetBoundary() {
@@ -170,6 +174,7 @@ void figureResetBoundary() {
 			convexAttach();
 		convexUpdateHull();
 	}
+	drawerInvokeRedisplay();
 }
 
 void figureResetRotation() {
@@ -178,6 +183,7 @@ void figureResetRotation() {
 		return;
 	}
 	matrixIdentity(figureRotMatrix, figureData.dim);
+	drawerInvokeRedisplay();
 }
 
 static void destroyFigure() {
@@ -219,6 +225,7 @@ void figureRotate(int axis1, int axis2, GLfloat angle) {
 	figureRotMatrix=matrix;
 	matrix=matrix2;
 
+	drawerInvokeRedisplay();
 }
 
 static void updateScale() {
@@ -315,6 +322,7 @@ void figureVertexMove(int vertex, GLfloat *pos) {
 	convexVertexMove(vertex, pos);
 	matrixCopy(pos, figureData.vertices[vertex], figureData.dim);
 	updateScale();
+	drawerInvokeRedisplay();
 }
 
 int figureVertexAdd(GLfloat *pos) {
@@ -326,6 +334,7 @@ int figureVertexAdd(GLfloat *pos) {
 	figureData.vertices[figureData.count[0]-1]=pos2;
 	updateScale();
 	convexVertexAdd(figureData.count[0]-1);
+	drawerInvokeRedisplay();
 	return figureData.count[0]-1;
 }
 
@@ -340,6 +349,7 @@ void figureVertexRm(int vertex) {
 	figureData.count[0]--;
 	figureData.vertices=safeRealloc(figureData.vertices, figureData.count[0]*sizeof(GLfloat *));
 	updateScale();
+	drawerInvokeRedisplay();
 }
 
 

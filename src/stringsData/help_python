@@ -1,13 +1,14 @@
 help:python;help:scripting
-     The application can be extended using python scripts,
-              which can be executed using :source.
-       This is the preferred way of defining key mapping,
-    on startup %/<name_of_executable>-config.py is executed.
+       The application can be extended using python scripts,
+                which can be executed using :source.
+         This is the preferred way of defining key mapping,
+      on startup %/<name_of_executable>-config.py is executed.
 
-    Scripts can communicate with application via gf module.
-To see command line functions in gf module type :help python gf1.
-   To see other functions of gf module type :help python gf2.
+      Scripts can communicate with application via gf module.
+  To see command line functions in gf module type :help python gf1.
+     To see other functions of gf module type :help python gf2.
+All functions in this module can be called only from the main thread.
 
-                 Functions can throw exceptions.
-                If your script throws exception,
-              error message will be shown to user.
+                   Functions can throw exceptions.
+                  If your script throws exception,
+                error message will be shown to user.

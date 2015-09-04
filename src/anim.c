@@ -15,12 +15,12 @@
 #include "util.h"
 #include "safe.h"
 #include "drawer.h"
+#include "script.h"
 
 int animFrameDelay=33;           // ms
 const int animResponseDelay=100;
 GLfloat animRotSpeed=90;         // degrees per second
 bool animSleepActive=false;
-bool animRedisplayNeeded=false;
 static bool sleepInterrupted=false;
 
 struct animRotation {
@@ -87,20 +87,44 @@ bool animCustomRot(struct animRotation *rot, GLfloat angle) {
 	}
 }
 
-void frame(int value) {
+void updateStatus(int rotations, bool showFps, char *msg) {
 	char str[100], *str2;
+	str2=str;
+	if (rotations) {
+		sprintf(str2, "%d rotations, ", rotations);
+		while (*str2) str2++;
+	}
+	if (msg) {
+		str2=stpcpy(str2, msg);
+		str2=stpcpy(str2, ", ");
+	}
+	if (showFps) {
+		int redisplayDelay=glutGet(GLUT_ELAPSED_TIME)-drawerLastRedisplayTime;
+		if (redisplayDelay<drawerLastDelay)
+			redisplayDelay=drawerLastDelay;
+		if (redisplayDelay<=1000) {
+			sprintf(str2, "%2d FPS, ", 1000/redisplayDelay);
+			while (*str2) str2++;
+		}
+	}
+	sprintf(str2, "scale %.3f", figureScale);
+	consolePrintStatus(str);
+}
+
+void frame(int value) {
 	int time=glutGet(GLUT_ELAPSED_TIME);
 	int delay=time-lastTime;
 	int rots=0;
 
+	lastTime=time;
 	glutTimerFunc(animFrameDelay, frame, 0);
-	if (!animSleepActive && sleepInterrupted) {
+	if (animSleepActive) {
+		return;
+	} else if (!animSleepActive && sleepInterrupted) {
 		sleepInterrupted=false;
 		hidInvokeWaitingEvents();
 		return;
 	}
-
-	lastTime=time;
 
 	if (convexInteract)
 		return;
@@ -108,42 +132,33 @@ void frame(int value) {
 	for (struct animRotation *r=activeRots; r; r=r->next)
 		rots+=animCustomRot(r, animRotSpeed*delay/1000);
 
-	str2=str;
-	if (rots || animSleepActive) {
-		sprintf(str2, "%3d FPS, ", 1000/drawerLastDelay);
-		while (*str2) str2++;
-	}
-	if (rots) {
-		sprintf(str2, "%d rotations, ", rots);
-		while (*str2) str2++;
-	}
-	sprintf(str2, "scale %.3f", figureScale);
+	bool idle=false;
+	if (!rots)
+		idle=hidIdleEvent();
 
-	if (consolePrintStatus(str) || rots || animRedisplayNeeded) {
-		animRedisplayNeeded=false;
-		drawerInvokeRedisplay();
-	}
+	updateStatus(rots, true, (idle?"idle script":0));
 }
 
 bool animSleep(int ms) {
 	if (sleepInterrupted) {
 		return false;
 	}
+	scriptReleaseGIL();
 	int time = glutGet(GLUT_ELAPSED_TIME);
 	int returnAt = time + ms;
 	int wakeAt, wakeAfter;
 	int redisplayCounter=drawerRedisplayCounter;
 	animSleepActive=true;
-	animRedisplayNeeded=true;
 	
-	while ((redisplayCounter==drawerRedisplayCounter) || ((ms=returnAt-time)>0)) {
-		wakeAfter=animFrameDelay/4;
+	while ((ms=returnAt-time)>0) {
+		wakeAfter=animFrameDelay;
 		if (wakeAfter > animResponseDelay)
 			wakeAfter=animResponseDelay;
 		if (wakeAfter > ms)
 			wakeAfter=ms;
 		wakeAt=time+wakeAfter;
 
+		updateStatus(0, true, "script");
 		glutMainLoopEvent();
 		if (sleepInterrupted)
 			break;
@@ -157,6 +172,7 @@ bool animSleep(int ms) {
 	}
 	glutMainLoopEvent();
 	animSleepActive=false;
+	scriptAcquireGIL();
 	return !sleepInterrupted;
 }
 

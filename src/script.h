@@ -36,6 +36,10 @@ extern char *scriptCatchException();
 // Throws exception with given message
 extern void scriptThrowException(char *str);
 
+// To allow python threading while executing C code from Python, release GIL
+void scriptReleaseGIL();
+void scriptAcquireGIL();
+
 
 // Finalizes Python interpreter
 extern void scriptFinalize();

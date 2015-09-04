@@ -47,8 +47,8 @@ extern bool consolePrintBlock(char *section, char *name);
 // Clears printed block
 extern void consoleClearBlock();
 
-// Changes status line, returns whether it was changed (otherwise it was already set)
-extern bool consolePrintStatus(char *string);
+// Changes status line, invokes redisplay only if really changed
+extern void consolePrintStatus(char *string);
 
 // Prints list of lines
 extern void consolePrintLinesList(struct utilStrList *lines);

@@ -171,6 +171,7 @@ char *consoleCmdGetFacecolor() {
 }
 void consoleCmdSetFacecolor(char *color) {
 	colorSetter(drawerFaceColor, color);
+	drawerInvokeRedisplay();
 }
 
 bool consoleCmdGetGrabmouse() {
@@ -215,6 +216,7 @@ char *consoleCmdGetSelvertcolor() {
 }
 void consoleCmdSetSelvertcolor(char *color) {
 	colorSetter(drawerSelectedVertColor, color);
+	drawerInvokeRedisplay();
 }
 
 float consoleCmdGetSelvertsize() {
@@ -249,6 +251,7 @@ void consoleCmdSetSpacecolor(int index, char *color) {
 		parseColor();
 		matrixCopy(components, drawerSpaceColorCenter, 3);
 	}
+	drawerInvokeRedisplay();
 }
 
 float consoleCmdGetSpeed() {

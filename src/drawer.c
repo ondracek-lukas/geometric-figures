@@ -31,6 +31,7 @@ GLfloat drawerSelectedVertColor[4];
 int drawerLastDelay=1;
 unsigned drawerRedisplayCounter=0;
 int drawerWidth=0, drawerHeight=0;
+int drawerLastRedisplayTime=0;
 
 static bool redisplayNeeded=false;
 static GLfloat stringColor[4];
@@ -40,7 +41,6 @@ static GLfloat stringColorBlue[4];
 static GLfloat stringColorGray[4];
 static GLfloat scale=1;
 static GLUquadric *quadric=0;
-static int lastTime=0;
 
 static void calcSpaceColor(GLfloat *color, GLfloat *pos);
 static void drawFigure();
@@ -76,14 +76,22 @@ void drawerResize(int w, int h) {
 }
 
 void drawerInvokeRedisplay() {
-	redisplayNeeded=true;
-	glutPostRedisplay();
+	if (!redisplayNeeded) {
+		redisplayNeeded=true;
+		glutPostRedisplay();
+	}
 }
 bool drawerWaitingRedisplay() {
 	return redisplayNeeded;
 }
 
 void drawerDisplay() {
+	int time=glutGet(GLUT_ELAPSED_TIME);
+	drawerLastDelay=time-drawerLastRedisplayTime;
+	drawerLastRedisplayTime=time;
+	redisplayNeeded=false;
+	drawerRedisplayCounter++;
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	drawFigure();
@@ -91,12 +99,6 @@ void drawerDisplay() {
 
 	glFlush();
 	glutSwapBuffers();
-
-	int time=glutGet(GLUT_ELAPSED_TIME);
-	drawerLastDelay=time-lastTime;
-	lastTime=time;
-	redisplayNeeded=false;
-	drawerRedisplayCounter++;
 }
 
 void drawerSetBackColor(GLfloat *color) {
@@ -124,6 +126,7 @@ void drawerSetBackColor(GLfloat *color) {
 	matrixZero(stringColorGray, 3);
 	matrixAddScaled(stringColorGray, 0.5, stringColor, 3);
 	matrixAddScaled(stringColorGray, 0.5, drawerBackColor, 3);
+	drawerInvokeRedisplay();
 }
 
 void drawerResetColors() {
@@ -136,6 +139,7 @@ void drawerResetColors() {
 		matrixZero(drawerSpaceColorPositive[i], 4);
 		matrixZero(drawerSpaceColorNegative[i], 4);
 	}
+	drawerInvokeRedisplay();
 }
 
 void drawerSetDim(int dim) {
@@ -163,6 +167,7 @@ void drawerSetDim(int dim) {
 	drawerDim=dim;
 	drawerSetProjection();
 	consoleCmdSetUpdateCmds();
+	drawerInvokeRedisplay();
 }
 
 void drawerFree() {
@@ -216,6 +221,7 @@ void drawerSetProjection() {
 		glTranslatef(0, 0, -drawerCamPos[2]);
 	else
 		glTranslatef(0, 0, -1);
+	drawerInvokeRedisplay();
 }
 
 

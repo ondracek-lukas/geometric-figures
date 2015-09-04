@@ -20,6 +20,7 @@
 //                00000000 00000ACS P0000001 _special
 // Mouse buttons: 00000000 00000ACS P10000_____button
 // Mouse move:    00000000 00000ACS 01XY00____buttons
+// Idle:          00000000 00000000 00001000 00000000
 //
 //           ACS: Alt, Control, Shift
 //             P: Press (Release otherwise)
@@ -38,6 +39,8 @@
 #define FLAG_SHIFT          (GLUT_ACTIVE_SHIFT<< SHIFT_MOD_FLAGS)
 #define FLAG_ALT            (GLUT_ACTIVE_ALT  << SHIFT_MOD_FLAGS)
 #define FLAG_CTRL           (GLUT_ACTIVE_CTRL << SHIFT_MOD_FLAGS)
+
+#define EVENT_IDLE          (1<<11)
 
 #define KEY_ENTER 13
 #define KEY_ESC   27
@@ -154,6 +157,12 @@ int hidCodeFromString(char *s) {
 			return 0;
 	}
 
+	if (m==FLAG_PRESS) {
+		m=0;
+		tbl("idle", EVENT_IDLE);
+		m=FLAG_PRESS;
+	}
+
 	return 0;
 }
 
@@ -177,6 +186,7 @@ static int mappedCount=0;
 static int mappedLength=0;
 static int pressedCnt=0; // count
 static struct mappedItem mappedPressed; // head of the list
+static char *idleExpr=0;
 
 static int mappedBS(int code, int first, int last);
 static struct mappedItem *createMappedItem(int code);
@@ -234,15 +244,21 @@ static struct mappedItem *getMappedItem(int code) {
 }
 
 void hidMap(int code, char *expr) {
-	bool press = code & FLAG_PRESS;
-	code &= ~FLAG_PRESS;
-	struct mappedItem *item = createMappedItem(code);
-	free(item->expr[press]);
+	char **dstExpr;
+	if (code == EVENT_IDLE) {
+		dstExpr=&idleExpr;
+	} else {
+		bool press = code & FLAG_PRESS;
+		code &= ~FLAG_PRESS;
+		struct mappedItem *item = createMappedItem(code);
+		dstExpr = item->expr + press;
+	}
+	free(*dstExpr);
 	if (expr==0)
-		item->expr[press]=0;
+		*dstExpr=0;
 	else {
-		item->expr[press]=safeMalloc(sizeof(char)*(strlen(expr)+1));
-		strcpy(item->expr[press], expr);
+		*dstExpr=safeMalloc(sizeof(char)*(strlen(expr)+1));
+		strcpy(*dstExpr, expr);
 	}
 }
 
@@ -385,7 +401,6 @@ void hidKeyEvent(int code) {
 		userKeyReleaseAll();
 		if (pressed) {
 			convexInteractKeyPress();
-			drawerInvokeRedisplay();
 		}
 
 	} else if (animSleepActive) {
@@ -440,14 +455,12 @@ void hidKeyEvent(int code) {
 						consoleKeyPress(code);
 					break;
 			}
-			drawerInvokeRedisplay();
 		}
 
 	} else if (pressed && (code==':')) {
 
 		glutIgnoreKeyRepeat(0);
 		consoleKeyPress(code);
-		drawerInvokeRedisplay();
 
 	} else { // mapped
 
@@ -478,11 +491,9 @@ void hidKeyEvent(int code) {
 
 		if (pressed || (item && item->expr[pressed])) {
 			consoleClear();
-			drawerInvokeRedisplay();
 		}
 		if (item && item->expr[pressed]) {
 			consoleEvalExpr(item->expr[pressed]);
-			drawerInvokeRedisplay();
 		}
 
 	}
@@ -534,7 +545,6 @@ void hidMouseMoveEvent(int x, int y, int modifiers) {
 			if (mouseYItem->expr[0])
 				evalExprSubstr(mouseYItem->expr[0], diffY);
 		}
-		drawerInvokeRedisplay();
 
 		if (hidGrabMouse) {
 			if (!mouseGrabbed) {
@@ -552,5 +562,21 @@ void hidMouseMoveEvent(int x, int y, int modifiers) {
 	}
 	originX=x;
 	originY=y;
+}
+
+bool hidIdleEvent() {
+	// Commented is being checked before calling (from anim)
+	if (/*animSleepActive ||*/ convexInteract || consoleIsOpen() ||
+	    (mouseXItem && (mouseXItem->rot || mouseXItem->expr[0])) ||
+	    (mouseYItem && (mouseYItem->rot || mouseYItem->expr[0])))
+		return false;
+	/*
+	for (struct mappedItem *item=mappedPressed.next; item->code; item=item->next)
+		if (item->rot)
+			return;
+	*/
+	if (idleExpr)
+		consoleEvalExpr(idleExpr);
+	return idleExpr;
 }
 

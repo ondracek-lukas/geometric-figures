@@ -9,7 +9,7 @@ gf.addCommand(cmd, pyexpr, pCnt, pFlags)
   pyexpr: Python expression (or its pattern),
           it can contain % standing for parameters.
   pCnt:   >0: pCnt parameters expected, pCnt-th % will contain all the rest.
-          -1: The first % will be replaced by a comma-separated list of parameters.
+          <0: The first % will be replaced by a comma-separated list of (max -pCnt) parameters.
            0: No other characters after cmd are allowed. (default)
   pFlags: String, one character per one paramter, the last one is repeated:
              -: parameter will be used "as is" as literal (default)

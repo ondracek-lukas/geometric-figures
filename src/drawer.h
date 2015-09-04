@@ -74,6 +74,9 @@
 	// Delay between last two finished repainting, read-only
 	extern int drawerLastDelay;
 
+	// The (glut) time of the (beginning of) last redisplay, read-only
+	extern int drawerLastRedisplayTime;
+
 	// The total count of redisplays, can overflow, read-only
 	extern unsigned drawerRedisplayCounter;
 

@@ -27,7 +27,7 @@ struct trie {
 	struct trie *child;
 	char *scriptExpr;
 	char *paramsFlags;
-	int params; // -1 for variable
+	int params;
 	enum importance importance;
 };
 
@@ -156,8 +156,8 @@ static char *trieTranslate(struct trie *trie, char *cmd) {
 	char *str=scriptExpr;
 	char *format=trie->scriptExpr;
 	char *flags=trie->paramsFlags;
-	unsigned params=trie->params;
-	bool varArgs=(params==-1);
+	int params=trie->params;
+	bool varArgs=(params<0);
 
 	for (; *format; format++) {
 		if (*format=='%') {
@@ -168,6 +168,8 @@ static char *trieTranslate(struct trie *trie, char *cmd) {
 				if (params>0)
 					params--;
 				do {
+					if (params<0)
+						params++;
 					if (*flags!='-')
 						*str++ = '"';
 					parseParam(&str, &cmd, !params, (*flags!='-'));

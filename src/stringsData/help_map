@@ -21,6 +21,12 @@ The event can also be mouse axis with specified modifiers and mouse buttons pres
                             since the last command call.
   The command will be called on every mouse move with given modifiers and buttons.
 
+                     The last option for the event is <idle>.
+           This event occurs once in every frame without any other action
+                (rotating, script execution, using console, ...),
+                      idle event doesn't interrupt gf.sleep.
+                    The mapped function can contain gf.sleep.
+
              If the second parameter is not recognized as a command,
                        it is treated as python expression.
                         No error is raised at this point.

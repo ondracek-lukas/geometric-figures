@@ -19,7 +19,7 @@ gf.addColorAlias("transparent", "#00000000");
 config_readme+="""
 Named colors: black, white, red, green, blue, yellow, cyan, purple, gray, transparent"""
 
-# Functions:
+# Functions and modules:
 
 def dim_ge(dim):
 	return gf.get_dimen() >= dim
@@ -30,71 +30,29 @@ def colorToTuple(color):
 def tupleToColor(tupl):
 	return "#{:02X}{:02X}{:02X}{:02X}".format(*tupl)
 
-import random
-random.seed()
+import sys
+import os
+sys.path+=[gf.expandPath("%/modules")] # Allow importing modules from %/
 
-# Randomly rotates opened figure in all existing axes, optionally moves with camera (resp. modifies perspective projections)
-def randomRot(allowCameraMoving):
-	maxspeed=gf.get_speed()
-	dim=gf.get_dimen()
+from randomRot import randomRot # Import random rotation module
+autoRandomRot=True
 
-	# Create two dimensional list of angular velocities (one for every pair of axes)
-	velocities=[0]
-	for i in range(1, dim+1):
-		velocities=velocities+[[0]*i]
-
-	if allowCameraMoving:
-		# Create list of camera distances (in different levels of persp. proj.) and list of their current speeds
-		camPosL=[0]*(dim+1)
-		for i in range(3, dim+1):
-			camPosL[i]=gf.get_camposl(i)
-		camPosLAcc=[0]*(dim+1)
-
-	lastTime=gf.time()
-	while gf.sleep(1):  # Repeat till user abort; repaint and wait at least 1ms before every course
-		t=gf.time() # Time measuring to deal with different sleeping time
-		gf.clear(); # echo prints every line below the previous one, clearing is necessary
-		gf.echo("--- Random rotation ---")
-
-		# Rotate figure and write velocities to console
-		for i in range(1, dim+1):
-			for j in range(1, i):
-				velocities[i][j]=velocities[i][j]+(random.random()-0.5)*maxspeed/20
-				if velocities[i][j]>maxspeed/2:
-					velocities[i][j]=maxspeed/2
-				if velocities[i][j]<-maxspeed/2:
-					velocities[i][j]=-maxspeed/2
-				gf.echo("  {}{}: {:6.2f} deg/sec" . format(j, i, -velocities[i][j]));
-				gf.rotate(i, j, velocities[i][j]*(t-lastTime)/1000)
-
-		if allowCameraMoving:
-			# Change camera distances and write new values to console
-			for i in range(3, dim+1):
-				camPosLAcc[i]=camPosLAcc[i]+(random.random()-0.5)/64
-				if camPosLAcc[i]<0:
-					if camPosLAcc[i]<-0.01:
-						camPosLAcc[i]=-0.01
-					camPosL[i]=camPosL[i]+(camPosL[i]-0.2)*camPosLAcc[i]
-				if camPosLAcc[i]>0:
-					if camPosLAcc[i]>0.01:
-						camPosLAcc[i]=0.01
-					camPosL[i]=camPosL[i]+(10-camPosL[i])*camPosLAcc[i]
-				gf.echo("  camposl{}={:6.2f}" . format(i, camPosL[i]))
-				gf.set_camposl(i, camPosL[i])
-
-		gf.clearAfterCmd("Press TAB to toggle camera moving or any other key to stop moving"); # Remove only this line when user types command
-		lastTime=t
-	if allowCameraMoving:
-		gf.map("<tab>", "randomRot(False)"); # Tab always rotates without camera moving (default)
-	else:
-		gf.map("<tab>", "randomRot(gf.time()<" + str(gf.time()+50)+")"); # Pressing tab in 50ms will rotate with camera moving
-		                                                                 # If tab was used to abort rotation, the same press will resume it
-
+if os.access("/dev/input/spacenavigator", os.R_OK): # Import space navigator module if the device is present
+	import spaceNavigator
+	autoRandomRot=False
+	def btn():
+		loadRelative(-1)
+	spaceNavigator.spacenavigLeftBtnFunc=btn
+	def btn():
+		loadRelative(1)
+	spaceNavigator.spacenavigRightBtnFunc=btn
+	del btn
+	
 
 # Figures:
 
 import os;
-lastLoaded="3d"
+lastLoaded=""
 def loadRelative(offset):
 	files=os.listdir(gf.expandPath("%/data"))
 	files.sort()
@@ -118,7 +76,7 @@ def loadAndRot(name):
 		gf.rotate(2 ,3, 20)
 	defaultColors() # defined below
 	gf.echo("File " + name + " loaded...")
-	if gf.sleep(2000): # Wait 2s for user interrupt
+	if autoRandomRot and gf.sleep(2000): # Wait 2s for user interrupt
 		randomRot(False)
 
  #0D:

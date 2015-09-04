@@ -119,10 +119,14 @@ int consoleBlockHeight;
 bool consolePrintBlock(char *section, char *name) {
 	consoleClearBlock();
 	consoleBlock=stringsGet(section, name, &consoleBlockWidth, &consoleBlockHeight);
+	if (consoleBlock)
+		drawerInvokeRedisplay();
 	return consoleBlock;
 }
 
 void consoleClearBlock() {
+	if (consoleBlock)
+		drawerInvokeRedisplay();
 	while (consoleBlock)
 		utilStrListRm(&consoleBlock);
 }
@@ -132,13 +136,11 @@ void consoleClearBlock() {
 
 char *consoleStatus=0;
 
-bool consolePrintStatus(char *string) {
-	if (strcmp(consoleStatus, string)!=0) {
+void consolePrintStatus(char *string) {
+	if (strcmp(consoleStatus, string)!=0) { // redisplay only if needed
 		utilStrRealloc(&consoleStatus, 0, strlen(string)+1);
 		strcpy(consoleStatus, string);
-		return true;
-	} else {
-		return false;
+		drawerInvokeRedisplay();
 	}
 }
 
@@ -172,6 +174,7 @@ void consolePrintLinesList(struct utilStrList *lines) {
 
 		utilStrRealloc(&lines2->str, 0, strlen(lines2->str)+2);
 		utilStrInsertChar(lines2->str, consoleSpecialColorNormal);
+		drawerInvokeRedisplay();
 	}
 }
 
@@ -187,8 +190,11 @@ void consoleClear() {
 	historyActive=0;
 	cursorPos=0;
 	mode=modeNormal;
+	if (consoleLines)
+		drawerInvokeRedisplay();
 	while (consoleLines)
 		utilStrListRm(&consoleLines);
+	consoleClearBlock();
 }
 
 void consoleAppendMode() {
@@ -298,8 +304,8 @@ static void openConsole(char *str) {
 		consolePrint(str);
 	}
 	cmdEnd=strlen(consoleLines->str);
-	setCursorPos(cmdEnd);
 	updateCompletions();
+	setCursorPos(cmdEnd);
 }
 
 bool consoleIsOpen() {
@@ -321,6 +327,7 @@ void consoleKeyPress(char c) {
 	updateCompletions();
 
 	setCursorPos(pos+1);
+	drawerInvokeRedisplay();
 }
 
 void consoleBackspace() {
@@ -337,6 +344,7 @@ void consoleBackspace() {
 		}
 	} else if (cursorPos+cursorLen==cmdEnd)
 		consoleClear();
+	drawerInvokeRedisplay();
 }
 
 void consoleDelete() {
@@ -368,6 +376,7 @@ void consoleEnter() {
 	consoleClear();
 	consoleExecuteCmd(cmd+cmdBegin); // skip : and consoleSpecialColorNormal
 	utilStrRealloc(&cmd, 0, 0);
+	drawerInvokeRedisplay();
 }
 
 void consoleUp() {
@@ -379,6 +388,7 @@ void consoleUp() {
 		struct utilStrList *active=historyActive;
 		openConsole(active->str);
 		historyActive=active;
+		drawerInvokeRedisplay();
 	}
 }
 
@@ -392,6 +402,7 @@ void consoleDown() {
 		} else {
 			openConsole(":");
 		}
+		drawerInvokeRedisplay();
 	}
 }
 
@@ -402,6 +413,7 @@ void consoleLeft() {
 		else
 			setCursorPos(cursorPos-1);
 	}
+	drawerInvokeRedisplay();
 }
 
 void consoleRight() {
@@ -411,10 +423,12 @@ void consoleRight() {
 		else
 			setCursorPos(cursorPos+1);
 	}
+	drawerInvokeRedisplay();
 }
 
 void consoleHome() {
 	setCursorPos(cmdBegin);
+	drawerInvokeRedisplay();
 }
 
 void consoleEnd() {
@@ -423,6 +437,7 @@ void consoleEnd() {
 		setCursorPos(completionEnd);
 	else
 		setCursorPos(cmdEnd);
+	drawerInvokeRedisplay();
 }
 
 void consoleTab() {
@@ -440,6 +455,7 @@ void consoleTab() {
 			setCursorPos(cmdEnd);
 		else
 			setCursorPos(completionEnd);
+		drawerInvokeRedisplay();
 	}
 }
 
@@ -474,7 +490,7 @@ void initCmds() {
 
 	addNew  ("echo ",           "gf.echo(%)",              1, "s"    );
 	addNew  ("history",         "gf.history()",            0, ""     );
-	addNew  ("map ",            "gf.map(%)",              -1, "s"    );
+	addNew  ("map ",            "gf.map(%)",              -2, "s"    );
 	addNew  ("new ",            "gf.new(%)",               1, ""     );
 	addAlias("n ");
 	addNew  ("close",           "gf.close()",              0, ""     );
@@ -483,13 +499,13 @@ void initCmds() {
 	addNew  ("quit",            "gf.quit()",               0, ""     );
 	addAlias("q");
 	addAlias("exit");
-	addNew  ("rotate ",         "gf.rotate(%)",           -1, ""     );
+	addNew  ("rotate ",         "gf.rotate(%)",           -3, ""     );
 	addAlias("rot ");
 	addNew  ("reset rotation",  "gf.resetRotation()",      0, ""     );
 	addAlias("reset rot");
 	addNew  ("reset colors",    "gf.resetColors()",        0, ""     );
 	addNew  ("reset boundary",  "gf.resetBoundary()",      0, ""     );
-	addNew  ("rmap ",           "gf.rmap(%)",             -1, "s-"   );
+	addNew  ("rmap ",           "gf.rmap(%)",             -3, "s-"   );
 
 	consoleCmdSetUpdateCmds();
 
@@ -497,13 +513,13 @@ void initCmds() {
 	addAlias("so ");
 	addNew  ("vertex add",      "gf.vertexAdd()",          0, ""     );
 	addAlias("vert add");
-	addNew  ("vertex add ",     "gf.vertexAdd(%)",        -1, ""     );
+	addNew  ("vertex add ",     "gf.vertexAdd(%)",   INT_MIN, ""     );
 	addAlias("vert add ");
 	addNew  ("vertex deselect", "gf.vertexDeselect()",     0, ""     );
 	addAlias("vertex desel");
 	addAlias("vert deselect");
 	addAlias("vert desel");
-	addNew  ("vertex move ",    "gf.vertexMove(%)",       -1, ""    );
+	addNew  ("vertex move ",    "gf.vertexMove(%)",  INT_MIN, ""    );
 	addAlias("vert move ");
 	addNew  ("vertex next",     "gf.vertexNext()",         0, ""     );
 	addAlias("vert next");
@@ -560,13 +576,16 @@ void consoleExecFile(char *path) {
 }
 
 void execFile(int ignored) {
+	cmdExecutionLevel++;
 	consoleCmdSource(execFilePaths->str);
 	char *err=scriptCatchException();
 	if (err)
 		consolePrintErr(err);
 	utilStrListRm(&execFilePaths);
-	if (!execFilePaths)
+	if (!execFilePaths) {
 		execFilePathsEnd=0;
+	}
+	cmdExecutionLevel--;
 }
 
 static struct utilStrList *evalExprStrs=0;
@@ -601,8 +620,9 @@ void evalExpr(int ignored) {
 			printf("%s\n", evalExprStrs->str);
 	}
 	utilStrListRm(&evalExprStrs);
-	if (!evalExprStrs)
+	if (!evalExprStrs) {
 		evalExprStrsEnd=0;
+	}
 
 	cmdExecutionLevel--;
 }

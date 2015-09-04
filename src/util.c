@@ -280,7 +280,7 @@ void utilSleep(int ms) {
 #else
 	struct timespec sleepTime;
 	sleepTime.tv_sec=0;
-	sleepTime.tv_nsec=ms*1000;
+	sleepTime.tv_nsec=ms*1000000;
 	nanosleep(&sleepTime, 0);
 #endif
 }

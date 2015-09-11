@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 
+#include "convex.h"
 #include "convexFig.h"
 #include "convexSpace.h"
 
@@ -38,6 +39,12 @@ void convexFigBstPrint(struct convexFigBst *bst) {
 	printf("}\n");
 }
 
+struct convexFigBst {
+	struct convexFig *fig;
+	struct convexFigBst *left;
+	struct convexFigBst *right;
+	int leaning;
+};
 void convexFigBstPrintR(struct convexFigBst *bst, char *parent, char *attr) {
 	char str[50];
 	if (!bst)

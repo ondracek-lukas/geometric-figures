@@ -104,6 +104,13 @@ while (<>) {
 	my ($retType, $funcName, $params) = /\s*(.*?)\s*\b([\w\d_]+)\s*\((.*)\)/;
 	next unless $retType && $funcName && defined $params;
 
+	if (($retType eq "extern PyObject *") && ($params eq "PyObject *self, PyObject *args")) {
+		$wrappersList.="\t{\"$name\", $funcName, METH_VARARGS, \"\"},\n";
+		say $fh "extern PyObject *$funcName(PyObject *self, PyObject *args);";
+		$last=0;
+		next;
+	}
+
 	my %retType = getType $retType;
 	next unless %retType;
 

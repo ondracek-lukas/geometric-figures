@@ -3,6 +3,7 @@
 gf.map("?", "gf.echo(config_readme) or gf.clearAfterCmd()")
 gf.echo("To see default configuration press ?")
 config_readme="--- Default configuration ---"
+imported_info_cmds=[]
 
 # Color aliases:
 
@@ -37,6 +38,9 @@ sys.path+=[gf.expandPath("%/modules")] # Allow importing modules from %/
 from randomRot import randomRot # Import random rotation module
 autoRandomRot=True
 
+import cuts # Import cuts module
+imported_info_cmds.append("cut")
+
 if os.access("/dev/input/spacenavigator", os.R_OK): # Import space navigator module if the device is present
 	import spaceNavigator
 	autoRandomRot=False
@@ -47,7 +51,8 @@ if os.access("/dev/input/spacenavigator", os.R_OK): # Import space navigator mod
 		loadRelative(1)
 	spaceNavigator.spacenavigRightBtnFunc=btn
 	del btn
-	
+	imported_info_cmds.append("spacenavigator")
+
 
 # Figures:
 
@@ -314,4 +319,6 @@ gf.set_vertsize(10);
 config_readme+="""
 
 For further help see configuration file,
+for help to imported modules type""" + \
+str.join("",[(" :"+s+",") for s in imported_info_cmds]) + """
 for general help type :help."""

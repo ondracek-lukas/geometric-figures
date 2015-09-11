@@ -54,6 +54,9 @@
 	// Selects vertex of given index
 	extern void consoleCmdVertexSelect(int index); // [SCRIPT_NAME: vertexSelect]
 
+	// Get selected vertex
+	extern int consoleCmdVertexGetSelected(); // [SCRIPT_NAME: vertexSelected]
+
 	// Selects next vertex
 	extern void consoleCmdVertexNext(void); // [SCRIPT_NAME: vertexNext]
 
@@ -63,13 +66,5 @@
 	// Deselects vertex
 	extern void consoleCmdVertexDeselect(void); // [SCRIPT_NAME: vertexDeselect]
 
-	// Moves the selected vertex relatively to its position to the camera by given coordinates
-	extern void consoleCmdVertexMove(int coordsCnt, float *coords); // [SCRIPT_NAME: vertexMove]
-
-	// Adds new vertex at (optionally) given coordinates (relative to current figure rotation)
-	extern void consoleCmdVertexAdd(int coordsCnt, float *coords); // [SCRIPT_NAME: vertexAdd]
-
-	// Removes the selected vertex
-	extern void consoleCmdVertexRm(void); // [SCRIPT_NAME: vertexRemove]
-
+	// Other vertex* commands are in scriptVertex module
 #endif

@@ -1,0 +1,24 @@
+help:python figure;help:scripting figure
+These functions allows you to access figures
+including their topology.
+
+gf.figureGet()
+  Returns the currently opened figure.
+gf.figureOpen(figure)
+  Opens the given figure.
+gf.figureRead(path)
+  Reads the figure from file and returns it.
+gf.figureWrite(path, figure)
+  Writes the figure to the file.
+
+The figure structure:
+  [
+    [ (vertex1_x, vertex1_y, ...), ...],       # list of vertices
+    [ [edge1_vert1, edge1_vert2], ...],        # list of edges
+    [ [face1_edge1, face1_edge2, ...], ...],   # list of faces
+    ...                                        # lists of higher-dim faces
+  ]
+figure[d][i]
+  d=0: Tuple of coordinates of i-th vertex.
+  d>0: List of indices of (d-1)-dimensional faces in figure[dim-1]
+       bounding i-th d-dimensional face.

@@ -22,18 +22,19 @@ void consoleCmdSource(char *path) {
 
 void consoleCmdOpen(char *path) {
 	consoleCmdVertexDeselect();
-	if (!figureOpen(utilExpandPath(path)))
-		if (figureData.dim>=0)
-			scriptThrowException("File cannot be opened");
-		else
-			scriptThrowException("File cannot be opened or has wrong format");
-	drawerSetDim(figureData.dim);
+	struct figureData *figure=figureRead(utilExpandPath(path));
+	if (!figure) {
+		scriptThrowException("File cannot be opened or has wrong format");
+		return;
+	}
+
+	figureOpen(figure, false);
 }
 
 void consoleCmdWrite(char *path) {
 	if (figureData.dim<0)
 		scriptThrowException("Nothing opened");
-	else if (!figureSave(utilExpandPath(path)))
+	else if (!figureWrite(utilExpandPath(path), &figureData, true))
 		scriptThrowException("File cannot be opened for writing");
 }
 

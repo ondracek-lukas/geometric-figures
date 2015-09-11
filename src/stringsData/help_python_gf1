@@ -20,11 +20,8 @@ List of commands to be accessed via python:
   gf.get_<option_name>()              | colors are strings;
   gf.get_<option_name>(index)         | getters returns value of given type.
   gf.source(string_path)
-  gf.vertexAdd()
-  gf.vertexAdd(float_coord1, ...)
-  gf.vertexDeselect()
-  gf.vertexMove(float_coord1, ...)
-  gf.vertexPrevious()
-  gf.vertexNext()
-  gf.vertexSelect(index)
+  gf.vertexSelect(index)  |
+  gf.vertexDeselect()     |
+  gf.vertexPrevious()     | The other vertex* functions differs from commands,
+  gf.vertexNext()         | see :help python vertex.
   gf.write(string_path)

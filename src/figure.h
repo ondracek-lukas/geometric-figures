@@ -2,10 +2,11 @@
 
 // figure module manages opened geometric figure
 
-#include <GL/freeglut.h>
-
 #ifndef FIGURE_H
 #define FIGURE_H
+
+#include <GL/freeglut.h>
+#include <stdbool.h>
 
 
 // Represents figure
@@ -48,11 +49,18 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	// Creates new (empty) figure of given dimension
 	extern void figureNew(int dim);
 
-	// Loads figure from file
-	extern int figureOpen(char *path);
+	// Opens given figure, the figure parameter is freed
+	// Throws exception using script module (returning false)
+	extern bool figureOpen(struct figureData *figure, bool preserveRotation);
 
-	// Saves figure to file
-	extern int figureSave(char *path);
+	// Loads figure from file
+	extern struct figureData *figureRead(char *path);
+
+	// Saves given figure to file, optionally rotated
+	extern bool figureWrite(char *path, struct figureData *figure, bool rotated);
+
+	// Destroys given figure, hard frees it
+	extern void figureDestroy(struct figureData *figure, bool hard);
 
 	// Moves vertex with given index to given position
 	extern void figureVertexMove(int vertex, GLfloat *pos);

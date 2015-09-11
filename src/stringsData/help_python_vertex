@@ -1,0 +1,28 @@
+help:python vertex;help:scripting vertex
+These functions allows you to manipulate the vertices
+leaving the topology unchanged or automatically recalculated.
+
+gf.vertexAdd()
+gf.vertexAdd(pos)
+  Adds new vertex returning its index.
+gf.vertexRemove(index)
+  Removes vertex with the given index.
+gf.vertexSetPos(index, pos)
+  Sets the position of the vertex with given index.
+gf.vertexGetPos(index)
+  Returns the position of the vertex with given index.
+
+gf.vertexSelect(index)
+gf.vertexNext()
+gf.vertexPrevious()
+gf.vertexDeselect()
+  Selects given/next/previous/none vertex.
+gf.vertexSelected()
+  Returns the index of the selected vertex.
+
+gf.posRotate(pos)
+  Transforms the coordinates according to the current figure rotation.
+gf.posRotateBack(pos)
+  Inverse of the previous function.
+
+Position is always a tuple of length equal to the current number of dimensions.

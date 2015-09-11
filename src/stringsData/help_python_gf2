@@ -14,3 +14,15 @@ List of other gf module functions (not accessible as commands):
   gf.normalizeColor(color)        | Manages color format,
   gf.normalizeColorAlpha(color)   | see :help python colors
   gf.expandPath()  | Expands %/ and ~/
+  gf.vertexAdd()               |
+  gf.vertexAdd(pos)            |
+  gf.vertexRemove(index)       |
+  gf.vertexSetPos(index, pos)  |
+  gf.vertexGetPos(index)       |
+  gf.vertexSelected()          | Manages vertices
+  gf.posRotate(pos)            | and transformations of coordinates,
+  gf.posRotateBack(pos)        | see :help python vertices.
+  gf.figureGet()                |
+  gf.figureOpen(figure)         |
+  gf.figureRead(path)           | Manages figures,
+  gf.figureWrite(path, figure)  | see :help python figure.

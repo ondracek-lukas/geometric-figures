@@ -15,14 +15,12 @@
 
 struct figureData figureData;
 
-GLfloat *figureRotMatrix;
+GLfloat *figureRotMatrix=0;
 GLfloat figureScale=1;
 
 static bool boundaryChanged=1;
 
-static void setDim(int dim);
-static int checkTopology();
-static void destroyFigure();
+static bool checkTopology(struct figureData *figure);
 static void updateScale();
 
 void figureInit() {
@@ -32,118 +30,160 @@ void figureInit() {
 	figureData.boundary=0;
 }
 
-static void setDim(int dim) {
-	figureRotMatrix=safeMalloc(dim*dim*sizeof(GLfloat));
-	matrixIdentity(figureRotMatrix, dim);
-	figureData.count=safeCalloc(dim+1, sizeof(GLint));
-	figureData.boundary=safeCalloc(dim+1, sizeof(GLfloat **));
-	figureData.dim=dim;
-}
-
 void figureNew(int dim) {
-	destroyFigure();
-	if (dim>=0)
-		setDim(dim);
+	convexDetach();
+	boundaryChanged=1;
+	figureDestroy(&figureData, false);
+	free(figureRotMatrix);
+	figureData.dim=dim;
+	if (dim>=0) {
+		figureRotMatrix=safeMalloc(dim*dim*sizeof(GLfloat));
+		figureResetRotation();
+		figureData.count=safeCalloc(dim+1, sizeof(GLint));
+		figureData.boundary=safeCalloc(dim+1, sizeof(GLfloat **));
+	} else {
+		figureRotMatrix=0;
+	}
 	if (convexHull)
 		convexAttach();
 	drawerInvokeRedisplay();
 }
 
-int figureSave(char *path) {
+bool figureWrite(char *path, struct figureData *figure, bool rotated) {
 	FILE *f;
 	int dim, i;
-	GLfloat pos[figureData.dim];
-	if (figureData.dim<0)
-		return 0;
+	GLfloat pos[figure->dim];
+	if (figure->dim<0)
+		return false;
 	f=fopen(path, "wb");
 	if (f==0)
-		return 0;
-	fwrite(&figureData.dim, sizeof(GLint), 1, f);
-	fwrite(figureData.count, sizeof(GLint), 1, f);
-	for (i=0; i<figureData.count[0]; i++) {
-		matrixProduct(figureRotMatrix, figureData.vertices[i], pos, figureData.dim, figureData.dim, 1);
-		fwrite(pos, sizeof(GLfloat), figureData.dim, f);
+		return false;
+	fwrite(&figure->dim, sizeof(GLint), 1, f);
+	fwrite(figure->count, sizeof(GLint), 1, f);
+	for (i=0; i<figure->count[0]; i++) {
+		if (rotated) {
+			matrixProduct(figureRotMatrix, figure->vertices[i], pos, figure->dim, figure->dim, 1);
+			fwrite(pos, sizeof(GLfloat), figure->dim, f);
+		} else {
+			fwrite(figure->vertices[i], sizeof(GLfloat), figure->dim, f);
+		}
 	}
-	for (dim=1; dim<=figureData.dim; dim++) {
-		fwrite(figureData.count+dim, sizeof(GLint), 1, f);
-		for (i=0; i<figureData.count[dim]; i++)
-			fwrite(figureData.boundary[dim][i], sizeof(GLint), figureData.boundary[dim][i][0]+1, f);
+	for (dim=1; dim<=figure->dim; dim++) {
+		fwrite(figure->count+dim, sizeof(GLint), 1, f);
+		for (i=0; i<figure->count[dim]; i++)
+			fwrite(figure->boundary[dim][i], sizeof(GLint), figure->boundary[dim][i][0]+1, f);
 	}
 	fclose(f);
 	return 1;
 }
 
-int figureOpen(char *path) {
+bool figureOpen(struct figureData *figure, bool preserveRotation) {
+	if (preserveRotation && (figure->dim != figureData.dim)) {
+		scriptThrowException("Wrong number of dimensions");
+		return false;
+	}
+	if (!checkTopology(figure)) {
+		scriptThrowException("Broken figure topology");
+		return false;
+	}
+
 	drawerInvokeRedisplay();
+	convexDetach();
+	figureDestroy(&figureData, false);
+
+	figureData.dim=figure->dim;
+	figureData.count=figure->count;
+	figureData.vertices=figure->vertices;
+	figureData.boundary=figure->boundary;
+	boundaryChanged=1;
+	free(figure);
+	if (!preserveRotation) {
+		free(figureRotMatrix);
+		figureRotMatrix=0;
+	}
+	if (figureData.dim>=0) {
+		if (!preserveRotation) {
+			figureRotMatrix=safeMalloc(figureData.dim*figureData.dim*sizeof(GLfloat));
+			figureResetRotation();
+			drawerSetDim(figureData.dim);
+		}
+
+		updateScale();
+
+		if (!convexAttach()) {
+			scriptThrowException("Several faces generating spaces of wrong dimension removed");
+			return false;
+		}
+	}
+	return true;
+}
+
+struct figureData *figureRead(char *path) {
+	struct figureData *figure=safeCalloc(1, sizeof(struct figureData));
 	FILE *f;
 	GLint i, j, k;
 	f=fopen(path, "rb");
-	if (f==0)
-		return 0;
-	destroyFigure();
+	if (f==0) {
+		figureDestroy(figure, true);
+		return NULL;
+	}
 	fread(&i, sizeof(GLint), 1, f);
 	if ((i<0) || (i>safeMaxDim)) {
 		fclose(f);
-		return 0;
+		figureDestroy(figure, true);
+		return NULL;
 	}
-	setDim(i);
-	fread(figureData.count, sizeof(GLint), 1, f);
-	if (figureData.count[0]<0) {
+	figure->dim=i;
+	figure->count=safeMalloc(sizeof(GLint) * (figure->dim+1));
+	fread(figure->count, sizeof(GLint), 1, f);
+	if (figure->count[0]<0) {
 		fclose(f);
-		destroyFigure();
-		return 0;
+		figureDestroy(figure, true);
+		return NULL;
 	}
-	figureData.vertices=safeCalloc(figureData.count[0], sizeof(GLfloat *));
-	for (i=0; i<figureData.count[0]; i++) {
-		figureData.vertices[i]=safeMalloc(figureData.dim*sizeof(GLfloat));
-		fread(figureData.vertices[i], sizeof(GLfloat), figureData.dim, f);
-		if (!safeCheckPos(figureData.vertices[i], figureData.dim)) {
+	figure->vertices=safeCalloc(figure->count[0], sizeof(GLfloat *));
+	for (i=0; i<figure->count[0]; i++) {
+		figure->vertices[i]=safeMalloc(figure->dim*sizeof(GLfloat));
+		fread(figure->vertices[i], sizeof(GLfloat), figure->dim, f);
+		if (!safeCheckPos(figure->vertices[i], figure->dim)) {
 			fclose(f);
-			destroyFigure();
-			return 0;
+			figureDestroy(figure, true);
+			return NULL;
 		}
 	}
-	for (i=1; i<=figureData.dim; i++) {
-		fread(figureData.count+i, sizeof(GLint), 1, f);
-		if (figureData.count[i]<0) {
+	figure->boundary=safeCalloc(figure->dim+1, sizeof(GLint **));
+	for (i=1; i<=figure->dim; i++) {
+		fread(figure->count+i, sizeof(GLint), 1, f);
+		if (figure->count[i]<0) {
 			fclose(f);
-			destroyFigure();
-			return 0;
+			figureDestroy(figure, true);
+			return NULL;
 		}
-		figureData.boundary[i]=safeCalloc(figureData.count[i], sizeof(GLint *));
-		for (j=0; j<figureData.count[i]; j++) {
+		figure->boundary[i]=safeCalloc(figure->count[i], sizeof(GLint *));
+		for (j=0; j<figure->count[i]; j++) {
 			fread(&k, sizeof(GLint), 1, f);
 			if (k<0) {
 				fclose(f);
-				destroyFigure();
-				return 0;
+				figureDestroy(figure, true);
+				return NULL;
 			}
-			figureData.boundary[i][j]=safeMalloc((k+1)*sizeof(GLint));
-			figureData.boundary[i][j][0]=k;
-			fread(figureData.boundary[i][j]+1, sizeof(GLint), k, f);
+			figure->boundary[i][j]=safeMalloc((k+1)*sizeof(GLint));
+			figure->boundary[i][j][0]=k;
+			fread(figure->boundary[i][j]+1, sizeof(GLint), k, f);
 		}
 	}
 	fclose(f);
-	if (!checkTopology()) {
-		figureResetBoundary();
-		consolePrintErr("Error: Broken topology, boundary was removed");
-	}
-	updateScale();
-
-	boundaryChanged=1;
-	if (convexHull)
-		convexAttach();
-	return 1;
+	return figure;
 }
 
-static int checkTopology() {
+static bool checkTopology(struct figureData *figure) {
 	int dim, i, j;
-	for (dim=1; dim<=figureData.dim; dim++)
-		for (i=0; i<figureData.count[dim]; i++)
-			for (j=1; j<=figureData.boundary[dim][i][0]; j++)
-				if ((figureData.boundary[dim][i][j]<0) || (figureData.boundary[dim][i][j]>=figureData.count[dim-1]))
-					return 0;
-	return 1;
+	for (dim=1; dim<=figure->dim; dim++)
+		for (i=0; i<figure->count[dim]; i++)
+			for (j=1; j<=figure->boundary[dim][i][0]; j++)
+				if ((figure->boundary[dim][i][j]<0) || (figure->boundary[dim][i][j]>=figure->count[dim-1]))
+					return false;
+	return true;
 }
 
 void figureBoundaryChanged() {
@@ -186,28 +226,31 @@ void figureResetRotation() {
 	drawerInvokeRedisplay();
 }
 
-static void destroyFigure() {
-	int i, j;
-	convexDetach();
-	if (figureData.dim<0)
-		return;
-	boundaryChanged=1;
-	for (i=0; i<figureData.count[0]; i++)
-		free(figureData.vertices[i]);
-	free(figureData.vertices);
-	figureData.vertices=0;
-	for (i=1; i<=figureData.dim; i++) {
-		for (j=0; j<figureData.count[i]; j++)
-			free(figureData.boundary[i][j]);
-		free(figureData.boundary[i]);
+void figureDestroy(struct figureData *figure, bool hard) {
+	if (figure->vertices) {
+		for (int i=0; i<figure->count[0]; i++)
+			free(figure->vertices[i]);
+		free(figure->vertices);
 	}
-	free(figureData.boundary);
-	figureData.boundary=0;
-	free(figureData.count);
-	figureData.count=0;
-	free(figureRotMatrix);
-	figureData.dim=-1;
-	
+	if (figure->boundary) {
+		for (int i=1; i<=figure->dim; i++) {
+			if (figure->boundary[i]) {
+				for (int j=0; j<figure->count[i]; j++)
+					free(figure->boundary[i][j]);
+				free(figure->boundary[i]);
+				}
+		}
+		free(figure->boundary);
+	}
+	free(figure->count);
+	if (hard) {
+		free(figure);
+	} else {
+		figure->count=NULL;
+		figure->vertices=NULL;
+		figure->boundary=NULL;
+		figure->dim=-1;
+	}
 }
 
 

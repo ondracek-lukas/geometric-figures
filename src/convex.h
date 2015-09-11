@@ -12,7 +12,8 @@
 extern bool convexAttached;
 
 // Attaches convex to figure
-extern void convexAttach();
+// Returns false if figure was inconsistent, repairing it
+extern bool convexAttach();
 
 // Detaches convex from figure
 extern void convexDetach();

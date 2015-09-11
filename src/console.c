@@ -511,15 +511,20 @@ void initCmds() {
 
 	addNew  ("source ",         "gf.source(%)",            1, "p"    );
 	addAlias("so ");
-	addNew  ("vertex add",      "gf.vertexAdd()",          0, ""     );
+	addNew  ("vertex add",      "gf.vertexSelect(gf.vertexAdd())",
+	                                                       0, ""     );
 	addAlias("vert add");
-	addNew  ("vertex add ",     "gf.vertexAdd(%)",   INT_MIN, ""     );
+	addNew  ("vertex add ",
+	  "gf.vertexSelect(gf.vertexAdd(gf.posRotateBack(tuple(([%]+[0]*100)[:gf.get_dimen()]))))",
+	                                                 INT_MIN, ""     );
 	addAlias("vert add ");
 	addNew  ("vertex deselect", "gf.vertexDeselect()",     0, ""     );
 	addAlias("vertex desel");
 	addAlias("vert deselect");
 	addAlias("vert desel");
-	addNew  ("vertex move ",    "gf.vertexMove(%)",  INT_MIN, ""    );
+	addNew  ("vertex move ",
+	  "gf.vertexSetPos(gf.vertexSelected(),tuple(map(sum,zip(gf.posRotateBack(tuple(([%]+[0]*100)[:gf.get_dimen()])),gf.vertexGetPos(gf.vertexSelected())))))",
+	                                                 INT_MIN, ""    );
 	addAlias("vert move ");
 	addNew  ("vertex next",     "gf.vertexNext()",         0, ""     );
 	addAlias("vert next");
@@ -527,10 +532,13 @@ void initCmds() {
 	addAlias("vertex prev");
 	addAlias("vert previous");
 	addAlias("vert prev");
-	addNew  ("vertex remove",   "gf.vertexRemove()",       0, ""     );
+	addNew  ("vertex remove",
+	  "gf.vertexRemove(gf.vertexSelected())",              0, ""     );
 	addAlias("vertex rm");
 	addAlias("vert remove");
 	addAlias("vert rm");
+	addNew  ("vertex select",   "gf.vertexSelected()",     0, ""     );
+	addAlias("vertex sel");
 	addNew  ("vertex select ",  "gf.vertexSelect(%)",      1, ""     );
 	addAlias("vertex sel ");
 	addAlias("vert select ");

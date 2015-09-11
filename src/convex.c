@@ -19,15 +19,16 @@ bool convexAttached=0;
 static struct convexSpace *tmpSpace=0;
 static void exportHull();
 
-void convexAttach() {
+bool convexAttach() {
 	struct convexFigList *wrongDimList=0;
 	struct convexFig *fig;
 	int i, j, dim;
+	bool inconsistent=false;
 	convexLoopDetectDisable();
 	if (convexAttached)
 		convexDetach();
 	if (figureData.dim<0)
-		return;
+		return true;
 	convexShadow=safeMalloc((figureData.dim+1)*sizeof(struct convexFig**));
 	for (i=0; i<=figureData.dim; i++)
 		convexShadow[i]=safeMalloc(figureData.count[i]*sizeof(struct convexFig*));
@@ -52,8 +53,8 @@ void convexAttach() {
 			convexSpaceAssign(tmpSpace, fig);
 			if (fig->space->dim != dim) {
 				fig->space->dim=dim;
-				if (convexHull)
-					convexFigListAdd(&wrongDimList, fig);
+				convexFigListAdd(&wrongDimList, fig);
+				inconsistent=true;
 			}
 			convexFigMarkReset(convexFigMarkIdHash);
 			convexFigHashCalc(fig, &fig->hash);
@@ -65,12 +66,16 @@ void convexAttach() {
 		for (i=0; i<figureData.count[dim]; i++)
 			if (convexShadow[dim][i])
 				convexFigListAdd(&convexFigure, convexShadow[dim][i]);
+	convexFigListDestroy(&convexFreeVertices);
 	for (i=0; i<figureData.count[0]; i++)
 		if (!convexShadow[0][i]->parents)
 			convexFigListAdd(&convexFreeVertices, convexShadow[0][i]);
 	convexAttached=1;
 
 	convexUpdateHull();
+	if (!convexHull && inconsistent)
+		exportHull();
+	return !inconsistent;
 }
 
 

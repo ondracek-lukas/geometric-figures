@@ -120,4 +120,5 @@ void consoleCmdHistory() {
 
 void consoleCmdQuit() {
 	glutLeaveMainLoop();
+	animSleepInterrupt();
 }

@@ -8,6 +8,8 @@ from objFigure import Figure, Vertex, figuresIterator;
 from operator import attrgetter
 import algebra
 from algebra import Hyperplane;
+import gf
+import utils
 
 # Cuts Figure object with given Hyperplane,
 # returns ([Figure negative_parts], [Figure section_parts], [Figure positive_parts])
@@ -154,39 +156,82 @@ def cutFigure(figure, hyperplane, reuseCache=False):
 			return cache(leftComp, section, rightComp)
 
 
-# Cuts off specified vertices (or all) of a figure,
-# ratio = d(vertex, hyperplane) : d(vertex, origin)
-def cutOffVertices(figure, ratio, vertices=None):
-	if not vertices:
-		vertices=[]
-		for f in figure:
-			if f.dim>0: continue
-			vertices.append(f)
-	hyperplanes=[Hyperplane(v.position, 1-ratio) for v in vertices]
+
+# Cuts off parts of the Figure object determined by given Hyperplanes
+# returns list of new figures
+def cutOff(figure, hyperplanes, showProgress=False):
 	figures=[figure]
+	i=0
 	for h in hyperplanes:
+		i+=1
 		figures2=[]
 		for f in figures:
 			figures2.extend(cutFigure(f, h)[0])
 		figures=figures2
+		if showProgress:
+			gf.clear()
+			gf.echo("Cutting figure, hyperplane " + str(i) + "/" + str(len(hyperplanes)) + ", press any key to abort...")
+			if not gf.sleep(0):
+				return [figure]
+	if showProgress:
+		gf.clear()
+		gf.echo("Figure has been cut")
 	return figures
 
 
+
+# Cuts off specified vertices/edges/faces of a figure,
+# ratio = d(face, hyperplane) : d(face, origin)
+def cutOffFaces(figure, ratio, faces, showProgress=False):
+	hyperplanes=[]
+	for f in faces:
+		points=[v.position for v in f if v.dim==0]
+		basis=algebra.orthonormalBasisFromPoints(points)
+		normal=algebra.orthogonalizeVect(points[0], basis)
+		if algebra.vectLen(normal)<0.0001:
+			raise RuntimeError("Face passes through the origin")
+		hyperplanes.append(Hyperplane(normal, 1-ratio))
+	return cutOff(figure, hyperplanes, showProgress)
+
+# Cuts off faces of specified dimension of a figure,
+# ratio = d(vertex, hyperplane) : d(vertex, origin)
+def cutOffFacesDim(figure, ratio, dim, showProgress=False):
+	faces=[]
+	for f in figure:
+		if f.dim==dim:
+			faces.append(f)
+	if not faces:
+		raise RuntimeError("No faces of the specified dimension found")
+	return cutOffFaces(figure, ratio, faces, showProgress)
+
 import itertools
-def commandCutVertices(ratio):
+def commandCutFaces(dim, ratio):
 	figures=objFigure.fromGfFigure(gf.figureGet())
 	figures2=[]
 	for f in figures:
-		figures2.extend(cutOffVertices(f, ratio))
+		figures2.extend(cutOffFacesDim(f, ratio, dim, True))
 	gf.figureOpen(objFigure.toGfFigure(figures2), True)
+	gf.clear()
+	if dim==0:
+		gf.echo("Vertices of the figure has been cut resulting in")
+	elif dim==1:
+		gf.echo("Edges of the figure has been cut resulting in")
+	else:
+		gf.echo(str(dim) + "d-faces of the figure has been cut resulting in")
+
+	utils.commandInfo()
 
 def commandCut():
 	gf.echo("""--- cuts module ---
 Commands:
-  cut vertices <ratio>  -cuts off vertices, <ratio> = d(vertex, hyperplane) : d(vertex, origin)
+  cut vertices <ratio>     -cuts off vertices, <ratio> = d(vertex, hyperplane) : d(vertex, origin)
+  cut edges <ratio>        -cuts off edges,    <ratio> = d(edge, hyperplane) : d(edge, origin)
+  cut faces <dim> <ratio>  -cuts off faces of given dimension, <ratio> = d(face, hyperplane) : d(face, origin)
 For more information see cuts.py""")
 	gf.clearAfterCmd()
 
 import gf
-gf.addCommand("cut vertices ", "cuts.commandCutVertices(%)", 1, '-')
+gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", 1, '-')
+gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", 1, '-')
+gf.addCommand("cut faces ", "cuts.commandCutFaces(%,%)", 2, '-')
 gf.addCommand("cut", "cuts.commandCut()")

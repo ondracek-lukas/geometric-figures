@@ -274,7 +274,7 @@ void figureRotate(int axis1, int axis2, GLfloat angle) {
 static void updateScale() {
 	GLint i, j;
 	GLfloat sum;
-	GLfloat farest=1;
+	GLfloat farest=0;
 	for (i=0; i<figureData.count[0]; i++) {
 		sum=0;
 		for (j=0; j<figureData.dim; j++)
@@ -283,6 +283,8 @@ static void updateScale() {
 		if (farest<sum)
 			farest=sum;
 	}
+	if (farest==0)
+		farest=1;
 	figureScale=1/farest;
 }
 

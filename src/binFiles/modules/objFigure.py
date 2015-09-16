@@ -26,8 +26,16 @@ def fromGfFigure(gfFigure):
 	freeFigures=set()
 	for lists in figures:
 		for fig in lists:
-			if not fig.bounds:
+			fig.isFree=True
+	for lists in reversed(figures):
+		for fig in lists:
+			if fig.isFree:
 				freeFigures.add(fig)
+				for f in fig:
+					f.isFree=False
+	for lists in figures:
+		for fig in lists:
+			del fig.isFree
 	return freeFigures
 
 
@@ -58,7 +66,6 @@ class Figure:
 	# Creates Figure from the (iterable of) figures bounding it
 	def __init__(self, boundary=None, gfIndex=None):
 		self.boundary=set() # childs
-		self.bounds=set()   # parents
 		self.gfIndex=gfIndex
 		self.spaceDim=None
 		self.dim=None
@@ -75,10 +82,10 @@ class Figure:
 		elif self.dim != None:
 			child.setDim(self.dim-1, self.spaceDim)
 		self.boundary.add(child)
-		child.bounds.add(self)
 	def rmFromBoundary(self, child):
 		self.boundary.discard(child)
-		child.bounds.discard(self)
+
+
 
 
 	# Gets every figure from boudary (of all dimensions) just once
@@ -107,8 +114,6 @@ class Figure:
 		else:
 			self.dim=dim
 			self.spaceDim=spaceDim
-			for parent in self.bounds:
-				parent.setDim(dim+1, spaceDim)
 			for child in self.boundary:
 				child.setDim(dim-1, spaceDim)
 

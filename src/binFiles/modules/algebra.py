@@ -17,6 +17,27 @@ def vectSum(vector1, vector2):
 def vectMult(koef, vector):
 	return map(lambda x: koef*x, vector)
 
+def orthogonalizeVect(vector, orthonormalBasis):
+	for basisVect in orthonormalBasis:
+		lenInBasisVect=dotProduct(basisVect, vector)
+		vector=vectSum(vector, vectMult(-lenInBasisVect, basisVect))
+	return vector
+
+def orthonormalizeBasis(basis):
+	ortBasis=[]
+	for vector in basis:
+		vector=orthogonalizeVect(vector, ortBasis)
+		vectorLen=vectLen(vector)
+		if vectorLen>0.00001:
+			vector=vectMult(1/vectorLen, vector)
+			ortBasis.append(vector)
+	return ortBasis
+
+def orthonormalBasisFromPoints(points):
+	points=list(points)
+	point=points.pop()
+	return orthonormalizeBasis(vectDiff(p,point) for p in points)
+
 
 class Hyperplane:
 

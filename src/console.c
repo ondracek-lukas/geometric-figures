@@ -584,14 +584,18 @@ void consoleExecFile(char *path) {
 }
 
 void execFile(int ignored) {
+	if (cmdExecutionLevel)
+		return;
 	cmdExecutionLevel++;
-	consoleCmdSource(execFilePaths->str);
-	char *err=scriptCatchException();
-	if (err)
-		consolePrintErr(err);
-	utilStrListRm(&execFilePaths);
-	if (!execFilePaths) {
-		execFilePathsEnd=0;
+	while (execFilePaths) {
+		consoleCmdSource(execFilePaths->str);
+		char *err=scriptCatchException();
+		if (err)
+			consolePrintErr(err);
+		utilStrListRm(&execFilePaths);
+		if (!execFilePaths) {
+			execFilePathsEnd=0;
+		}
 	}
 	cmdExecutionLevel--;
 }
@@ -609,27 +613,31 @@ void consoleEvalExpr(char *expr) {
 }
 
 void evalExpr(int ignored) {
+	if (cmdExecutionLevel)
+		return;
 	cmdExecutionLevel++;
 
-	char *ret=scriptEvalExpr(evalExprStrs->str);
-	if (ret && *ret)
-		consolePrint(ret);
+	while (evalExprStrs) {
+		char *ret=scriptEvalExpr(evalExprStrs->str);
+		if (ret && *ret)
+			consolePrint(ret);
 
-	char *err=scriptCatchException();
-	if (err)
-		consolePrintErr(err);
-
-	if (consolePythonExprToStdout) {
+		char *err=scriptCatchException();
 		if (err)
-			printf("%s # Error: %s\n", evalExprStrs->str, err);
-		else if (ret && *ret)
-			printf("%s # Ret: %s\n", evalExprStrs->str, ret);
-		else
-			printf("%s\n", evalExprStrs->str);
-	}
-	utilStrListRm(&evalExprStrs);
-	if (!evalExprStrs) {
-		evalExprStrsEnd=0;
+			consolePrintErr(err);
+
+		if (consolePythonExprToStdout) {
+			if (err)
+				printf("%s # Error: %s\n", evalExprStrs->str, err);
+			else if (ret && *ret)
+				printf("%s # Ret: %s\n", evalExprStrs->str, ret);
+			else
+				printf("%s\n", evalExprStrs->str);
+		}
+		utilStrListRm(&evalExprStrs);
+		if (!evalExprStrs) {
+			evalExprStrsEnd=0;
+		}
 	}
 
 	cmdExecutionLevel--;

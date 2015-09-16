@@ -41,6 +41,9 @@ autoRandomRot=True
 import cuts # Import cuts module
 imported_info_cmds.append("cut")
 
+import utils
+imported_info_cmds.append("info")
+
 if os.access("/dev/input/spacenavigator", os.R_OK): # Import space navigator module if the device is present
 	import spaceNavigator
 	autoRandomRot=False
@@ -81,6 +84,7 @@ def loadAndRot(name):
 		gf.rotate(2 ,3, 20)
 	defaultColors() # defined below
 	gf.echo("File " + name + " loaded...")
+	utils.commandInfo()
 	if autoRandomRot and gf.sleep(2000): # Wait 2s for user interrupt
 		randomRot(False)
 

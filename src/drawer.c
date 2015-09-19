@@ -214,7 +214,7 @@ void drawerSetProjection() {
 		}
 	}
 
-		
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	if (drawerDim>=3)
@@ -428,7 +428,7 @@ static void drawControls() {
 
 	drawStatusLine();
 	drawBlock();
-	
+
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -451,7 +451,7 @@ static void drawString(char *str, int x, int y) {
 	drawRect(x-1, y-5, x+consoleStrWidth(str)*9+1, y+14);
 	glColor3fv(color);
 	glRasterPos2i(x, y);
-	
+
 
 	while (*str) {
 		switch (*str) {
@@ -505,7 +505,7 @@ static void drawBlock() {
 		return;
 	x=(drawerWidth-consoleBlockWidth*9)/2;
 	y=(drawerHeight+consoleBlockHeight*19)/2-10;
-	
+
 	if ((x<0) || (y>drawerHeight-10-19)) {
 		glColor3fv(stringColorRed);
 		utilStrListAddAfter(&list);
@@ -533,7 +533,7 @@ static void drawBlock() {
 static void drawStatusLine() {
 	int consoleSize=0, count;
 	struct utilStrList *lines;
-	
+
 	glColor3fv(stringColor);
 
 	if (lines=consoleLines) {
@@ -551,5 +551,5 @@ static void drawStatusLine() {
 		drawString(consoleStatus, drawerWidth-9*strlen(consoleStatus)-10, 5);
 	else if (!consoleLines)
 		drawString(consoleStatus, 10, 5);
-	
+
 }

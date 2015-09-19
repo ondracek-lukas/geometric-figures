@@ -3,6 +3,36 @@
 # This module provides objectively oriented access to figures
 # and converting methods from/to gf.figure structure
 
+module_help="""
+Module objFigure provides OOP access to figures,
+it has only Python interface:
+
+  Figure(boundary, gfIndex)  -the Figure object
+    .addToBoundary(figure)   -adds figure to boundary
+    .rmFromBoundary(figure)  -removes figure from boundary
+    .boundary                -the set of bounding figures
+    .dim                     -the dimension of the figure
+    .spaceDim                -space dimension
+    .gfIndex                 -index in gf figure (or None)
+    .__iter__                -iterator over all-level bounding figures
+  Vertex(position, gfIndex)  -the Vertex object (subclass)
+    .position                -tuple of coordinates
+  fromGfFigure(gfFigure)     -creates Figure from gf figure
+  toGfFigure(figure)         -creates gf figure from Figure
+  figuresIterator(figures)
+    -returns iterator over all-level bounding figures
+
+uses modules: [helpMod]
+
+For more information see objFigure.py
+"""
+
+try:
+	import helpMod
+	helpMod.addModule("objfigure", module_help)
+except ImportError:
+	pass
+
 
 # Iterator over the boundaries of (iterable of) figures
 # Only one iterator can be active at a time

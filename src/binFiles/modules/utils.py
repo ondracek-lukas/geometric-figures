@@ -1,35 +1,35 @@
 # Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
-import gf
+module_help="""
+Module utils provides several utilities,
+it has only Python interface:
+
+  colorToTuple(color)        -converts color string to tuple
+                              (alpha,red,green,blue), each from 0 to 255
+  tupleToColor(tuple)        -converts previous tuple to color string
+  figuresMaxRadius(figures)  -the longest vector distance from the origin
+  figuresScale(figures)      -scales figures by given factor, in place
+
+uses modules: algebra, objFigure, [helpMod]
+
+For more information see utils.py
+"""
+
 import objFigure
 from objFigure import figuresIterator
 import algebra
 
-def figureInfo(figure):
-	cnts=[0]*(figure.dim+1)
-	for f in figure:
-		cnts[f.dim]+=1
-	text=str(figure.dim) + "-dimensional figure ("
-	if figure.dim>3:
-		for i in range(figure.dim-1, 1, -1):
-			text+= str(cnts[i]) + " " + str(i) + "d-faces, "
-	elif figure.dim==3:
-		text+= str(cnts[2]) + " faces, "
-	if figure.dim>1:
-		text+= str(cnts[1]) + " edges, "
-	text+= str(cnts[0]) + " vertices)"
-	return text;
+try:
+	import helpMod
+	helpMod.addModule("utils", module_help)
+except ImportError:
+	pass
 
-def commandInfo():
-	figures=objFigure.fromGfFigure(gf.figureGet())
-	if not figures:
-		gf.echo("Nothing opened")
-	else:
-		gf.echo(str.join("\n", [figureInfo(f) for f in figures]))
-
-gf.addCommand("info", "utils.commandInfo()")
-
-
+def colorToTuple(color):
+	color=gf.normalizeColorAlpha(color)
+	return tuple(ord(c) for c in color[1:].decode("hex"))
+def tupleToColor(tupl):
+	return "#{:02X}{:02X}{:02X}{:02X}".format(*tupl)
 
 def figuresMaxRadius(figures):
 	maxRadius=0
@@ -44,5 +44,3 @@ def figuresScale(figures, factor):
 	for f in figuresIterator(figures):
 		if f.dim==0:
 			f.position=algebra.vectMult(factor, f.position)
-
-

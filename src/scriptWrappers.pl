@@ -190,14 +190,6 @@ PARAMS_END
 	}
 EOF
 	}
-	
-
-	#say $name;
-	#say join " -- ", @retType;
-	#say $funcName;
-	#say (join " -- ", @$_) for @params;
-	#say ""
-	
 
 }
 
@@ -215,7 +207,7 @@ EOF
 EOF
 	$wrappersList.="\t{\"$_\", ${_}Wrapper, METH_VARARGS, \"\"},\n";
 }
-	
+
 
 say STDERR "Skipping: $last" if $last;
 

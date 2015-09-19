@@ -1,15 +1,46 @@
 # Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
-# This module contains functions for cutting figures
-# It adds command :cut for direct access (type without parameters for help)
+# This module contains functions for cutting figures.
+# It adds command :cut for direct access.
 
+module_help="""
+Module cuts allows cutting figures.
+
+Commands:
+  cut vertices <ratio>     -cuts off vertices
+  cut edges <ratio>        -cuts off edges
+  cut faces <dim> <ratio>  -cuts off faces of given dimension
+    <ratio> = d(face, hyperplane) : d(face, origin)
+
+Python interface:
+  cutFigure(figure, hyperplane)                    -returns both parts and section
+  cutOff(figure, hyperplanes, showProgress)        -cuts off parts
+  cutOffFaces(figure, ratio, faces, showProgress)  -cuts off given faces
+  cutOffFacesDim(figure, ratio, dim, showProgress) -cuts off all <dim>-faces
+
+uses modules: algebra, objFigure, [figureInfo], [helpMod]
+
+For more information see cuts.py
+"""
+
+import itertools
+from operator import attrgetter
 import objFigure
 from objFigure import Figure, Vertex, figuresIterator;
-from operator import attrgetter
 import algebra
 from algebra import Hyperplane;
 import gf
-import utils
+try:
+	import figureInfo
+except ImportError:
+	figureInfo=None
+
+try:
+	import helpMod
+	helpMod.addModule("cuts", module_help)
+	helpMod.addPage("cut", module_help)
+except ImportError:
+	pass
 
 # Cuts Figure object with given Hyperplane,
 # returns ([Figure negative_parts], [Figure section_parts], [Figure positive_parts])
@@ -204,7 +235,8 @@ def cutOffFacesDim(figure, ratio, dim, showProgress=False):
 		raise RuntimeError("No faces of the specified dimension found")
 	return cutOffFaces(figure, ratio, faces, showProgress)
 
-import itertools
+
+
 def commandCutFaces(dim, ratio):
 	figures=objFigure.fromGfFigure(gf.figureGet())
 	figures2=[]
@@ -213,25 +245,15 @@ def commandCutFaces(dim, ratio):
 	gf.figureOpen(objFigure.toGfFigure(figures2), True)
 	gf.clear()
 	if dim==0:
-		gf.echo("Vertices of the figure has been cut resulting in")
+		gf.echo("Vertices of the figure has been cut")
 	elif dim==1:
-		gf.echo("Edges of the figure has been cut resulting in")
+		gf.echo("Edges of the figure has been cut")
 	else:
-		gf.echo(str(dim) + "d-faces of the figure has been cut resulting in")
+		gf.echo(str(dim) + "d-faces of the figure has been cut")
 
-	utils.commandInfo()
+	if figureInfo:
+		figureInfo.printAll()
 
-def commandCut():
-	gf.echo("""--- cuts module ---
-Commands:
-  cut vertices <ratio>     -cuts off vertices, <ratio> = d(vertex, hyperplane) : d(vertex, origin)
-  cut edges <ratio>        -cuts off edges,    <ratio> = d(edge, hyperplane) : d(edge, origin)
-  cut faces <dim> <ratio>  -cuts off faces of given dimension, <ratio> = d(face, hyperplane) : d(face, origin)
-For more information see cuts.py""")
-	gf.clearAfterCmd()
-
-import gf
 gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", 1, '-')
 gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", 1, '-')
 gf.addCommand("cut faces ", "cuts.commandCutFaces(%,%)", 2, '-')
-gf.addCommand("cut", "cuts.commandCut()")

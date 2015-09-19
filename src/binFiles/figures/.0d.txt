@@ -1,0 +1,3 @@
+Point
+0-simplex.
+0-cube.

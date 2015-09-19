@@ -74,7 +74,7 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	// Removes boundary and (if convexHull) recalculates it again
 	// Throws exception using script module
 	extern void figureResetBoundary(); // [SCRIPT_NAME: resetBoundary]
-	
+
 	// Call on figureData.boundary change
 	extern void figureBoundaryChanged();
 

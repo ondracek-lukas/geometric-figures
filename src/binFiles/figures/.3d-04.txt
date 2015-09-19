@@ -1,0 +1,4 @@
+Regular Tetrahedron
+3-simplex.
+One of the five Platonic Solids (regular polyhedrons).
+Its faces are triangular.

@@ -1,0 +1,3 @@
+Cube
+One of the five Platonic solids (regular polyhedrons).
+Its faces are squared.

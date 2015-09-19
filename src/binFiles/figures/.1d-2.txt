@@ -1,0 +1,4 @@
+Abscissa
+1-simplex.
+1-cube.
+1-orthoplex.

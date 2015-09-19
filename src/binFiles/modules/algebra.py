@@ -2,6 +2,35 @@
 
 # This module contains several functions from linear algebra
 
+module_help="""
+Module algebra contains several functions from linear algebra,
+it has only Python interface:
+
+  dotProduct(vector1, vector2)                 -dot product of vectors
+  vectLen(vector)                              -vector length
+  vectDiff(vector1, vector2)                   -difference of vectors
+  vectSum(vector1, vector2)                    -sum of vectors
+  vectMult(multiplier, vector)                 -multiple of vector
+  orthogonalizeVect(vector, orthonormalBasis)  -orthogolalization of vector
+  orthonormalizeBasis(basis)                   -Gram-Schmidt orthonormalization
+  orthonormalBasisFromPoints(points)           -gets orthonormal basis from points
+
+  Hyperplane(normal, normalPos)                -hyperplane object
+    .normal                                    -normal vector
+    .normalPos                                 -position within the normal vector
+    .orientedDistance(point)                   -distance in normalized normal
+
+uses modules: [helpMod]
+
+For more information see algebra.py
+"""
+
+try:
+	import helpMod
+	helpMod.addModule("algebra", module_help)
+except ImportError:
+	pass
+
 def dotProduct(vector1, vector2):
 	return sum(map(lambda z: z[0]*z[1], zip(vector1, vector2)))
 
@@ -14,8 +43,8 @@ def vectDiff(vector1, vector2):
 def vectSum(vector1, vector2):
 	return map(lambda z:z[0]+z[1], zip(vector1, vector2))
 
-def vectMult(koef, vector):
-	return map(lambda x: koef*x, vector)
+def vectMult(mult, vector):
+	return map(lambda x: mult*x, vector)
 
 def orthogonalizeVect(vector, orthonormalBasis):
 	for basisVect in orthonormalBasis:

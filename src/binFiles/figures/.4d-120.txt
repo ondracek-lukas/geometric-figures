@@ -1,0 +1,3 @@
+Regular Dodecacontachoron
+One of the six regular polychorons (4-dimensional analogy of Platonic solids).
+Its cells are dodecahedral.

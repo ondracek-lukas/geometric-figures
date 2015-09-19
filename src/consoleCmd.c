@@ -14,6 +14,7 @@
 #include "hid.h"
 #include "anim.h"
 #include "script.h"
+#include "scriptEvents.h"
 
 void consoleCmdSource(char *path) {
 	path=utilExpandPath(path);
@@ -28,7 +29,10 @@ void consoleCmdOpen(char *path) {
 		return;
 	}
 
-	figureOpen(figure, false);
+	if(figureOpen(figure, false)) {
+		scriptEventsPerform(&scriptEventsNew);
+		scriptEventsPerform(&scriptEventsOpen, path);
+	}
 }
 
 void consoleCmdWrite(char *path) {
@@ -46,6 +50,7 @@ void consoleCmdNew(int dim) {
 	consoleCmdVertexDeselect();
 	figureNew(dim);
 	drawerSetDim(dim);
+	scriptEventsPerform(&scriptEventsNew);
 }
 
 void consoleCmdClose() {
@@ -107,12 +112,11 @@ void consoleCmdRunmap(char *key) {
 }
 
 void consoleCmdHelp(char *name) {
-	if (!consolePrintBlock("help", name))
+	if (!consolePrintNamedBlock("help", name))
 		scriptThrowException("Wrong name of help page");
 }
 
 void consoleCmdHistory() {
-	consoleAppendMode();
 	consolePrint("--- History of commands ---");
 	consolePrintLinesList(consoleGetHistory());
 	consoleClearAfterCmdDefaultMsg();

@@ -155,7 +155,7 @@ int rotate(struct convexFigBst **root) {
 		deep=&(*root)->left;
 	else                   // right to left
 		deep=&(*root)->right;
-	
+
 	if ((*deep)->leaning*(*root)->leaning==-2)
 		rotate(deep);
 

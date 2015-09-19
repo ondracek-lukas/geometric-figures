@@ -6,6 +6,7 @@
 #include "script.h"
 #include "scriptWrappers.h.tmp"
 #include "safe.h"
+#include "console.h"
 
 static PyObject *mainModule;
 static PyObject *mainDict;
@@ -17,6 +18,9 @@ static PyThreadState *threadState;
 #define GIL_RELEASE \
 	if (gilRelease) {threadState=PyEval_SaveThread(); }
 
+bool scriptIsGILAcquired() {
+	return !threadState;
+}
 void scriptAcquireGIL() {
 	if (!threadState)
 		safeExitErr("GIL already acquired\n");
@@ -36,8 +40,30 @@ void scriptInit() {
 	Py_INCREF(mainDict);
 
 	Py_InitModule("gf", scriptWrappersList);
-	PyRun_SimpleString("import gf\n");
+	PyRun_SimpleString(
+		"import gf\n"
 
+		"import os\n"
+		"modulesPath=gf.expandPath('%/modules')\n"
+		"if os.access(modulesPath, os.F_OK):\n"
+		"	import sys\n"
+		"	sys.path.append(modulesPath)\n"
+		"	gl=globals()\n"
+		"	for module in os.listdir(modulesPath):\n"
+		"		if module[-3:] == '.py':\n"
+		"			try:\n"
+		"				gl[module[:-3]]=__import__(module[:-3])\n"
+		"			except Exception, ex:\n"
+		"				import traceback\n"
+		"				traceback.print_exc()\n"
+		"				gf.echoErr('While loading module ' + module + ': ' + str(ex))\n"
+		"				del traceback\n"
+		"	del sys\n"
+		"	del module\n"
+		"	del gl\n"
+		"del modulesPath\n"
+		"del os\n"
+	);
 	threadState=PyEval_SaveThread();
 }
 
@@ -90,7 +116,6 @@ char *scriptCatchException() {
 	static PyObject *str=NULL;
 	Py_XDECREF(str); str=NULL;
 
-	//PyObject *obj=PyErr_Occurred();
 	PyObject *objType, *objValue, *objTraceback;
 	PyErr_Fetch(&objType, &objValue, &objTraceback);
 	if (objType) {
@@ -108,6 +133,57 @@ char *scriptCatchException() {
 	}
 	GIL_RELEASE
 	return NULL;
+}
+
+bool scriptCatchExceptionAndPrint() {
+	GIL_ACQUIRE
+
+	PyObject *pyStr;
+	PyObject *objType, *objValue, *objTraceback;
+	PyErr_Fetch(&objType, &objValue, &objTraceback);
+	if (objType) {
+		if (objValue)
+			pyStr=PyObject_Str(objValue);
+		else
+			pyStr=PyObject_Str(objType);
+		//PyErr_Clear();
+		consolePrintErr(PyString_AsString(pyStr));
+		Py_DECREF(pyStr);
+
+		if (objTraceback) {
+			PyObject *pyModName = PyString_FromString("traceback");
+			PyObject *pyMod  = PyImport_Import(pyModName);
+			Py_DECREF(pyModName);
+			if (pyMod) {
+				PyObject *pyFunc  = PyObject_GetAttrString(pyMod, "format_exception");
+				if (pyFunc) {
+					PyObject *pyVal = PyObject_CallFunctionObjArgs(pyFunc, objType, objValue, objTraceback, NULL);
+					if (pyVal) {
+						int size=PyList_Size(pyVal);
+						if (!PyErr_Occurred()) {
+							for (int i=0; i<size; i++) {
+								fprintf(stderr, "%s", PyString_AsString(PyList_GET_ITEM(pyVal, i)));
+							}
+							fprintf(stderr, "\n");
+						}
+						Py_DECREF(pyVal);
+					}
+				}
+				Py_DECREF(pyFunc);
+			}
+			Py_DECREF(pyMod);
+			Py_DECREF(objTraceback);
+		}
+
+		Py_XDECREF(objType);
+		Py_XDECREF(objValue);
+
+		PyErr_Clear();
+		GIL_RELEASE
+		return true;
+	}
+	GIL_RELEASE
+	return false;
 }
 
 void scriptThrowException(char *str) {

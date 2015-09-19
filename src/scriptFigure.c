@@ -9,6 +9,7 @@
 #include "safe.h"
 #include "drawer.h"
 #include "util.h"
+#include "scriptEvents.h"
 
 
 static struct figureData *figureFromPython(PyObject *pyFigure);
@@ -34,6 +35,14 @@ PyObject *scriptFigureOpen(PyObject *self, PyObject *args) {
 			figure->count=safeCalloc(figure->dim+1, sizeof(int));
 		}
 		figureOpen(figure, preserveRotation);
+	}
+	if (!PyErr_Occurred()) {
+		if (preserveRotation) {
+			scriptEventsPerform(&scriptEventsModified);
+		} else {
+			scriptEventsPerform(&scriptEventsNew);
+			scriptEventsPerform(&scriptEventsOpen, NULL);
+		}
 	}
 	if (PyErr_Occurred())
 		return NULL;

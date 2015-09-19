@@ -42,7 +42,10 @@ int consoleStrHeight(char *str);
 
 
 // Prints block from stringsData, returns false if doesn't exist
-extern bool consolePrintBlock(char *section, char *name);
+extern bool consolePrintNamedBlock(char *section, char *name);
+
+// Prints block from string
+extern void consolePrintBlock(char *str);   // [SCRIPT_NAME: printCentered]
 
 // Clears printed block
 extern void consoleClearBlock();
@@ -60,17 +63,14 @@ extern void consolePrintMultilineBegin();
 extern void consolePrint(char *string); // [SCRIPT_NAME: echo]
 
 // Prints one line with error message
-extern void consolePrintErr(char *string);
+extern void consolePrintErr(char *string); // [SCRIPT_NAME: echoErr]
 
 // Clears printed line(s)
 extern void consoleClear(); // [SCRIPT_NAME: clear]
 
 
-// Printing will only append lines to already printed ones
-void consoleAppendMode();
-
-// Printing or opening console will clear printed lines
-extern void consoleClearBeforePrinting();
+// Printing will clear previously printed lines
+extern void consoleClearBeforePrinting(); // [SCRIPT_NAME: clearBeforePrinting]
 
 // Appends msg line and clears only it while typing command
 extern void consoleClearAfterCmd(char *msg);  // [SCRIPT_NAME: clearAfterCmd]

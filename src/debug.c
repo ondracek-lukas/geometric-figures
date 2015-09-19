@@ -98,7 +98,7 @@ int convexFigBstCheckR(struct convexFigBst *bst, GLfloat *min, GLfloat *max, int
 		exit(31);
 	}
 	return 0;
-	
+
 }
 
 void convexLoopDetectPrint(int count, int parent, int child, int index, int next) {

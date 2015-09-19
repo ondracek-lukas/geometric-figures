@@ -16,6 +16,7 @@
 #include "safe.h"
 #include "drawer.h"
 #include "script.h"
+#include "scriptEvents.h"
 
 int animFrameDelay=33;           // ms
 const int animResponseDelay=100;
@@ -132,11 +133,10 @@ void frame(int value) {
 	for (struct animRotation *r=activeRots; r; r=r->next)
 		rots+=animCustomRot(r, animRotSpeed*delay/1000);
 
-	bool idle=false;
 	if (!rots)
-		idle=hidIdleEvent();
+		scriptEventsSchedulePending();
 
-	updateStatus(rots, true, (idle?"idle script":0));
+	updateStatus(rots, true, 0);
 }
 
 bool animSleep(int ms) {
@@ -147,9 +147,8 @@ bool animSleep(int ms) {
 	int time = glutGet(GLUT_ELAPSED_TIME);
 	int returnAt = time + ms;
 	int wakeAt, wakeAfter;
-	int redisplayCounter=drawerRedisplayCounter;
 	animSleepActive=true;
-	
+
 	while ((ms=returnAt-time)>0) {
 		wakeAfter=animFrameDelay;
 		if (wakeAfter > animResponseDelay)
@@ -173,6 +172,7 @@ bool animSleep(int ms) {
 	glutMainLoopEvent();
 	animSleepActive=false;
 	scriptAcquireGIL();
+	scriptEventsSchedulePending();
 	return !sleepInterrupted;
 }
 

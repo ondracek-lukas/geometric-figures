@@ -10,7 +10,6 @@
 #include "convexFig.h"
 
 struct convexFigBst *convexSpaces=0;
-// struct convexSpace *convexSpace=0; // !! temp
 
 static int dim=-1;
 static struct convexSpace *hashPoint=0;

@@ -1,0 +1,4 @@
+Regular hexadecachoron
+4-dimensional octahedron (4-orthoplex).
+One of the six regular polychorons (4-dimensional analogy of Platonic solids).
+Its cells are tetrahedral.

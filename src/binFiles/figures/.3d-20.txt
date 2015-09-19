@@ -1,0 +1,4 @@
+Regular Icosahedron
+One of the five Platonic Solids (regular polyhedrons).
+Its faces are triangular.
+

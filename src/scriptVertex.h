@@ -2,6 +2,9 @@
 
 // scriptVertex module allows managing vertices from Python
 
+#ifndef SCRIPT_VERTEX_H
+#define SCRIPT_VERTEX_H
+
 // Adds new vertex returning its index, optionally takes tuple with coordinates
 extern PyObject *scriptVertexAdd(PyObject *self, PyObject *args);              // [SCRIPT_NAME: vertexAdd]
 
@@ -20,3 +23,5 @@ extern PyObject *scriptVertexRotatePoint(PyObject *self, PyObject *args);      /
 
 // Inverse of the previous function
 extern PyObject *scriptVertexRotatePointBack(PyObject *self, PyObject *args);  // [SCRIPT_NAME: posRotateBack]
+
+#endif

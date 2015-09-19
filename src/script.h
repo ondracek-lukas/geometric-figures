@@ -33,10 +33,14 @@ extern char *scriptEvalExpr(char *expr);
 // Returned value is read-only, valid till next call
 extern char *scriptCatchException();
 
+// Catches exception and prints it, returns false if no exception raised
+extern bool scriptCatchExceptionAndPrint();
+
 // Throws exception with given message
 extern void scriptThrowException(char *str);
 
 // To allow python threading while executing C code from Python, release GIL
+bool scriptIsGILAcquired();
 void scriptReleaseGIL();
 void scriptAcquireGIL();
 

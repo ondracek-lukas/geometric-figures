@@ -4,6 +4,9 @@
 
 // To find out the Python format of the figure, see :help python figure
 
+#ifndef SCRIPT_FIGURE_H
+#define SCRIPT_FIGURE_H
+
 // Returns currently opened figure
 extern PyObject *scriptFigureGet(PyObject *self, PyObject *args);   // [SCRIPT_NAME: figureGet]
 
@@ -15,3 +18,5 @@ extern PyObject *scriptFigureRead(PyObject *self, PyObject *args);  // [SCRIPT_N
 
 // Writes given figure to a file, takes path of the file and the figure
 extern PyObject *scriptFigureWrite(PyObject *self, PyObject *args); // [SCRIPT_NAME: figureWrite]
+
+#endif

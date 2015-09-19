@@ -7,6 +7,7 @@
 #include "figure.h"
 #include "safe.h"
 #include "matrix.h"
+#include "scriptEvents.h"
 
 static bool coordsFromPython(PyObject *pyCoords, GLfloat *coords);
 static PyObject *coordsToPython(GLfloat *coords);
@@ -31,7 +32,11 @@ PyObject *scriptVertexAdd(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	return Py_BuildValue("i", figureVertexAdd(coords));
+	int index=figureVertexAdd(coords);
+
+	scriptEventsPerform(&scriptEventsModified);
+
+	return Py_BuildValue("i", index);
 }
 
 PyObject *scriptVertexSetPos(PyObject *self, PyObject *args) {
@@ -55,6 +60,7 @@ PyObject *scriptVertexSetPos(PyObject *self, PyObject *args) {
 	}
 
 	figureVertexMove(index, coords);
+	scriptEventsPerform(&scriptEventsModified);
 	return Py_None;
 }
 
@@ -83,6 +89,8 @@ PyObject *scriptVertexRm(PyObject *self, PyObject *args) {
 	}
 
 	figureVertexRm(index);
+
+	scriptEventsPerform(&scriptEventsModified);
 
 	return Py_None;
 }

@@ -23,6 +23,7 @@
 #include "consoleCmd.h"
 #include "consoleCmds.h"
 #include "script.h"
+#include "scriptEvents.h"
 
 static struct utilStrList *historyFirst;
 static struct utilStrList *historyLast;
@@ -32,7 +33,6 @@ static int historyMaxCount;
 static int cmdEnd;
 static int cmdBegin;
 static int cursorPos;
-static int cmdExecutionLevel;
 
 static void initCmds();
 void consoleInit() {
@@ -116,12 +116,28 @@ struct utilStrList *consoleBlock=0;
 int consoleBlockWidth;
 int consoleBlockHeight;
 
-bool consolePrintBlock(char *section, char *name) {
+bool consolePrintNamedBlock(char *section, char *name) {
 	consoleClearBlock();
 	consoleBlock=stringsGet(section, name, &consoleBlockWidth, &consoleBlockHeight);
 	if (consoleBlock)
 		drawerInvokeRedisplay();
 	return consoleBlock;
+}
+void consolePrintBlock(char *str) {
+	consoleClearBlock();
+	consoleBlockWidth=consoleStrWidth(str);
+	consoleBlockHeight=consoleStrHeight(str);
+	struct utilStrList *lines=utilStrListOfLines(str);
+	for (struct utilStrList *line=lines; line; line=line->next) {
+		int i=strlen(line->str);
+		int newLen=consoleBlockWidth-consoleStrWidth(line->str)+i;
+		utilStrRealloc(&line->str, 0, newLen+1);
+		for (; i<newLen; i++)
+			line->str[i]=' ';
+		line->str[i]='\0';
+	}
+	consoleBlock=lines;
+	drawerInvokeRedisplay();
 }
 
 void consoleClearBlock() {
@@ -159,10 +175,10 @@ void consolePrint(char *str) {
 }
 
 void consolePrintLinesList(struct utilStrList *lines) {
-	if (cmdExecutionLevel)
-		mode=modeAppend;
-	if (mode!=modeAppend)
+	if (mode!=modeAppend) {
 		consoleClear();
+		mode=modeAppend;
+	}
 	if (lines) {
 		while (lines->prev)
 			lines=lines->prev;
@@ -187,6 +203,8 @@ void consolePrintErr(char *str) {
 }
 
 void consoleClear() {
+	if (cursorPos)
+		scriptEventsSchedulePending();
 	historyActive=0;
 	cursorPos=0;
 	mode=modeNormal;
@@ -197,11 +215,9 @@ void consoleClear() {
 	consoleClearBlock();
 }
 
-void consoleAppendMode() {
-	mode=modeAppend;
-}
 void consoleClearBeforePrinting() {
-	mode=modeNormal;
+	if (mode == modeAppend)
+		mode=modeNormal;
 }
 void consoleClearAfterCmdDefaultMsg() {
 	consoleClearAfterCmd("Press any key or type command to continue");
@@ -342,8 +358,9 @@ void consoleBackspace() {
 		} else {
 			setCursorPos(cmdEnd);
 		}
-	} else if (cursorPos+cursorLen==cmdEnd)
+	} else if (cursorPos+cursorLen==cmdEnd) {
 		consoleClear();
+	}
 	drawerInvokeRedisplay();
 }
 
@@ -358,7 +375,7 @@ void consoleEnter() {
 	applyCompletion();
 	consoleLines->str[cmdEnd]='\0';
 	setCursorPos(0);
-	
+
 	if (historyMaxCount) {
 		if (historyCount<historyMaxCount)
 			historyCount++;
@@ -462,7 +479,6 @@ void consoleTab() {
 
 // -- commands --
 
-static int cmdExecutionLevel=0; // number of consoleEvalExpr in stacktrace
 bool consoleAllowPythonExpr=false;
 bool consolePythonExprToStdout=false;
 
@@ -584,9 +600,8 @@ void consoleExecFile(char *path) {
 }
 
 void execFile(int ignored) {
-	if (cmdExecutionLevel)
+	if (animSleepActive)
 		return;
-	cmdExecutionLevel++;
 	while (execFilePaths) {
 		consoleCmdSource(execFilePaths->str);
 		char *err=scriptCatchException();
@@ -597,7 +612,6 @@ void execFile(int ignored) {
 			execFilePathsEnd=0;
 		}
 	}
-	cmdExecutionLevel--;
 }
 
 static struct utilStrList *evalExprStrs=0;
@@ -613,9 +627,8 @@ void consoleEvalExpr(char *expr) {
 }
 
 void evalExpr(int ignored) {
-	if (cmdExecutionLevel)
+	if (animSleepActive)
 		return;
-	cmdExecutionLevel++;
 
 	while (evalExprStrs) {
 		char *ret=scriptEvalExpr(evalExprStrs->str);
@@ -640,5 +653,4 @@ void evalExpr(int ignored) {
 		}
 	}
 
-	cmdExecutionLevel--;
 }

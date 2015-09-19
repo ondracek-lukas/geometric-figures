@@ -29,7 +29,7 @@ bool convexHullUtilExpandDim(struct convexFig *fig, struct convexFig *vert, stru
 		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (fig exists)\n", fig->space->dim+1);)
 		return 0;
 	}
-	
+
 	convexSpaceCopy(fig->space, &tmpSpace);
 	convexSpaceExpand(tmpSpace, vert->space);
 	if (convexSpaceGetFigs(tmpSpace, &list)) {
@@ -59,7 +59,7 @@ bool convexHullUtilExpandDim(struct convexFig *fig, struct convexFig *vert, stru
 			convexHullUtilRepair(&list2, inconsistent);
 		}
 	}
-	
+
 	convexFigGetLayer(*newFig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &list);
 	convexSpaceCenterPos((*newFig)->space, list);
 	convexFigListDestroy(&list);

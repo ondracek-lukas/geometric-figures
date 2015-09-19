@@ -191,7 +191,7 @@ static char *trieTranslate(struct trie *trie, char *cmd) {
 }
 
 static void trieComplete(struct trie *trie, struct utilStrList **pLists, char **prefix, char **prefixEnd) {
-	utilStrRealloc(prefix, prefixEnd, 1); // !!
+	utilStrRealloc(prefix, prefixEnd, 1);
 
 	bool retCurrent=trie->scriptExpr;
 	if (!retCurrent)

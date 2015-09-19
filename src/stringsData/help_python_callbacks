@@ -1,0 +1,16 @@
+help:python callbacks;help:scripting callbacks
+Several callback functions can be registered to some events.
+
+gf.registerCallback(event_name, function)
+  Registers callback function.
+gf.unregisterCallback(event_name, function)
+  Unregisters callback,
+  have to be called with the same parameters as when registering it.
+
+Events:
+  idle()      -called once in every frame, when nothing happens
+  new()       -called when the number of dimensions is changed
+  open(path)  -called when opening figure (without preserving rotation),
+               the path can be None
+  modified()  -called when the figure is modified,
+               includes opening figure with preserving rotation

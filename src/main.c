@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
 	free(path);
 
-	consolePrintBlock("help", "welcome");
+	consolePrintNamedBlock("help", "welcome");
 
 	glutMainLoop();
 

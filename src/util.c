@@ -66,7 +66,7 @@ char *utilExecutablePath() {
 	static char *path=0;
 	int size=16;
 	int length=0;
-	
+
 	if (!path) {
 		do {
 			path=safeRealloc(path, sizeof(char)*(size*=2));
@@ -131,7 +131,7 @@ void utilStrRealloc(char **ptr, char **ptr2, size_t minSize) {
 			if ((*pBlock)->ptr == *ptr)
 				break;
 		if (!(block=*pBlock))
-			safeExitErr("String manipulation error"); // !!!
+			safeExitErr("String manipulation error");
 		if (ptr2)
 			minSize+=*ptr2-*ptr;
 		if (minSize==0) {

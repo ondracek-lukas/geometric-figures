@@ -1,11 +1,7 @@
 # Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
 # This module adds 3Dconnexion SpaceNavigator support
-# to (Linux version of) Geometric Figures application,
-# it is intended to be sourced from the application
-# or imported in its configuration file.
-
-# It adds command :spacenavigator (type without parameters for help)
+# to (Linux version of) Geometric Figures application.
 
 # To allow access to the device, use the following udev rule
 # (e.g. pasting the line in /etc/udev/rules.d/90-spacenavigator.rules):
@@ -14,40 +10,79 @@
 
 # The script can be modified for other input devices
 
+module_help="""
+Module spaceNavigator adds 3d-mouse support.
+
+Commands:
+  spacenavigator                      -prints some information
+  spacenavigator sensitivity=<value>  -gets/sets device sensitivity
+  spacenavigator device=<path>        -gets/sets device path
+  spacenavigator on                   -activates device
+  spacenavigator off                  -deactivates device
+
+Python interface:
+  set_device(path)   -sets device path
+  get_device()       -gets device path
+  set_sens(value)    -sets device sensitivity
+  get_sens()         -gets device sensitivity
+  on()               -activates device
+  off()              -deactivates device
+  isActive()         -returns whether the device is active
+  info()             -prints some information
+  leftBtnFunc        -function called on left button press
+  rightBtnFunc       -function called on right button press
+
+uses modules: [gfUtils], [helpMod], [randomRot] (deactivates auto)
+
+For more information see spaceNavigator.py
+"""
+
 import gf
 import os
 import struct
 import threading
 import time # gf.time can be used only in the main thread
 
-if not 'spacenavigAxes' in globals():
-	spacenavigDevice="/dev/input/spacenavigator"
-	spacenavigLock=threading.Lock()
-	spacenavigButtons=[]
-	spacenavigLeftBtnFunc=0
-	spacenavigRightBtnFunc=0
-	if __name__=="__main__":
-		spacenavigPrefix=""
-	else:
-		spacenavigPrefix=__name__+"."
-spacenavigSens=0.01
+try:
+	import helpMod
+	helpMod.addModule("spacenavigator", module_help)
+	helpMod.addPage("spacenavigator", module_help)
+except ImportError:
+	pass
 
-def spacenavigator():
-	global spacenavigAxes
-	global spacenavigButtons
-	global spacenavigLock
-	if not 'spacenavigAxes' in globals():
-		if not os.access(spacenavigDevice, os.R_OK):
-			raise IOError("Device " + spacenavigDevice + " cannot be opened")
-		spacenavigAxes=[0]*6
+device="/dev/input/spacenavigator"
+lock=threading.Lock()
+buttons=[]
+sensitivity=0.01
+idleTime=0
+try:
+	import gfUtils
+	def leftBtnFunc():
+		gfUtils.openFileRelative(-1)
+	def rightBtnFunc():
+		gfUtils.openFileRelative(1)
+except ImportError:
+	leftBtnFunc=None
+	rightBtnFunc=None
+
+def idle():
+	global axes
+	global buttons
+	global lock
+	global idleTime
+	if not 'axes' in globals():
+		if not os.access(device, os.R_OK):
+			off()
+			raise IOError("Device " + device + " cannot be opened")
+		axes=[0]*6
 		def handler():
-			global spacenavigAxes
-			global spacenavigDevice
-			global spacenavigButtons
-			global spacenavigLock
+			global axes
+			global device
+			global buttons
+			global lock
 			eventFormat="llHHi"
 			eventSize=struct.calcsize(eventFormat)
-			dev=open(spacenavigDevice, "rb")
+			dev=open(device, "rb")
 			openTime=time.time()
 			skipping=True
 			event=dev.read(eventSize)
@@ -59,91 +94,100 @@ def spacenavigator():
 					continue
 				(tv_sec, tv_usec, type, code, value)=struct.unpack(eventFormat, event)
 				if type==2:
-					with spacenavigLock:
-						spacenavigAxes[code]+=value
+					with lock:
+						axes[code]+=value
 				elif type==1 and value==1:
-					spacenavigButtons.append(code)
+					buttons.append(code)
 				event=dev.read(eventSize)
 		t=threading.Thread(target=handler, args=())
 		t.daemon=True
 		t.start()
 
-	with spacenavigLock:
-		spacenavigAxes=[0]*6
-	delay=1000/gf.get_maxfps()
-	while gf.sleep(delay):
+	currTime=gf.time()
+	if currTime-idleTime>100:
+		with lock:
+			axes=[0]*6
+		del buttons[:]
+	else:
 		dim=gf.get_dimen()
-		with spacenavigLock:
-			(right, near, down, tiltNear, tiltLeft, rotRight)=spacenavigAxes
-			spacenavigAxes=[0]*6
-		if right or near or down or tiltNear or tiltLeft or rotRight:
-			gf.clear();
+		with lock:
+			(right, near, down, tiltNear, tiltLeft, rotRight)=axes
+			axes=[0]*6
 		if dim>=2:
 			if tiltLeft:
-				gf.rotate(1, 2, spacenavigSens*tiltLeft)
+				gf.rotate(1, 2, sensitivity*tiltLeft)
 		if dim>=3:
 			if tiltNear: # ifs needed not to force repainting
-				gf.rotate(2, 3, spacenavigSens*tiltNear)
+				gf.rotate(2, 3, sensitivity*tiltNear)
 			if rotRight:
-				gf.rotate(1, 3, spacenavigSens*rotRight)
+				gf.rotate(1, 3, sensitivity*rotRight)
 		if dim>=4:
 			if right:
-				gf.rotate(4, 1, spacenavigSens*right)
+				gf.rotate(4, 1, sensitivity*right)
 			if near:
-				gf.rotate(4, 3, spacenavigSens*near)
+				gf.rotate(4, 3, sensitivity*near)
 			if down:
-				gf.rotate(2, 4, spacenavigSens*down)
+				gf.rotate(2, 4, sensitivity*down)
 
-		while len(spacenavigButtons):
+		while len(buttons):
 			gf.clear()
-			if spacenavigButtons.pop()==256:
-				if spacenavigLeftBtnFunc:
-					spacenavigLeftBtnFunc()
+			if buttons.pop()==256:
+				if leftBtnFunc:
+					leftBtnFunc()
 			else:
-				if spacenavigRightBtnFunc:
-					spacenavigRightBtnFunc()
+				if rightBtnFunc:
+					rightBtnFunc()
+	idleTime=currTime
 
-def spacenavigSetDevice(device):
-	if 'spacenavigAxes' in globals():
+def set_device(device):
+	if 'axes' in globals():
 		raise RuntimeError("Background thread already running, cannot change device")
-	spacenavigDevice=device;
-def spacenavigGetDevice():
-	return spacenavigDevice
+	device=device;
+def get_device():
+	return device
 
-def spacenavigSetSens(sens):
-	global spacenavigSens
-	spacenavigSens=float(sens)
-def spacenavigGetSens():
-	return spacenavigSens
+def set_sens(sens):
+	global sensitivity
+	sensitivity=float(sens)
+def get_sens():
+	return sensitivity
 
-def spacenavigOn():
-	gf.map("<idle>", spacenavigPrefix + "spacenavigator()")
-def spacenavigOff():
-	gf.map("<idle>")
+active=False
+def on():
+	global active
+	gf.registerCallback("idle", idle);
+	active=True
+def off():
+	global active
+	gf.unregisterCallback("idle", idle);
+	active=False
+def is_active():
+	return active
 
-def spacenavigHelp():
+def info():
 	gf.echo("""--- SpaceNavigator ---
-  device=""" + spacenavigGetDevice() + """
-  sensitivity=""" + str(spacenavigGetSens()) + """
-Commands:
-  spacenavigator option[=value]
-  spacenavigator on              -sets idle event to spacenavigator
-  spacenavigator off             -clears idle event
-  spacenavigator help            -prints this help
-For more information see spacenavigator.py""")
+  device=""" + get_device() + """
+  sensitivity=""" + str(get_sens()))
+	if active:
+		gf.echo("The device is active")
+	else:
+		gf.echo("The device is inactive")
 	gf.clearAfterCmd()
 
 gf.removeCommands("spacenavigator")
-gf.addCommand("spacenavigator", spacenavigPrefix + "spacenavigHelp()")
-gf.addCommand("spacenavigator on", spacenavigPrefix + "spacenavigOn()")
-gf.addCommand("spacenavigator off", spacenavigPrefix + "spacenavigOff()")
-gf.addCommand("spacenavigator device=", spacenavigPrefix + "spacenavigSetDevice(%)", 1, "p")
-gf.addCommand("spacenavigator device", "'  device=' + " + spacenavigPrefix + "spacenavigGetDevice()")
-gf.addCommand("spacenavigator sensitivity", "'  sensitivity=' + str(" + spacenavigPrefix + "spacenavigGetSens())")
-gf.addCommand("spacenavigator sensitivity=", spacenavigPrefix + "spacenavigSetSens(%)", 1, "-")
+gf.addCommand("spacenavigator", "spaceNavigator.info()")
+gf.addCommand("spacenavigator on", "spaceNavigator.on()")
+gf.addCommand("spacenavigator off", "spaceNavigator.off()")
+gf.addCommand("spacenavigator device=", "spaceNavigator.set_device(%)", 1, "p")
+gf.addCommand("spacenavigator device", "'  device=' + spaceNavigator.get_device()")
+gf.addCommand("spacenavigator sensitivity", "'  sensitivity=' + str(spaceNavigator.get_sens())")
+gf.addCommand("spacenavigator sensitivity=", "spaceNavigator.set_sens(%)", 1, "-")
 
-if os.access(spacenavigDevice, os.R_OK):
-	spacenavigOn()
+if os.access(device, os.R_OK):
+	on()
+	try: # deactivate randomRot module, if exists
+		import randomRot
+		randomRot.set_auto(False)
+	except ImportError:
+		pass
 	gf.echo("Space navigator module loaded, device found")
-elif not spacenavigPrefix:
-		spacenavigHelp()

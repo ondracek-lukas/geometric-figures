@@ -55,6 +55,7 @@ lock=threading.Lock()
 buttons=[]
 sensitivity=0.01
 idleTime=0
+axes=None
 try:
 	import gfUtils
 	def leftBtnFunc():
@@ -70,7 +71,7 @@ def idle():
 	global buttons
 	global lock
 	global idleTime
-	if not 'axes' in globals():
+	if not axes:
 		if not os.access(device, os.R_OK):
 			off()
 			raise IOError("Device " + device + " cannot be opened")
@@ -82,10 +83,15 @@ def idle():
 			global lock
 			eventFormat="llHHi"
 			eventSize=struct.calcsize(eventFormat)
-			dev=open(device, "rb")
 			openTime=time.time()
 			skipping=True
-			event=dev.read(eventSize)
+			try:
+				dev=open(device, "rb")
+				event=dev.read(eventSize)
+			except IOError as ex:
+				with lock:
+					axes=None
+					raise ex
 			while event:
 				if skipping: # events that happened before opening the device
 					if time.time()-openTime > 0.1:
@@ -98,7 +104,12 @@ def idle():
 						axes[code]+=value
 				elif type==1 and value==1:
 					buttons.append(code)
-				event=dev.read(eventSize)
+				try:
+					event=dev.read(eventSize)
+				except IOError as ex:
+					with lock:
+						axes=None
+						raise ex
 		t=threading.Thread(target=handler, args=())
 		t.daemon=True
 		t.start()
@@ -111,13 +122,15 @@ def idle():
 	else:
 		dim=gf.get_dimen()
 		with lock:
+			if not axes:
+				return;
 			(right, near, down, tiltNear, tiltLeft, rotRight)=axes
 			axes=[0]*6
 		if dim>=2:
-			if tiltLeft:
+			if tiltLeft: # ifs needed not to force repainting
 				gf.rotate(1, 2, sensitivity*tiltLeft)
 		if dim>=3:
-			if tiltNear: # ifs needed not to force repainting
+			if tiltNear:
 				gf.rotate(2, 3, sensitivity*tiltNear)
 			if rotRight:
 				gf.rotate(1, 3, sensitivity*rotRight)

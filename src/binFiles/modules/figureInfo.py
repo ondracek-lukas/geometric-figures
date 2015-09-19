@@ -3,7 +3,7 @@
 # This module manages information about opened figure
 
 module_help="""
-Module figureInfo shows some information about figure
+Module figureInfo shows some information about figure.
 
 Commands:
   info  -shows information about figure
@@ -102,10 +102,11 @@ def setNameDesc(newName, newDescription, path=None):
 	gf.clear()
 	printAll()
 def getNameDesc():
+	n=name or "Unnamed"
 	if modified:
-		return name + ' (modified)', description
+		return n + ' (modified)', description
 	else:
-		return name, description
+		return n, description
 def getPath():
 	return filePath
 

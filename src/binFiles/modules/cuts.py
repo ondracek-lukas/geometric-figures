@@ -239,6 +239,8 @@ def cutOffFacesDim(figure, ratio, dim, showProgress=False):
 
 def commandCutFaces(dim, ratio):
 	figures=objFigure.fromGfFigure(gf.figureGet())
+	if figureInfo:
+		name, desc = figureInfo.getNameDesc()
 	figures2=[]
 	for f in figures:
 		figures2.extend(cutOffFacesDim(f, ratio, dim, True))
@@ -246,13 +248,16 @@ def commandCutFaces(dim, ratio):
 	gf.clear()
 	if dim==0:
 		gf.echo("Vertices of the figure has been cut")
+		name = "Cutted vertices from " + name
 	elif dim==1:
 		gf.echo("Edges of the figure has been cut")
+		name = "Cutted edges from " + name
 	else:
-		gf.echo(str(dim) + "d-faces of the figure has been cut")
+		gf.echo(str(dim) + "-faces of the figure has been cut")
+		name = "Cutted " + dim + "-faces from " + name
 
 	if figureInfo:
-		figureInfo.printAll()
+		figureInfo.setNameDesc(name, None)
 
 gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", 1, '-')
 gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", 1, '-')

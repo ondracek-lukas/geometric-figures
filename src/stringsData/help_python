@@ -1,8 +1,8 @@
 help:python;help:scripting
        The application can be extended using python scripts,
                 which can be executed using :source.
-         This is the preferred way of defining key mapping,
-      on startup %/<name_of_executable>-config.py is executed.
+       On startup, modules in %/modules directory are loaded
+                   and %/config.py is executed.
 
       Scripts can communicate with application via gf module.
   To see command line functions in gf module type :help python gf1.

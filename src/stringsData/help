@@ -3,7 +3,6 @@ help:
 
    The list of commands:
         close                          - destroys opened space
-        echo                           - prints text
         help                           - shows help
         history                        - shows the history of commands
         map                            - (un)assigns command to key

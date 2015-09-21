@@ -7,6 +7,7 @@ help:source;help:so
             ~/... expands to the home folder
             %/... expands to the location of the application
 
-Application executes script %/<name_of_executable>-config.py on startup.
+         Application executes script %/config.py on startup
+                      (after loading modules).
 
        For more information about scripting type :help python.

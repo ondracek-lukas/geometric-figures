@@ -48,8 +48,8 @@ Figures:
   1D: ` abscissa
   2D: 1 triangle,      square,      pentagon,     hexagon
   3D: 2 tetrahedron, 3 cube,      4 octahedron,            5 dodecahedron, 6 icosahedron
-  4D: 7 pentachoron, 8 tesseract, 9 16-cell,    0 24-cell, - 120-cell,     = 600 cell
-  5D:                _ penteract, + 32-cell
+  4D: 7 pentachoron, 8 tesseract, 9 16-cell,    0 24-cell, - 120-cell,     = 600-cell
+  5D:                _ penteract, + 5-orthoplex
   Next/previous: mouse wheel
 """)
 

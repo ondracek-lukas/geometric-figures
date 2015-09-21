@@ -16,8 +16,10 @@ Prints all the settings (first form) or the specified variable (second form),
         dimen                     - dimension of the space, read-only
         edgesize                  - size of the edges
         facecolor                 - color of the faces
+        grabmouse                 - det. whether to grab mouse cursor
         history                   - length of the history of commands
         maxfps                    - maximum frame rate
+        mousesens                 - sensitivity of mouse in deg/px
         pyexpr                    - det. whether to allow python expressions
         selvertcolor              - color of the selected vertex
         selvertsize               - size of the selected vertex

@@ -67,6 +67,6 @@ def openConvexFromVertList(vertices, name=None, description=None, path=None):
 	else:
 		gf.close()
 	if figureInfo:
-		figureInfo.setNameDesc(name, description, path)
+		figureInfo.setNameDescPath(name, description, path)
 
 

@@ -53,8 +53,13 @@ def configPrint():
 	if main_help_pages:
 		text += """
 for help to imported modules type :help module <name>,
-  <name> can be:""" + \
-			str.join("",[(" "+s+",") for s in sorted(main_help_pages)])
+  <name> can be:""";
+	i=0
+	for s in sorted(main_help_pages):
+		if i>0 and i % 6 == 0:
+			text += "\n                "
+		text+=" "+s+","
+		i+=1
 	text+="\nfor general help type :help."
 	gf.printCentered(text)
 

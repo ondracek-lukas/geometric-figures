@@ -16,15 +16,15 @@ metadata are read from file .<name>.txt,
 the first line is the name, the others are description.
 
 After figure is generated,
-figureInfo.setNameDesc(name, description, path) should be called.
+figureInfo.setNameDescPath(name, description, path) should be called.
 
 In both cases information is printed.
 
 
 Python interface:
-  figureInfo.setNameDesc(name, description, path)
-  figureInfo.getNameDesc()
-  figureInfo.getPath()
+  setNameDescPath(name, description, path)
+  getNameDesc()
+  getPath()
   counts(figure)        -returns counts of faces of Figure object
   printAll()            -prints information about opened figure
 
@@ -86,7 +86,7 @@ gf.registerCallback("new", onNew)
 gf.registerCallback("open", onOpen)
 gf.registerCallback("modified", onModify)
 
-def setNameDesc(newName, newDescription, path=None):
+def setNameDescPath(newName, newDescription, path=None):
 	global name
 	global description
 	global modified
@@ -117,7 +117,7 @@ def counts(figure):
 	text=str(figure.dim) + "-dimensional figure ("
 	if figure.dim>4:
 		for i in range(figure.dim-1, 3, -1):
-			text+= str(cnts[i]) + " " + str(i) + "d-faces, "
+			text+= str(cnts[i]) + " " + str(i) + "-faces, "
 	if figure.dim>3:
 		text+= str(cnts[3]) + " cells, "
 	if figure.dim>2:

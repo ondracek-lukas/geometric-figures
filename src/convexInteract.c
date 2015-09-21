@@ -73,7 +73,7 @@ void updateStatus() {
 		(ceil(log(convexFigListLen(figures))/log(10))+20)*maxdim);
 	utilStrReallocPtrUpdate(&messageStatus);
 	if (maxdim>0) {
-		sprintf(str, "%d figures-%dD, ", count, maxdim);
+		sprintf(str, "%d figures, ", count, maxdim);
 		str=strchr(str, '\0');
 		dim=maxdim-1;
 	}
@@ -84,10 +84,12 @@ void updateStatus() {
 				if (list->fig->space->dim==dim)
 					count++;
 		}
-		if ((dim==2) && (maxdim==3))
+		if (dim>=4)
+			sprintf(str, "%d %d-faces, ", count, dim);
+		else if (dim==3)
+			sprintf(str, "%d cells, ", count);
+		else if (dim==2)
 			sprintf(str, "%d faces, ", count);
-		else if (dim>=2)
-			sprintf(str, "%d faces-%dD, ", count, dim);
 		else if (dim==1)
 			sprintf(str, "%d edges, ", count);
 		else

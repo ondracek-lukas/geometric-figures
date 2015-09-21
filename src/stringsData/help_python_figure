@@ -5,7 +5,9 @@ including their topology.
 gf.figureGet()
   Returns the currently opened figure.
 gf.figureOpen(figure)
-  Opens the given figure.
+gf.figureOpen(figure, preserveRotation)
+  Opens the given figure,
+  optionally with preserving rotation (treated as modification).
 gf.figureRead(path)
   Reads the figure from file and returns it.
 gf.figureWrite(path, figure)

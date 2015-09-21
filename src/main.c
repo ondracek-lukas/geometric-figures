@@ -68,20 +68,11 @@ int main(int argc, char **argv) {
 	glutMouseFunc(mainMouseEvent);
 	glutMotionFunc(mainMouseMoveEvent);
 
-	path=utilExecutablePath();
-	path=strcpy(safeMalloc(sizeof(char)*strlen(path)+11), path);
-#ifdef WIN32
-	char *extension=strrchr(path, '.');
-	if (extension && (strcasecmp(extension, ".exe")==0))
-		*extension='\0';
-#endif
-	strcat(path, "-config.py");
+	path=utilExpandPath("%/config.py");
 	if (file=fopen(path, "r")) {
 		fclose(file);
 		consoleExecFile(path);
 	}
-
-	free(path);
 
 	consolePrintNamedBlock("help", "welcome");
 

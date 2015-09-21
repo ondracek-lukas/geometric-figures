@@ -4,11 +4,11 @@ module_help="""
 Module utils provides several utilities,
 it has only Python interface:
 
-  colorToTuple(color)        -converts color string to tuple
-                              (alpha,red,green,blue), each from 0 to 255
-  tupleToColor(tuple)        -converts previous tuple to color string
-  figuresMaxRadius(figures)  -the longest vector distance from the origin
-  figuresScale(figures)      -scales figures by given factor, in place
+  colorToTuple(color)            -converts color string to tuple
+                                  (alpha,red,green,blue), each from 0 to 255
+  tupleToColor(tuple)            -converts previous tuple to color string
+  figuresMaxRadius(figures)      -the longest vector distance from the origin
+  figuresScale(figures, factor)  -scales figures by given factor, in place
 
 uses modules: algebra, objFigure, [helpMod]
 

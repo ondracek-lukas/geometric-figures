@@ -504,7 +504,6 @@ void initCmds() {
 		addNew(cmd,               expr,                      0, ""     );
 	} while (*++helpPages);
 
-	addNew  ("echo ",           "gf.echo(%)",              1, "s"    );
 	addNew  ("history",         "gf.history()",            0, ""     );
 	addNew  ("map ",            "gf.map(%)",              -2, "s"    );
 	addNew  ("new ",            "gf.new(%)",               1, ""     );

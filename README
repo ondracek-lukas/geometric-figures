@@ -3,7 +3,8 @@
 
 
       The Geometric Figures was created to draw polytopes of any dimension,
-      in addition it can generate their convex hull.
+      in addition it can generate their convex hull
+      and much more via Python plug-ins.
 
       Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>
 

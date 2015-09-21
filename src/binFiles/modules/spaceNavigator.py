@@ -14,11 +14,11 @@ module_help="""
 Module spaceNavigator adds 3d-mouse support.
 
 Commands:
-  spacenavigator                      -prints some information
-  spacenavigator sensitivity=<value>  -gets/sets device sensitivity
-  spacenavigator device=<path>        -gets/sets device path
-  spacenavigator on                   -activates device
-  spacenavigator off                  -deactivates device
+  spacenavigator                        -prints some information
+  spacenavigator sensitivity[=<value>]  -gets/sets device sensitivity
+  spacenavigator device[=<path>]        -gets/sets device path
+  spacenavigator on                     -activates device
+  spacenavigator off                    -deactivates device
 
 Python interface:
   set_device(path)   -sets device path

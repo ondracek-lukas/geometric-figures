@@ -112,19 +112,32 @@ def cutFigure(figure, hyperplane, reuseCache=False):
 					for f in figures:
 						f.group=None
 						f.groupIndex=None
+						f.groupRank=0
 						for f2 in f.boundary:
+							f2.groupRank=0
 							f2.group=None
-					def union(parent, child):
-						if child == parent:
-							return
-						if child.group:
-							union(parent, child.group)
-						child.group=parent
-						return
 					def find(f):
+						f2=f
 						while f.group:
 							f=f.group
+						while f2.group:
+							f3=f2.group
+							f2.group=f
+							f2=f3
 						return f
+					def union(parent, child):
+						parent=find(parent)
+						child=find(child)
+						if child == parent:
+							return
+						if parent.groupRank>child.groupRank:
+							child.group=parent
+						elif parent.groupRank == child.groupRank:
+							child.group=parent
+							parent.groupRank+=1
+						else:
+							parent.group=child
+						return
 					for f in figures:
 						for f2 in f.boundary:
 							if not f2 in exclude:
@@ -139,9 +152,12 @@ def cutFigure(figure, hyperplane, reuseCache=False):
 					for f in figures:
 						del f.group
 						del f.groupIndex
+						del f.groupRank
 						for f2 in f.boundary:
 							f2.group=None
 							del f2.group
+							f2.groupRank=None
+							del f2.groupRank
 					return groups
 
 				leftComp=findComponents(left, middle2)
@@ -257,7 +273,7 @@ def commandCutFaces(dim, ratio):
 		name = "Cutted " + dim + "-faces from " + name
 
 	if figureInfo:
-		figureInfo.setNameDesc(name, None)
+		figureInfo.setNameDescPath(name, None)
 
 gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", 1, '-')
 gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", 1, '-')

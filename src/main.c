@@ -53,10 +53,10 @@ int main(int argc, char **argv) {
 	glutCreateWindow("Geometric figures");
 	hidInit();
 	consoleInit();
-	scriptInit();
 	figureInit();
 	drawerInit();
 	animInit();
+	scriptInit();
 
 
 	glutDisplayFunc(drawerDisplay);

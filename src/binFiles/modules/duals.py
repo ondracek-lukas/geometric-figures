@@ -47,7 +47,7 @@ def createDual(figure):
 			dualVertDist=algebra.vectLen(dualVertPos)
 			if abs(dualVertDist) < 0.0001:
 				raise RuntimeError("Facet passing through the origin")
-			dualVertPos=algebra.vectMult(1/dualVertDist, dualVertPos)
+			dualVertPos=algebra.vectMult(1/dualVertDist**2, dualVertPos)
 			f.dualCache=Vertex(dualVertPos)
 		for child in f.boundary:
 			if not child.dualCache:
@@ -59,6 +59,7 @@ def createDual(figure):
 		del f.dualCache
 	return dualFigure
 
+
 def commandCreateDual():
 	figures=objFigure.fromGfFigure(gf.figureGet())
 	if figureInfo:
@@ -66,6 +67,6 @@ def commandCreateDual():
 	figures=[createDual(f) for f in figures]
 	gf.figureOpen(objFigure.toGfFigure(figures), True)
 	if figureInfo:
-		figureInfo.setNameDesc("Dual of " + name, None)
+		figureInfo.setNameDescPath("Dual of " + name, None)
 
 gf.addCommand("create dual", "duals.commandCreateDual()")

@@ -38,13 +38,13 @@ def vectLen(vector):
 	return sum(map(lambda x: x**2, vector))**0.5
 
 def vectDiff(vector1, vector2):
-	return map(lambda z:z[0]-z[1], zip(vector1, vector2))
+	return tuple(map(lambda z:z[0]-z[1], zip(vector1, vector2)))
 
-def vectSum(vector1, vector2):
-	return map(lambda z:z[0]+z[1], zip(vector1, vector2))
+def vectSum(*vectors):
+	return tuple(map(lambda z:sum(z), zip(*vectors)))
 
 def vectMult(mult, vector):
-	return map(lambda x: mult*x, vector)
+	return tuple(map(lambda x: mult*x, vector))
 
 def orthogonalizeVect(vector, orthonormalBasis):
 	for basisVect in orthonormalBasis:

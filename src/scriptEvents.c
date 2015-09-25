@@ -70,7 +70,7 @@ PyObject *scriptEventsRegisterCallback(PyObject *self, PyObject *args) {
 	struct callbacks **cb=&event->callbacks;
 	while (*cb)
 		cb=&(*cb)->next;
-	*cb=safeMalloc(sizeof(callback));
+	*cb=safeMalloc(sizeof(struct callbacks));
 	(*cb)->next=NULL;
 	(*cb)->callback=callback;
 	return Py_None;

@@ -61,6 +61,10 @@ void animDestroyRot(struct animRotation *rot) {
 }
 
 void animStartRot(struct animRotation *rot) {
+	if ((rot->axis1 >= figureData.dim) || (rot->axis2 >= figureData.dim)) {
+		consolePrintErr("Wrong axes");
+		return;
+	}
 	animStopRot(rot);
 	*activeRotsEnd=rot;
 	activeRotsEnd=&rot->next;

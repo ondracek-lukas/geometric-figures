@@ -450,6 +450,9 @@ void hidKeyEvent(int code) {
 
 		glutIgnoreKeyRepeat(1);
 		struct mappedItem *item=getMappedItem(code);
+		if (pressed || (item && item->expr[pressed])) {
+			consoleClear();
+		}
 		if (item!=0) {
 			if (pressed && !(item->pressed)) {
 				item->next=&mappedPressed;
@@ -473,9 +476,6 @@ void hidKeyEvent(int code) {
 			userKeyReleaseAll();
 		}
 
-		if (pressed || (item && item->expr[pressed])) {
-			consoleClear();
-		}
 		if (item && item->expr[pressed]) {
 			consoleEvalExpr(item->expr[pressed]);
 		}

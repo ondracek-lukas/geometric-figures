@@ -66,7 +66,7 @@ def fromGfFigure(gfFigure):
 	for lists in figures:
 		for fig in lists:
 			del fig.isFree
-	return freeFigures
+	return list(freeFigures)
 
 
 # Takes iterable of figures, returns gf.figure structure
@@ -114,8 +114,6 @@ class Figure:
 		self.boundary.add(child)
 	def rmFromBoundary(self, child):
 		self.boundary.discard(child)
-
-
 
 
 	# Gets every figure from boudary (of all dimensions) just once

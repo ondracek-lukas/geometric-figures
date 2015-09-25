@@ -10,7 +10,11 @@ Commands:
                 using polar reciprocation
 
 Python interface:
-  createDual(figure)  -creates dual of the Figure object
+  createDual(figure)
+    -creates dual of the Figure object
+  dualPointFromHyperplane(hyperplane, centerPoint)
+    -creates dual point to the given hyperplane
+     using polar reciprocation with the given center and radius 1
 
 using modules: algebra, objFigure, [figureInfo]
 
@@ -32,31 +36,36 @@ try:
 except ImportError:
 	pass
 
-def createDual(figure):
+def dualPointFromHyperplane(hyperplane, centerPoint=None):
+	if not centerPoint:
+		centerPoint=(0,)*len(hyperplane.normal)
+	dist=abs(hyperplane.orientedDistance(centerPoint))
+	if dist < 0.0001:
+		raise RuntimeError("Hyperplane passing through the center")
+	return algebra.vectSum(algebra.vectMult(-1/dist, hyperplane.normal), centerPoint)
+
+def createDual(figure, centerPoint=None):
 	if figure.dim<2:
 		raise RuntimeError("Figure has to have at least 2 dimensions")
 	figureElem = sorted(figure, key=attrgetter('dim'), reverse=True)[1:]
 	dualFigure=Figure()
 	for f in figureElem:
 		f.dualCache=None
-	for f in figureElem:
-		if not f.dualCache: # create vertex of the dual figure using polar reciprocation
-			vertsPos=[v.position for v in f if v.dim==0]
-			ortBasis=algebra.orthonormalBasisFromPoints(vertsPos)
-			dualVertPos=algebra.orthogonalizeVect(vertsPos[0], ortBasis)
-			dualVertDist=algebra.vectLen(dualVertPos)
-			if abs(dualVertDist) < 0.0001:
-				raise RuntimeError("Facet passing through the origin")
-			dualVertPos=algebra.vectMult(1/dualVertDist**2, dualVertPos)
-			f.dualCache=Vertex(dualVertPos)
-		for child in f.boundary:
-			if not child.dualCache:
-				child.dualCache=Figure()
-			child.dualCache.addToBoundary(f.dualCache)
-			if child.dim == 0:
-				dualFigure.addToBoundary(child.dualCache)
-	for f in figureElem:
-		del f.dualCache
+	try:
+		for f in figureElem:
+			if not f.dualCache: # create vertex of the dual figure using polar reciprocation
+				vertsPos=[v.position for v in f if v.dim==0]
+				hyperplane=algebra.hyperplaneFromPoints(vertsPos)
+				f.dualCache=Vertex(dualPointFromHyperplane(hyperplane, centerPoint))
+			for child in f.boundary:
+				if not child.dualCache:
+					child.dualCache=Figure()
+				child.dualCache.addToBoundary(f.dualCache)
+				if child.dim == 0:
+					dualFigure.addToBoundary(child.dualCache)
+	finally:
+		for f in figureElem:
+			del f.dualCache
 	return dualFigure
 
 

@@ -6,11 +6,18 @@ module_help="""
 Module gfUtils provides some functions utilizing gf module,
 it has only Python interface:
 
-  openFileRelative(offset)  -opens file relatively to the opened one,
-                             offset +/- 1 means next/previous file
+  openFileRelative(offset)
+    -opens file relatively to the opened one,
+     offset +/- 1 means next/previous file
   openConvexFromVertList(vertices, name, description, path)
-                            -opens convex hull of the given list of vertices
-                            -the other arguments are optional
+    -opens convex hull of the given list of vertices
+    -the other arguments are optional
+  createConvexObjFigure(vertices)
+    -creates convex hull of the given list of vertices
+    -returns objFigure.Figure object
+    -this currently needs no figure to be opened
+     and during the process, some figures may be shown
+     (will be improved)
 
 uses modules: [figureInfo], [helpMod]
 
@@ -70,3 +77,21 @@ def openConvexFromVertList(vertices, name=None, description=None, path=None):
 		figureInfo.setNameDescPath(name, description, path)
 
 
+def createConvexObjFigure(vertices):
+	if gf.get_dimen() != -1:
+		raise RuntimeError("A figure is open")
+	try:
+		import objFigure
+		if vertices:
+			openConvexFromVertList(vertices)
+			figures=objFigure.fromGfFigure(gf.figureGet())
+			if len(figures)>1:
+				figures=[f for f in figures if f.dim>0]
+			if len(figures)!=1:
+				raise RuntimeError("Unspecified error occurred")
+			return figures.pop()
+		else:
+			return None
+	finally:
+		gf.close()
+		gf.clear()

@@ -50,11 +50,12 @@ def schedule(path):
 auto=False
 def set_auto(value):
 	global auto
-	if value:
-		gf.registerCallback("open", schedule)
-	else:
-		gf.unregisterCallback("open", schedule)
-	auto=value
+	if value ^ auto:
+		if value:
+			gf.registerCallback("open", schedule)
+		else:
+			gf.unregisterCallback("open", schedule)
+		auto=value
 def get_auto():
 	return auto
 

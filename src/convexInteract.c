@@ -73,7 +73,7 @@ void updateStatus() {
 		(ceil(log(convexFigListLen(figures))/log(10))+20)*maxdim);
 	utilStrReallocPtrUpdate(&messageStatus);
 	if (maxdim>0) {
-		sprintf(str, "%d figures, ", count, maxdim);
+		sprintf(str, "%d figures, ", count);
 		str=strchr(str, '\0');
 		dim=maxdim-1;
 	}

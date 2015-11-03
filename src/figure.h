@@ -53,12 +53,6 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	// Throws exception using script module (returning false)
 	extern bool figureOpen(struct figureData *figure, bool preserveRotation);
 
-	// Loads figure from file
-	extern struct figureData *figureRead(char *path);
-
-	// Saves given figure to file, optionally rotated
-	extern bool figureWrite(char *path, struct figureData *figure, bool rotated);
-
 	// Destroys given figure, hard frees it
 	extern void figureDestroy(struct figureData *figure, bool hard);
 

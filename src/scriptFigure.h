@@ -7,16 +7,16 @@
 #ifndef SCRIPT_FIGURE_H
 #define SCRIPT_FIGURE_H
 
+#ifdef Py_PYTHON_H
 // Returns currently opened figure
 extern PyObject *scriptFigureGet(PyObject *self, PyObject *args);   // [SCRIPT_NAME: figureGet]
 
 // Opens given figure
 extern PyObject *scriptFigureOpen(PyObject *self, PyObject *args);  // [SCRIPT_NAME: figureOpen]
 
-// Reads figure from a file and returns it, takes path of the file
-extern PyObject *scriptFigureRead(PyObject *self, PyObject *args);  // [SCRIPT_NAME: figureRead]
+#endif
 
-// Writes given figure to a file, takes path of the file and the figure
-extern PyObject *scriptFigureWrite(PyObject *self, PyObject *args); // [SCRIPT_NAME: figureWrite]
+// Converts figure to Python expression
+char *scriptFigureToPythonExpr(struct figureData *figure);
 
 #endif

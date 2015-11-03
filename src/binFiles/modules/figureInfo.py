@@ -35,6 +35,7 @@ For more information see figureInfo.py
 
 import gf
 import os
+import pprint
 import objFigure
 
 try:
@@ -80,11 +81,22 @@ def onModify():
 	global modified
 	global name
 	modified=True
+def onWrite(path):
+	filePath=gf.expandPath(path)
+	if os.access(filePath, os.W_OK):
+		with open(filePath, "a") as f:
+			f.write("""
+try:
+	import figureInfo
+	figureInfo.setNameDescPath(""" + pprint.pformat(name) + ", " + pprint.pformat(description) + """, __file__)
+except ImportError: pass""")
+
 
 
 gf.registerCallback("new", onNew)
 gf.registerCallback("open", onOpen)
 gf.registerCallback("modified", onModify)
+gf.registerCallback("write", onWrite)
 
 def setNameDescPath(newName, newDescription, path=None):
 	global name

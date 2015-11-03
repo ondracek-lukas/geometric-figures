@@ -49,35 +49,29 @@ PyObject *scriptFigureOpen(PyObject *self, PyObject *args) {
 	return Py_None;
 }
 
-PyObject *scriptFigureRead(PyObject *self, PyObject *args) {
-	char *path;
-	if (!PyArg_ParseTuple(args, "s", &path))
-		return NULL;
-	struct figureData *figure=figureRead(utilExpandPath(path));
-	if (!figure) {
-		scriptThrowException("File cannot be opened or has wrong format");
-		return NULL;
-	}
-	PyObject *pyFigure=figureToPython(figure);
-	figureDestroy(figure, true);
-	return pyFigure;
-}
+char *scriptFigureToPythonExpr(struct figureData *figure) {
+	bool gil=!scriptIsGILAcquired();
+	if (gil)
+		scriptAcquireGIL();
 
-PyObject *scriptFigureWrite(PyObject *self, PyObject *args) {
-	char *path;
-	PyObject *pyFigure;
-	if (!PyArg_ParseTuple(args, "sO", &path, &pyFigure))
-		return NULL;
-	struct figureData *figure=figureFromPython(pyFigure);
-	if (!figure)
-		return NULL;
-	if (!figureWrite(utilExpandPath(path), figure, false)) {
-		figureDestroy(figure, true);
-		scriptThrowException("File cannot be opened for writing");
+	static PyObject *str=NULL;
+	Py_XDECREF(str); str=NULL;
+
+	PyObject *pyFigure=figureToPython(figure);
+	if (pyFigure==Py_None) {
+		if (gil)
+			scriptReleaseGIL();
 		return NULL;
 	}
-	figureDestroy(figure, true);
-	return Py_None;
+
+	str=PyObject_Str(pyFigure);
+	Py_DECREF(pyFigure);
+	char *ret=PyString_AsString(str);
+
+	if (gil)
+		scriptReleaseGIL();
+
+	return ret;
 }
 
 

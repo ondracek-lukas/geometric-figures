@@ -31,6 +31,7 @@ struct scriptEvent {
 
 event(scriptEventsIdle,     "idle",     "()");
 event(scriptEventsOpen,     "open",     "(s)");
+event(scriptEventsWrite,    "write",    "(s)");
 event(scriptEventsNew,      "new",      "()");
 event(scriptEventsModified, "modified", "()");
 
@@ -44,6 +45,7 @@ struct scriptEvent *eventFromName(char *name) {
 		return NULL;
 	event(scriptEventsIdle);
 	event(scriptEventsOpen);
+	event(scriptEventsWrite);
 	event(scriptEventsNew);
 	event(scriptEventsModified);
 	return NULL;

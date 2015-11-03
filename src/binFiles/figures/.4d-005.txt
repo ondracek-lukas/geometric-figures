@@ -1,4 +1,0 @@
-Regular Pentachoron
-4-dimensional tetrahedron (4-simplex).
-One of the six regular polychorons (4-dimensional analogy of Platonic solids).
-Its cells are tetrahedral.

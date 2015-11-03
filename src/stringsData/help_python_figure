@@ -8,10 +8,6 @@ gf.figureOpen(figure)
 gf.figureOpen(figure, preserveRotation)
   Opens the given figure,
   optionally with preserving rotation (treated as modification).
-gf.figureRead(path)
-  Reads the figure from file and returns it.
-gf.figureWrite(path, figure)
-  Writes the figure to the file.
 
 The figure structure:
   [

@@ -17,27 +17,27 @@ Named colors: black, white, red, green, blue, yellow, cyan, purple, gray, transp
 # Figures:
 
  #0D:
-gf.map("~", "open %/figures/0d.dat")
+gf.map("~", "open %/figures/0d.py")
  #1D:
-gf.map("`", "open %/figures/1d-2.dat")
+gf.map("`", "open %/figures/1d-2.py")
  #2D:
-gf.map("1", "open %/figures/2d-3.dat")
+gf.map("1", "open %/figures/2d-3.py")
  #3D:
-gf.map("2", "open %/figures/3d-04.dat")
-gf.map("3", "open %/figures/3d-06.dat")
-gf.map("4", "open %/figures/3d-08.dat")
-gf.map("5", "open %/figures/3d-12.dat")
-gf.map("6", "open %/figures/3d-20.dat")
+gf.map("2", "open %/figures/3d-04.py")
+gf.map("3", "open %/figures/3d-06.py")
+gf.map("4", "open %/figures/3d-08.py")
+gf.map("5", "open %/figures/3d-12.py")
+gf.map("6", "open %/figures/3d-20.py")
  #4D:
-gf.map("7", "open %/figures/4d-005.dat")
-gf.map("8", "open %/figures/4d-008.dat")
-gf.map("9", "open %/figures/4d-016.dat")
-gf.map("0", "open %/figures/4d-024.dat")
-gf.map("-", "open %/figures/4d-120.dat")
-gf.map("=", "open %/figures/4d-600.dat")
+gf.map("7", "open %/figures/4d-005.py")
+gf.map("8", "open %/figures/4d-008.py")
+gf.map("9", "open %/figures/4d-016.py")
+gf.map("0", "open %/figures/4d-024.py")
+gf.map("-", "open %/figures/4d-120.py")
+gf.map("=", "open %/figures/4d-600.py")
  #5D:
-gf.map("_", "source %/figures/5d-010.py")
-gf.map("+", "open %/figures/5d-032.dat")
+gf.map("_", "open %/figures/5d-010.py")
+gf.map("+", "open %/figures/5d-032.py")
  #Relative:
 gf.map("<mouse3>", "gfUtils.openFileRelative(-1)")
 gf.map("<mouse4>", "gfUtils.openFileRelative(1)")

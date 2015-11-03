@@ -12,8 +12,6 @@
 
 	// Reads commands from file
 	extern void consoleCmdSource(char *path); // [SCRIPT_NAME: source]
-
-	// Opens figure from file
 	extern void consoleCmdOpen(char *path); // [SCRIPT_NAME: open]
 
 	// Writes figure to file

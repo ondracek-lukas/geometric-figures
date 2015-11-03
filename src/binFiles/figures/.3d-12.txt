@@ -1,3 +1,0 @@
-Regular Dodecahedron
-One of the five Platonic Solids (regular polyhedrons).
-Its faces are pentagonal.

@@ -1,3 +1,0 @@
-Regular Octahedron
-One of the five Platonic Solids (regular polyhedrons).
-Its faces are triangular.

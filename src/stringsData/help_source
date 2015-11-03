@@ -1,5 +1,6 @@
-help:source;help:so
+help:source;help:so;help:open;help:o
                               so[urce] <path>
+                                o[pen] <path>
 
                     Executes given python script file.
 

@@ -15,6 +15,7 @@
 #include "anim.h"
 #include "script.h"
 #include "scriptEvents.h"
+#include "scriptFigure.h"
 
 void consoleCmdSource(char *path) {
 	path=utilExpandPath(path);
@@ -22,24 +23,23 @@ void consoleCmdSource(char *path) {
 }
 
 void consoleCmdOpen(char *path) {
-	consoleCmdVertexDeselect();
-	struct figureData *figure=figureRead(utilExpandPath(path));
-	if (!figure) {
-		scriptThrowException("File cannot be opened or has wrong format");
-		return;
-	}
-
-	if(figureOpen(figure, false)) {
-		scriptEventsPerform(&scriptEventsNew);
-		scriptEventsPerform(&scriptEventsOpen, path);
-	}
+	consoleCmdSource(path);
 }
 
 void consoleCmdWrite(char *path) {
 	if (figureData.dim<0)
 		scriptThrowException("Nothing opened");
-	else if (!figureWrite(utilExpandPath(path), &figureData, true))
-		scriptThrowException("File cannot be opened for writing");
+	else {
+		char *expr=scriptFigureToPythonExpr(&figureData);
+		FILE *f=fopen(utilExpandPath(path), "w");
+		if (!f) {
+			scriptThrowException("File cannot be opened for writing");
+			return;
+		}
+		fprintf(f, "import gf\ngf.figureOpen(%s)\n", expr);
+		fclose(f);
+		scriptEventsPerform(&scriptEventsWrite, path);
+	}
 }
 
 void consoleCmdNew(int dim) {

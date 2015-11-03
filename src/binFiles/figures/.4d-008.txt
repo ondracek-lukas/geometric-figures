@@ -1,4 +1,0 @@
-Tesseract
-4-dimensional cube (4-cube).
-One of the six regular polychorons (4-dimensional analogy of Platonic solids).
-Its cells are cubical.

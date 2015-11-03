@@ -50,17 +50,14 @@ def openFileRelative(offset):
 	if not currPath or not os.access(currDir, os.F_OK):
 		currDir=gf.expandPath("%/figures")
 	files=os.listdir(currDir)
-	files=[f for f in files if f[-3:]=='.py' or f[-4:]=='.dat']
+	files=[f for f in files if f[-3:]=='.py']
 	files.sort()
 	try:
 		i=files.index(currFile)
 	except:
 		i=-1
 	i= (i+offset) % len(files)
-	if files[i][-4:]=='.dat':
-		gf.open(os.path.join(currDir, files[i]))
-	else:
-		gf.source(os.path.join(currDir, files[i]))
+	gf.open(os.path.join(currDir, files[i]))
 
 # Opens convex hull of the given list of coordinates of vertices
 # The other arguments are forwarded to the figureInfo module

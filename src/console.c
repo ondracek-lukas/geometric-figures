@@ -290,7 +290,11 @@ void updateCompletions() {
 	consoleLines->str[cmdEnd]='\0';
 	while (completions)
 		utilStrListRm(&completions);
-	completions=consoleCmdsComplete(consoleLines->str+cmdBegin);
+	if (cmdBegin<cmdEnd) {
+		completions=consoleCmdsComplete(consoleLines->str+cmdBegin);
+	} else {
+		completions=NULL;
+	}
 	showActiveCompletion();
 }
 

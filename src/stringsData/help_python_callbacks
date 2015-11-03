@@ -14,3 +14,4 @@ Events:
                the path can be None
   modified()  -called when the figure is modified,
                includes opening figure with preserving rotation
+  write(path) -called after writing figure to file

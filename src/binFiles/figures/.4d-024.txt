@@ -1,5 +1,0 @@
-Regular Icositetrachoron
-Convex hull of the tesseract and regular hexadecachoron
-sharing their circumscribed spheres (and rotated appropriately).
-One of the six regular polychorons (4-dimensional analogy of Platonic solids).
-Its cells are octahedral.

@@ -49,34 +49,6 @@ void figureNew(int dim) {
 	drawerInvokeRedisplay();
 }
 
-bool figureWrite(char *path, struct figureData *figure, bool rotated) {
-	FILE *f;
-	int dim, i;
-	GLfloat pos[figure->dim];
-	if (figure->dim<0)
-		return false;
-	f=fopen(path, "wb");
-	if (f==0)
-		return false;
-	fwrite(&figure->dim, sizeof(GLint), 1, f);
-	fwrite(figure->count, sizeof(GLint), 1, f);
-	for (i=0; i<figure->count[0]; i++) {
-		if (rotated) {
-			matrixProduct(figureRotMatrix, figure->vertices[i], pos, figure->dim, figure->dim, 1);
-			fwrite(pos, sizeof(GLfloat), figure->dim, f);
-		} else {
-			fwrite(figure->vertices[i], sizeof(GLfloat), figure->dim, f);
-		}
-	}
-	for (dim=1; dim<=figure->dim; dim++) {
-		fwrite(figure->count+dim, sizeof(GLint), 1, f);
-		for (i=0; i<figure->count[dim]; i++)
-			fwrite(figure->boundary[dim][i], sizeof(GLint), figure->boundary[dim][i][0]+1, f);
-	}
-	fclose(f);
-	return 1;
-}
-
 bool figureOpen(struct figureData *figure, bool preserveRotation) {
 	if (preserveRotation && (figure->dim != figureData.dim)) {
 		scriptThrowException("Wrong number of dimensions");
@@ -116,64 +88,6 @@ bool figureOpen(struct figureData *figure, bool preserveRotation) {
 		}
 	}
 	return true;
-}
-
-struct figureData *figureRead(char *path) {
-	struct figureData *figure=safeCalloc(1, sizeof(struct figureData));
-	FILE *f;
-	GLint i, j, k;
-	f=fopen(path, "rb");
-	if (f==0) {
-		figureDestroy(figure, true);
-		return NULL;
-	}
-	fread(&i, sizeof(GLint), 1, f);
-	if ((i<0) || (i>safeMaxDim)) {
-		fclose(f);
-		figureDestroy(figure, true);
-		return NULL;
-	}
-	figure->dim=i;
-	figure->count=safeMalloc(sizeof(GLint) * (figure->dim+1));
-	fread(figure->count, sizeof(GLint), 1, f);
-	if (figure->count[0]<0) {
-		fclose(f);
-		figureDestroy(figure, true);
-		return NULL;
-	}
-	figure->vertices=safeCalloc(figure->count[0], sizeof(GLfloat *));
-	for (i=0; i<figure->count[0]; i++) {
-		figure->vertices[i]=safeMalloc(figure->dim*sizeof(GLfloat));
-		fread(figure->vertices[i], sizeof(GLfloat), figure->dim, f);
-		if (!safeCheckPos(figure->vertices[i], figure->dim)) {
-			fclose(f);
-			figureDestroy(figure, true);
-			return NULL;
-		}
-	}
-	figure->boundary=safeCalloc(figure->dim+1, sizeof(GLint **));
-	for (i=1; i<=figure->dim; i++) {
-		fread(figure->count+i, sizeof(GLint), 1, f);
-		if (figure->count[i]<0) {
-			fclose(f);
-			figureDestroy(figure, true);
-			return NULL;
-		}
-		figure->boundary[i]=safeCalloc(figure->count[i], sizeof(GLint *));
-		for (j=0; j<figure->count[i]; j++) {
-			fread(&k, sizeof(GLint), 1, f);
-			if (k<0) {
-				fclose(f);
-				figureDestroy(figure, true);
-				return NULL;
-			}
-			figure->boundary[i][j]=safeMalloc((k+1)*sizeof(GLint));
-			figure->boundary[i][j][0]=k;
-			fread(figure->boundary[i][j]+1, sizeof(GLint), k, f);
-		}
-	}
-	fclose(f);
-	return figure;
 }
 
 static bool checkTopology(struct figureData *figure) {

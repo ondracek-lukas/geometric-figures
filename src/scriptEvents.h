@@ -10,6 +10,7 @@ struct scriptEvent;
 extern struct scriptEvent
 	scriptEventsIdle,      // "idle";      no arguments
 	scriptEventsOpen,      // "open";      char *path
+	scriptEventsWrite,     // "write";     char *path
 	scriptEventsNew,       // "new";       no arguments
 	scriptEventsModified;  // "modified";  no arguments
 

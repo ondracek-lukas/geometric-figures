@@ -1,4 +1,0 @@
-Triacontaditeron
-5-dimensional octahedron (5-orthoplex).
-One of the three regular 5-polytopes (5-dimensional analogy of Platonic solids).
-Its facets are pentachoral.

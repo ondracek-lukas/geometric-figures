@@ -20,7 +20,7 @@ struct convexFig *convexFigNew() {
 	int i;
 	if (convexFigFreed) {
 		fig=convexFigListRm(&convexFigFreed);
-		if (fig->space->dim!=figureData.dim) {
+		if (fig->space->dim!=convexAttached->dim) {
 			free(fig->space->pos);
 			free(fig->space->normal);
 			fig->space->dim=0;
@@ -34,8 +34,8 @@ struct convexFig *convexFigNew() {
 	if (fig->space->dim)
 		fig->space->dim=0;
 	else {
-		fig->space->pos=safeMalloc(figureData.dim*sizeof(GLfloat));
-		fig->space->normal=safeMalloc(figureData.dim*sizeof(GLfloat));
+		fig->space->pos=safeMalloc(convexAttached->dim*sizeof(GLfloat));
+		fig->space->normal=safeMalloc(convexAttached->dim*sizeof(GLfloat));
 	}
 	fig->index=-1;
 	fig->hash=0;
@@ -64,7 +64,7 @@ void convexFigDelete(struct convexFig *fig) {
 		fig->index=-fig->index-100;
 	)
 
-	fig->space->dim=figureData.dim;
+	fig->space->dim=convexAttached->dim;
 	convexFigListAdd(&convexFigFreed, fig);
 }
 

@@ -9,11 +9,11 @@
 #include <stdbool.h>
 
 // Determines whether convex is attached to and synchronized with figure, read-only
-extern bool convexAttached;
+extern struct figureData *convexAttached;
 
-// Attaches convex to figure
+// Attaches convex to given figure
 // Returns false if figure was inconsistent, repairing it
-extern bool convexAttach();
+extern bool convexAttach(struct figureData *figure);
 
 // Detaches convex from figure
 extern void convexDetach();
@@ -32,7 +32,7 @@ extern void convexDetach();
 
 // convexHull.c:
 
-	// Determines whether to recalculate convex hull when needed (or only brake faces)
+	// Determines whether to recalculate convex hull when needed (or break faces only)
 	// Can be changed anytime
 	extern bool convexHull;
 
@@ -42,6 +42,11 @@ extern void convexUpdateHull();
 
 // Destroys all faces (only vertices remains)
 extern void convexDestroyHull();
+
+// Updates convex hull of the given figure
+// No figure is attached after call
+// Returns false on loop
+extern bool convexUpdateHullAtOnce(struct figureData *figure);
 
 
 // convexInteract.c:

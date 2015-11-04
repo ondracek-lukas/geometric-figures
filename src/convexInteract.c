@@ -100,6 +100,8 @@ void updateStatus() {
 }
 
 void convexInteractUpdate() {
+	if (!convexInteract)
+		return;
 	if (glutGet(GLUT_ELAPSED_TIME)-updateTime<100)
 		return;
 	if (*message!='\0')

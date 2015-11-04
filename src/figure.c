@@ -45,7 +45,7 @@ void figureNew(int dim) {
 		figureRotMatrix=0;
 	}
 	if (convexHull)
-		convexAttach();
+		convexAttach(&figureData);
 	drawerInvokeRedisplay();
 }
 
@@ -82,7 +82,7 @@ bool figureOpen(struct figureData *figure, bool preserveRotation) {
 
 		updateScale();
 
-		if (!convexAttach()) {
+		if (!convexAttach(&figureData)) {
 			scriptThrowException("Several faces generating spaces of wrong dimension removed");
 			return false;
 		}
@@ -112,7 +112,7 @@ void figureResetBoundary() {
 	}
 	int i, j;
 	boundaryChanged=1;
-	if (convexAttached) {
+	if (convexAttached==&figureData) {
 		convexDestroyHull();
 	} else {
 		for (i=1; i<=figureData.dim; i++) {
@@ -124,8 +124,8 @@ void figureResetBoundary() {
 		}
 	}
 	if (convexHull) {
-		if (!convexAttached)
-			convexAttach();
+		if (convexAttached!=&figureData)
+			convexAttach(&figureData);
 		convexUpdateHull();
 	}
 	drawerInvokeRedisplay();
@@ -276,8 +276,8 @@ int figureVerticesOfFaces(int ***facevertOut) {
 }
 
 void figureVertexMove(int vertex, GLfloat *pos) {
-	if (!convexAttached)
-		convexAttach();
+	if (convexAttached!=&figureData)
+		convexAttach(&figureData);
 	convexVertexMove(vertex, pos);
 	matrixCopy(pos, figureData.vertices[vertex], figureData.dim);
 	updateScale();
@@ -285,8 +285,8 @@ void figureVertexMove(int vertex, GLfloat *pos) {
 }
 
 int figureVertexAdd(GLfloat *pos) {
-	if (!convexAttached)
-		convexAttach();
+	if (convexAttached!=&figureData)
+		convexAttach(&figureData);
 	figureData.vertices=safeRealloc(figureData.vertices, ++figureData.count[0]*sizeof(GLfloat *));
 	GLfloat *pos2=safeMalloc(figureData.dim*sizeof(GLfloat));
 	matrixCopy(pos, pos2, figureData.dim);
@@ -299,8 +299,8 @@ int figureVertexAdd(GLfloat *pos) {
 
 void figureVertexRm(int vertex) {
 	int i;
-	if (!convexAttached)
-		convexAttach();
+	if (convexAttached!=&figureData)
+		convexAttach(&figureData);
 	convexVertexRm(vertex);
 	free(figureData.vertices[vertex]);
 	for (i=vertex; i<figureData.count[0]-1; i++)

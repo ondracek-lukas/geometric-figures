@@ -7,6 +7,7 @@
 #include "figure.h"
 #include "safe.h"
 #include "matrix.h"
+#include "convex.h"
 #include "convexFig.h"
 
 struct convexFigBst *convexSpaces=0;
@@ -19,8 +20,8 @@ static void hashCalc(struct convexSpace *space);
 
 static void init() {
 	int i;
-	if (dim!=figureData.dim) {
-		dim=figureData.dim;
+	if (dim!=convexAttached->dim) {
+		dim=convexAttached->dim;
 		if (!hashPoint)
 			hashPoint=safeMalloc(sizeof(struct convexSpace));
 		else

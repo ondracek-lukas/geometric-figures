@@ -14,6 +14,9 @@ extern PyObject *scriptFigureGet(PyObject *self, PyObject *args);   // [SCRIPT_N
 // Opens given figure
 extern PyObject *scriptFigureOpen(PyObject *self, PyObject *args);  // [SCRIPT_NAME: figureOpen]
 
+// Updates convex hull of the given figure
+extern PyObject *scriptFigureConvexHullUpdate(PyObject *self, PyObject *args); // [SCRIPT_NAME: figureConvexHullUpdate]
+
 #endif
 
 // Converts figure to Python expression

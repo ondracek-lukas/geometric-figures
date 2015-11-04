@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "convex.h"
 #include "convexSpace.h"
 #include "convexFig.h"
 #include "convexInteract.h"
@@ -296,7 +297,7 @@ struct convexFig *convexHullUtilInitialFace(struct convexFigList *vertices, int 
 struct convexFig *convexHullUtilCreate(struct convexFigList *vertices, struct convexFigList **inconsistent) {
 	if (!vertices)
 		return 0;
-	struct convexFig *fig=convexHullUtilInitialFace(vertices, figureData.dim, inconsistent);
+	struct convexFig *fig=convexHullUtilInitialFace(vertices, convexAttached->dim, inconsistent);
 	convexHullUtilExpand(fig, vertices, inconsistent);
 	return fig;
 }

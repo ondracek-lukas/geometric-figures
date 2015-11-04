@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 
+#include "convex.h"
 #include "figure.h"
 #include "script.h"
 #include "safe.h"
@@ -47,6 +48,19 @@ PyObject *scriptFigureOpen(PyObject *self, PyObject *args) {
 	if (PyErr_Occurred())
 		return NULL;
 	return Py_None;
+}
+
+PyObject *scriptFigureConvexHullUpdate(PyObject *self, PyObject *args) {
+	PyObject *pyFigure;
+	if (!PyArg_ParseTuple(args, "O", &pyFigure))
+		return NULL;
+
+	struct figureData *figure=figureFromPython(pyFigure);
+	if (!convexUpdateHullAtOnce(figure)) {
+		scriptThrowException("Loop detected while generating convex hull");
+	}
+
+	return figureToPython(figure);
 }
 
 char *scriptFigureToPythonExpr(struct figureData *figure) {

@@ -108,7 +108,7 @@ void convexHullUpdate() {
 	convexLoopDetectReset();
 	if (convexFigListLen(convexFigure)==1) {
 		convexSpaceCopy(convexShadow[0][0]->space, &tmpSpace);
-		for (i=1; i<figureData.count[0]; i++)
+		for (i=1; i<convexAttached->count[0]; i++)
 			if (!convexSpaceContains(tmpSpace, convexShadow[0][i]->space))
 				convexSpaceExpand(tmpSpace, convexShadow[0][i]->space);
 		if (convexSpaceEq(tmpSpace, convexFigure->fig->space)) {
@@ -168,7 +168,7 @@ void convexHullBreakNearVert(struct convexFig *vertIn) {
 		convexFigGetLayer(list->fig, 0, convexFigMarkIdTrue, convexFigMarkIdHull, 0);
 	convexFigMarkClear(vertIn, convexFigMarkIdHull);
 
-	for (dim=2; dim<figureData.dim; dim++) {
+	for (dim=2; dim<convexAttached->dim; dim++) {
 		// state:
 			// verticesCenter (dim-2) are hull-marked
 			// edgesIn (dim-1) list exist

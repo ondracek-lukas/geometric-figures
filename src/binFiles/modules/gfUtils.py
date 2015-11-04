@@ -15,9 +15,6 @@ it has only Python interface:
   createConvexObjFigure(vertices)
     -creates convex hull of the given list of vertices
     -returns objFigure.Figure object
-    -this currently needs no figure to be opened
-     and during the process, some figures may be shown
-     (will be improved)
 
 uses modules: [figureInfo], [helpMod]
 
@@ -75,20 +72,15 @@ def openConvexFromVertList(vertices, name=None, description=None, path=None):
 
 
 def createConvexObjFigure(vertices):
-	if gf.get_dimen() != -1:
-		raise RuntimeError("A figure is open")
-	try:
-		import objFigure
-		if vertices:
-			openConvexFromVertList(vertices)
-			figures=objFigure.fromGfFigure(gf.figureGet())
-			if len(figures)>1:
-				figures=[f for f in figures if f.dim>0]
-			if len(figures)!=1:
-				raise RuntimeError("Unspecified error occurred")
-			return figures.pop()
-		else:
-			return None
-	finally:
-		gf.close()
-		gf.clear()
+	import objFigure
+	if vertices:
+		gfFigure=[vertices]+[[]]*len(vertices[0])
+		gfFigure=gf.figureConvexHullUpdate(gfFigure)
+		figures=objFigure.fromGfFigure(gfFigure)
+		if len(figures)>1:
+			figures=[f for f in figures if f.dim>0]
+		if len(figures)!=1:
+			raise RuntimeError("Unspecified error occurred")
+		return figures.pop()
+	else:
+		return None

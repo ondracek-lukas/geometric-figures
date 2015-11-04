@@ -8,6 +8,8 @@ gf.figureOpen(figure)
 gf.figureOpen(figure, preserveRotation)
   Opens the given figure,
   optionally with preserving rotation (treated as modification).
+gf.figureConvexHullUpdate(figure)
+  Updates/creates convex hull returning new figure
 
 The figure structure:
   [

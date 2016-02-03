@@ -3,5 +3,5 @@ gf.figureOpen([[(0.25, 0.322748601436615, 0.4564354717731476, -0.790569424629211
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Pentachoron', '4-dimensional tetrahedron (4-simplex).\nOne of the six regular polychorons (4-dimensional analogy of Platonic solids).\nIts cells are tetrahedral.', __file__)
+	figureInfo.setNameDescPath('Regular Pentachoron', '4-dimensional tetrahedron (4-simplex).\nOne of the six regular polychora (4-dimensional analogy of Platonic solids).\nIts cells are tetrahedral.', __file__)
 except ImportError: pass

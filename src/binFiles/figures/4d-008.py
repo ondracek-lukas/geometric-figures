@@ -3,5 +3,5 @@ gf.figureOpen([[(-0.5, -0.5, -0.5, -0.5), (-0.5, -0.5, -0.5, 0.5), (-0.5, -0.5, 
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Tesseract', '4-dimensional cube (4-cube).\nOne of the six regular polychorons (4-dimensional analogy of Platonic solids).\nIts cells are cubical.', __file__)
+	figureInfo.setNameDescPath('Tesseract', '4-dimensional cube (4-cube).\nOne of the six regular polychora (4-dimensional analogy of Platonic solids).\nIts cells are cubical.', __file__)
 except ImportError: pass

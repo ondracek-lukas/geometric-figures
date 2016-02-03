@@ -3,5 +3,5 @@ gf.figureOpen([[(-0.5773502588272095, -0.5773502588272095, -0.5773502588272095),
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Dodecahedron', 'One of the five Platonic Solids (regular polyhedrons).\nIts faces are pentagonal.', __file__)
+	figureInfo.setNameDescPath('Regular Dodecahedron', 'One of the five Platonic Solids (regular polyhedra).\nIts faces are pentagonal.', __file__)
 except ImportError: pass

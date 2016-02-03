@@ -34,8 +34,8 @@ struct convexFig *convexFigNew() {
 	if (fig->space->dim)
 		fig->space->dim=0;
 	else {
-		fig->space->pos=safeMalloc(convexAttached->dim*sizeof(GLfloat));
-		fig->space->normal=safeMalloc(convexAttached->dim*sizeof(GLfloat));
+		fig->space->pos=safeMalloc(convexAttached->dim*sizeof(GLdouble));
+		fig->space->normal=safeMalloc(convexAttached->dim*sizeof(GLdouble));
 	}
 	fig->index=-1;
 	fig->hash=0;

@@ -27,7 +27,7 @@ extern void convexDetach();
 	extern void convexVertexRm(int index);
 
 	// Moves vertex, which is going to be moved in figure module
-	extern void convexVertexMove(int index, GLfloat *pos);
+	extern void convexVertexMove(int index, GLdouble *pos);
 
 
 // convexHull.c:

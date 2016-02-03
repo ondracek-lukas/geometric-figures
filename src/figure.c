@@ -15,8 +15,8 @@
 
 struct figureData figureData;
 
-GLfloat *figureRotMatrix=0;
-GLfloat figureScale=1;
+GLdouble *figureRotMatrix=0;
+GLdouble figureScale=1;
 
 static bool boundaryChanged=1;
 
@@ -37,10 +37,10 @@ void figureNew(int dim) {
 	free(figureRotMatrix);
 	figureData.dim=dim;
 	if (dim>=0) {
-		figureRotMatrix=safeMalloc(dim*dim*sizeof(GLfloat));
+		figureRotMatrix=safeMalloc(dim*dim*sizeof(GLdouble));
 		figureResetRotation();
 		figureData.count=safeCalloc(dim+1, sizeof(GLint));
-		figureData.boundary=safeCalloc(dim+1, sizeof(GLfloat **));
+		figureData.boundary=safeCalloc(dim+1, sizeof(GLdouble **));
 	} else {
 		figureRotMatrix=0;
 	}
@@ -75,7 +75,7 @@ bool figureOpen(struct figureData *figure, bool preserveRotation) {
 	}
 	if (figureData.dim>=0) {
 		if (!preserveRotation) {
-			figureRotMatrix=safeMalloc(figureData.dim*figureData.dim*sizeof(GLfloat));
+			figureRotMatrix=safeMalloc(figureData.dim*figureData.dim*sizeof(GLdouble));
 			figureResetRotation();
 			drawerSetDim(figureData.dim);
 		}
@@ -168,14 +168,14 @@ void figureDestroy(struct figureData *figure, bool hard) {
 }
 
 
-void figureRotate(int axis1, int axis2, GLfloat angle) {
-	static GLfloat *matrix=0;
+void figureRotate(int axis1, int axis2, GLdouble angle) {
+	static GLdouble *matrix=0;
 	static int lsize=0;
-	GLfloat *matrix2;
+	GLdouble *matrix2;
 	if (lsize!=figureData.dim) {
 		free(matrix);
 		lsize=figureData.dim;
-		matrix=safeMalloc(lsize*lsize*sizeof(GLfloat));
+		matrix=safeMalloc(lsize*lsize*sizeof(GLdouble));
 	}
 	matrixProduct(matrixRotation(lsize, axis1, axis2, angle), figureRotMatrix, matrix, lsize, lsize, lsize);
 	matrix2=figureRotMatrix;
@@ -187,8 +187,8 @@ void figureRotate(int axis1, int axis2, GLfloat angle) {
 
 static void updateScale() {
 	GLint i, j;
-	GLfloat sum;
-	GLfloat farest=0;
+	GLdouble sum;
+	GLdouble farest=0;
 	for (i=0; i<figureData.count[0]; i++) {
 		sum=0;
 		for (j=0; j<figureData.dim; j++)
@@ -275,7 +275,7 @@ int figureVerticesOfFaces(int ***facevertOut) {
 	return validFaces;
 }
 
-void figureVertexMove(int vertex, GLfloat *pos) {
+void figureVertexMove(int vertex, GLdouble *pos) {
 	if (convexAttached!=&figureData)
 		convexAttach(&figureData);
 	convexVertexMove(vertex, pos);
@@ -284,11 +284,11 @@ void figureVertexMove(int vertex, GLfloat *pos) {
 	drawerInvokeRedisplay();
 }
 
-int figureVertexAdd(GLfloat *pos) {
+int figureVertexAdd(GLdouble *pos) {
 	if (convexAttached!=&figureData)
 		convexAttach(&figureData);
-	figureData.vertices=safeRealloc(figureData.vertices, ++figureData.count[0]*sizeof(GLfloat *));
-	GLfloat *pos2=safeMalloc(figureData.dim*sizeof(GLfloat));
+	figureData.vertices=safeRealloc(figureData.vertices, ++figureData.count[0]*sizeof(GLdouble *));
+	GLdouble *pos2=safeMalloc(figureData.dim*sizeof(GLdouble));
 	matrixCopy(pos, pos2, figureData.dim);
 	figureData.vertices[figureData.count[0]-1]=pos2;
 	updateScale();
@@ -306,20 +306,20 @@ void figureVertexRm(int vertex) {
 	for (i=vertex; i<figureData.count[0]-1; i++)
 		figureData.vertices[i]=figureData.vertices[i+1];
 	figureData.count[0]--;
-	figureData.vertices=safeRealloc(figureData.vertices, figureData.count[0]*sizeof(GLfloat *));
+	figureData.vertices=safeRealloc(figureData.vertices, figureData.count[0]*sizeof(GLdouble *));
 	updateScale();
 	drawerInvokeRedisplay();
 }
 
 
-int figureDistCmpZero(GLfloat distance, GLfloat tolerance) {
+int figureDistCmpZero(GLdouble distance, GLdouble tolerance) {
 	return (fabs(distance)*figureScale>tolerance?(distance>0?1:-1):0);
 }
 
-int figureDistCmpZeroSq(GLfloat squaredDistance, GLfloat tolerance) {
+int figureDistCmpZeroSq(GLdouble squaredDistance, GLdouble tolerance) {
 	return squaredDistance*figureScale*figureScale>tolerance*tolerance;
 }
 
-int figureDistCmp(GLfloat a, GLfloat b, GLfloat tolerance) {
+int figureDistCmp(GLdouble a, GLdouble b, GLdouble tolerance) {
 	return figureDistCmpZero(a-b, tolerance);
 }

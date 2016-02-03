@@ -20,7 +20,7 @@
 
 int animFrameDelay=33;           // ms
 const int animResponseDelay=100;
-GLfloat animRotSpeed=90;         // degrees per second
+GLdouble animRotSpeed=90;         // degrees per second
 bool animSleepActive=false;
 static bool sleepInterrupted=false;
 
@@ -82,7 +82,7 @@ void animStopRot(struct animRotation *rot) {
 	rot->next=0;
 }
 
-bool animCustomRot(struct animRotation *rot, GLfloat angle) {
+bool animCustomRot(struct animRotation *rot, GLdouble angle) {
 	if ((rot->axis1<figureData.dim) && (rot->axis2<figureData.dim)) {
 		figureRotate(rot->axis1, rot->axis2, angle);
 		return true;

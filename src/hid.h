@@ -8,7 +8,7 @@
 #include "anim.h"
 
 // Mouse sensitivity in degrees per pixel, can be changed anytime
-float hidMouseSensitivity;
+double hidMouseSensitivity;
 
 // Determines whether to grab mouse while pressing a button, can be changed anytime
 bool hidGrabMouse;

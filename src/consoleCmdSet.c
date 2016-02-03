@@ -121,21 +121,21 @@ void consoleCmdSetBackground(char *color) {
 	drawerSetBackColor(components);
 }
 
-float consoleCmdGetCampos(int index) {
+double consoleCmdGetCampos(int index) {
 	checkBoundsG(3, drawerDim, "axis");
 	return drawerCamPos[index-1];
 }
-void consoleCmdSetCampos(int index, float value) {
+void consoleCmdSetCampos(int index, double value) {
 	checkBoundsS(3, drawerDim, "axis");
 	checkCond((value>drawerVisibleRadius) && (value<=8000000))
 	drawerCamPos[index-1]=value;
 	drawerSetProjection();
 }
 
-float consoleCmdGetCamposl(int index) {
+double consoleCmdGetCamposl(int index) {
 	return log(consoleCmdGetCampos(index))/log(2);
 }
-void consoleCmdSetCamposl(int index, float value) {
+void consoleCmdSetCamposl(int index, double value) {
 	consoleCmdSetCampos(index, pow(2, value));
 }
 
@@ -153,10 +153,10 @@ int consoleCmdGetDimen() {
 void consoleCmdSetDimen(bool value)
 	throwS ("Property is read-only");
 
-float consoleCmdGetEdgesize() {
+double consoleCmdGetEdgesize() {
 	return drawerEdgeSize;
 }
-void consoleCmdSetEdgesize(float value) {
+void consoleCmdSetEdgesize(double value) {
 	checkCond(value>=0);
 	drawerEdgeSize=value;
 	if (drawerVertSize<drawerEdgeSize)
@@ -197,10 +197,10 @@ void consoleCmdSetMaxfps(int value) {
 	animFrameDelay=1000.0/value;
 }
 
-float consoleCmdGetMousesens() {
+double consoleCmdGetMousesens() {
 	return hidMouseSensitivity;
 }
-void consoleCmdSetMousesens(float value) {
+void consoleCmdSetMousesens(double value) {
 	hidMouseSensitivity=value;
 }
 
@@ -219,10 +219,10 @@ void consoleCmdSetSelvertcolor(char *color) {
 	drawerInvokeRedisplay();
 }
 
-float consoleCmdGetSelvertsize() {
+double consoleCmdGetSelvertsize() {
 	return drawerSelectedVertSize;
 }
-void consoleCmdSetSelvertsize(float value) {
+void consoleCmdSetSelvertsize(double value) {
 	checkCond(value>=0);
 	drawerSelectedVertSize=value;
 	if (drawerVertSize>drawerSelectedVertSize)
@@ -249,15 +249,15 @@ void consoleCmdSetSpacecolor(int index, char *color) {
 		colorSetter(drawerSpaceColorNegative[-index-1], color);
 	else {
 		parseColor();
-		matrixCopy(components, drawerSpaceColorCenter, 3);
+		matrixCopyF(components, drawerSpaceColorCenter, 3);
 	}
 	drawerInvokeRedisplay();
 }
 
-float consoleCmdGetSpeed() {
+double consoleCmdGetSpeed() {
 	return animRotSpeed;
 }
-void consoleCmdSetSpeed(float value) {
+void consoleCmdSetSpeed(double value) {
 	checkCond(value>=0);
 	animRotSpeed=value;
 }
@@ -269,10 +269,10 @@ void consoleCmdSetStdoutpyexpr(bool value) {
 	consolePythonExprToStdout=value;
 }
 
-float consoleCmdGetVertsize() {
+double consoleCmdGetVertsize() {
 	return drawerVertSize;
 }
-void consoleCmdSetVertsize(float value) {
+void consoleCmdSetVertsize(double value) {
 	checkCond(value>=0);
 	drawerVertSize=value;
 	if (drawerEdgeSize>drawerVertSize)

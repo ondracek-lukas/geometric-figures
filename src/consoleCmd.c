@@ -59,7 +59,7 @@ void consoleCmdClose() {
 	drawerSetDim(-1);
 }
 
-void consoleCmdRotate(int axis1, int axis2, float angle) {
+void consoleCmdRotate(int axis1, int axis2, double angle) {
 	if ((axis1<1) || (axis2<1) || (axis1>figureData.dim) || (axis2>figureData.dim) || (axis1==axis2)) {
 		scriptThrowException("Wrong parameters");
 		return;

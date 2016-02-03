@@ -27,7 +27,7 @@ extern void animInit(void);
 	struct animRotation;
 
 	// Angular velocity of the smooth rotation in degrees per second, can be changed anytime
-	extern GLfloat animRotSpeed;
+	extern GLdouble animRotSpeed;
 
 	// Creates rotation
 	extern struct animRotation *animCreateRot(int axis1, int axis2);
@@ -42,7 +42,7 @@ extern void animInit(void);
 	extern void animStopRot(struct animRotation *rot);
 
 	// Applies rotation by given angle, returns true on success
-	extern bool animCustomRot(struct animRotation *rot, GLfloat angle);
+	extern bool animCustomRot(struct animRotation *rot, GLdouble angle);
 
 // Determines whether redisplay is needed in next frame, can be set (not cleared) anytime
 extern bool animRedisplayNeeded;

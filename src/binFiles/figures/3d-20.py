@@ -3,5 +3,5 @@ gf.figureOpen([[(0.0, 0.525731086730957, 0.8506507873535156), (0.525731086730957
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Icosahedron', 'One of the five Platonic Solids (regular polyhedrons).\nIts faces are triangular.', __file__)
+	figureInfo.setNameDescPath('Regular Icosahedron', 'One of the five Platonic Solids (regular polyhedra).\nIts faces are triangular.', __file__)
 except ImportError: pass

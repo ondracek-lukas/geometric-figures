@@ -3,5 +3,5 @@ gf.figureOpen([[(0.8164966106414795, 0.0, -0.5773502588272095), (-0.816496610641
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Tetrahedron', '3-simplex.\nOne of the five Platonic Solids (regular polyhedrons).\nIts faces are triangular.', __file__)
+	figureInfo.setNameDescPath('Regular Tetrahedron', '3-simplex.\nOne of the five Platonic Solids (regular polyhedra).\nIts faces are triangular.', __file__)
 except ImportError: pass

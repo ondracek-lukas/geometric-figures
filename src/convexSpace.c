@@ -14,7 +14,7 @@ struct convexFigBst *convexSpaces=0;
 
 static int dim=-1;
 static struct convexSpace *hashPoint=0;
-static GLfloat *tempVect=0;
+static GLdouble *tempVect=0;
 
 static void hashCalc(struct convexSpace *space);
 
@@ -28,8 +28,8 @@ static void init() {
 			free(hashPoint->pos);
 		free(tempVect);
 
-		tempVect=safeMalloc(dim*sizeof(GLfloat));
-		hashPoint->pos=safeMalloc(dim*sizeof(GLfloat));
+		tempVect=safeMalloc(dim*sizeof(GLdouble));
+		hashPoint->pos=safeMalloc(dim*sizeof(GLdouble));
 		for (i=0; i<dim; i++)
 			hashPoint->pos[i]=rand()-RAND_MAX/2;
 		matrixScale(
@@ -52,12 +52,12 @@ void create(struct convexSpace **pSpace) {
 		*pSpace=safeMalloc(sizeof(struct convexSpace));
 	}
 	(*pSpace)->coordsCnt=dim;
-	(*pSpace)->pos=safeMalloc(dim*sizeof(GLfloat));
-	(*pSpace)->ortBasis=safeMalloc(dim*dim*sizeof(GLfloat));
-	(*pSpace)->normal=safeMalloc(dim*sizeof(GLfloat));
+	(*pSpace)->pos=safeMalloc(dim*sizeof(GLdouble));
+	(*pSpace)->ortBasis=safeMalloc(dim*dim*sizeof(GLdouble));
+	(*pSpace)->normal=safeMalloc(dim*sizeof(GLdouble));
 }
 
-void convexSpaceCreateVert(struct convexSpace **pSpace, GLfloat *pos) {
+void convexSpaceCreateVert(struct convexSpace **pSpace, GLdouble *pos) {
 	create(pSpace);
 	(*pSpace)->dim=0;
 	matrixCopy(pos, (*pSpace)->pos, dim);
@@ -137,7 +137,7 @@ void convexSpaceReexpand(struct convexSpace *space, struct convexSpace *vert) {
 void convexSpaceAssign(struct convexSpace *space, struct convexFig *fig) {
 	fig->space->dim=space->dim;
 	matrixCopy(space->pos, fig->space->pos, dim);
-	fig->space->ortBasis=safeMalloc(space->dim*dim*sizeof(GLfloat));
+	fig->space->ortBasis=safeMalloc(space->dim*dim*sizeof(GLdouble));
 	matrixCopy(space->ortBasis, fig->space->ortBasis, dim*space->dim);
 	fig->space->hash=space->hash;
 	convexFigBstAdd(&convexSpaces, fig);
@@ -219,18 +219,18 @@ bool convexSpaceContains(struct convexSpace *space1, struct convexSpace *space2)
 	return 1;
 }
 
-GLfloat convexSpaceDist(struct convexSpace *space, struct convexSpace *vert) {
+GLdouble convexSpaceDist(struct convexSpace *space, struct convexSpace *vert) {
 	return sqrt(convexSpaceDistSq(space, vert));
 }
 
-GLfloat convexSpaceDistSq(struct convexSpace *space, struct convexSpace *vert) {
+GLdouble convexSpaceDistSq(struct convexSpace *space, struct convexSpace *vert) {
 	matrixCopy(vert->pos, tempVect, dim);
 	matrixAddScaled(tempVect, -1, space->pos, dim);
 	matrixOrtVectorToBasis(space->ortBasis, tempVect, space->dim, dim);
 	return matrixVectorNormSq(tempVect, dim);
 }
 
-GLfloat convexSpaceOrientedDist(struct convexSpace *space, struct convexSpace *vert) {
+GLdouble convexSpaceOrientedDist(struct convexSpace *space, struct convexSpace *vert) {
 	return matrixScalarProduct(space->normal, vert->pos, dim)-space->normalPos;
 }
 

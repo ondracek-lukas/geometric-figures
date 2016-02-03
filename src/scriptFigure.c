@@ -110,10 +110,10 @@ struct figureData *figureFromPython(PyObject *pyFigure) {
 	figure->count[0]=PyList_Size(vertices);
 	if (PyErr_Occurred())
 		throw("Wrong list of vertices");
-	figure->vertices=safeCalloc(figure->count[0], sizeof(GLfloat *));
+	figure->vertices=safeCalloc(figure->count[0], sizeof(GLdouble *));
 	for (int i=0; i<figure->count[0]; i++) {
 		PyObject *vertex=PyList_GET_ITEM(vertices, i);
-		figure->vertices[i]=safeMalloc(sizeof(GLfloat) * figure->dim);
+		figure->vertices[i]=safeMalloc(sizeof(GLdouble) * figure->dim);
 		if ((PyTuple_Size(vertex)!=figure->dim) || (PyErr_Occurred()))
 			throw("Wrong list of vertices");
 		for (int j=0; j<figure->dim; j++) {

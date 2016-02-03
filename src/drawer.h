@@ -14,7 +14,7 @@
 	extern int drawerWidth, drawerHeight;
 
 	// Sphere of this radius located in the origin is always visible
-	extern const GLfloat drawerVisibleRadius;
+	extern const GLdouble drawerVisibleRadius;
 
 
 	// Dimension of drawing space, read-only (use drawerSetDim)
@@ -27,16 +27,16 @@
 	// Call drawerSetProjection after change:
 
 		// Distance of the camera from the origin, in (drawerVisibleRadius, +Inf)
-		extern GLfloat *drawerCamPos;
+		extern GLdouble *drawerCamPos;
 
 		// Diameter of the vertices in px (in the origin), in [drawerEdgeSize, drawerSelectedVertSize]
-		extern GLfloat drawerVertSize;
+		extern GLdouble drawerVertSize;
 
 		// Diameter of the edges in px, in (0, drawerVertSize]
-		extern GLfloat drawerEdgeSize;
+		extern GLdouble drawerEdgeSize;
 
 		// Diameter of the selected vertex in px, in [drawerVertSize, +Inf)
-		extern GLfloat drawerSelectedVertSize;
+		extern GLdouble drawerSelectedVertSize;
 
 	// Sets projection
 	extern void drawerSetProjection();

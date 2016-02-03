@@ -16,12 +16,12 @@
 #include "consolePrivDraw.h"
 #include "util.h"
 
-GLfloat *drawerCamPos=0;
+GLdouble *drawerCamPos=0;
 int drawerDim=0;
-GLfloat drawerVertSize=20;
-GLfloat drawerEdgeSize=20;
-GLfloat drawerSelectedVertSize=30;
-const GLfloat drawerVisibleRadius=1.1;
+GLdouble drawerVertSize=20;
+GLdouble drawerEdgeSize=20;
+GLdouble drawerSelectedVertSize=30;
+const GLdouble drawerVisibleRadius=1.1;
 GLfloat drawerFaceColor[4];
 GLfloat drawerBackColor[4]={0,0,0,1};
 GLfloat (*drawerSpaceColorPositive)[4]=0;
@@ -39,14 +39,14 @@ static GLfloat stringColorRed[4];
 static GLfloat stringColorGreen[4];
 static GLfloat stringColorBlue[4];
 static GLfloat stringColorGray[4];
-static GLfloat scale=1;
+static GLdouble scale=1;
 static GLUquadric *quadric=0;
 
-static void calcSpaceColor(GLfloat *color, GLfloat *pos);
+static void calcSpaceColor(GLfloat *color, GLdouble *pos);
 static void drawFigure();
-static void drawVert3D(GLfloat *coordinates, GLfloat size, GLfloat *color);
-static void drawEdge3D(GLfloat *coords1, GLfloat size1, GLfloat *color1, GLfloat *coords2, GLfloat size2, GLfloat *color2);
-static void drawFace3D(int count, GLfloat **coords);
+static void drawVert3D(GLdouble *coordinates, GLdouble size, GLfloat *color);
+static void drawEdge3D(GLdouble *coords1, GLdouble size1, GLfloat *color1, GLdouble *coords2, GLdouble size2, GLfloat *color2);
+static void drawFace3D(int count, GLdouble **coords);
 static void drawControls();
 static void drawRect(int x1, int y1, int x2, int y2);
 static void drawString(char *string, int x, int y);
@@ -109,35 +109,35 @@ void drawerSetBackColor(GLfloat *color) {
 		1);
 
 	if (0.299*color[0]+0.587*color[1]+0.114*color[2]<0.5) {
-		matrixCopy((GLfloat[]) {1.0f, 1.0f, 1.0f}, stringColor, 3);
+		matrixCopyF((GLfloat[]) {1.0f, 1.0f, 1.0f}, stringColor, 3);
 		if (color[0]<0.75)
-			matrixCopy((GLfloat[]) {1.0f, 0.3f, 0.3f}, stringColorRed, 3);
+			matrixCopyF((GLfloat[]) {1.0f, 0.3f, 0.3f}, stringColorRed, 3);
 		else
-			matrixCopy((GLfloat[]) {1.0f, 0.7f, 0.7f}, stringColorRed, 3);
-		matrixCopy((GLfloat[]) {0.05f, 0.9f, 0.05f}, stringColorGreen, 3);
-		matrixCopy((GLfloat[]) {0.5f, 0.5f, 1.0f}, stringColorBlue, 3);
+			matrixCopyF((GLfloat[]) {1.0f, 0.7f, 0.7f}, stringColorRed, 3);
+		matrixCopyF((GLfloat[]) {0.05f, 0.9f, 0.05f}, stringColorGreen, 3);
+		matrixCopyF((GLfloat[]) {0.5f, 0.5f, 1.0f}, stringColorBlue, 3);
 	} else {
-		matrixCopy((GLfloat[]) {0.0f, 0.0f, 0.0f}, stringColor, 3);
-		matrixCopy((GLfloat[]) {0.7f, 0.0f, 0.0f}, stringColorRed, 3);
-		matrixCopy((GLfloat[]) {0.0f, 0.7f, 0.0f}, stringColorGreen, 3);
-		matrixCopy((GLfloat[]) {0.0f, 0.0f, 1.0f}, stringColorBlue, 3);
+		matrixCopyF((GLfloat[]) {0.0f, 0.0f, 0.0f}, stringColor, 3);
+		matrixCopyF((GLfloat[]) {0.7f, 0.0f, 0.0f}, stringColorRed, 3);
+		matrixCopyF((GLfloat[]) {0.0f, 0.7f, 0.0f}, stringColorGreen, 3);
+		matrixCopyF((GLfloat[]) {0.0f, 0.0f, 1.0f}, stringColorBlue, 3);
 	}
 
-	matrixZero(stringColorGray, 3);
-	matrixAddScaled(stringColorGray, 0.5, stringColor, 3);
-	matrixAddScaled(stringColorGray, 0.5, drawerBackColor, 3);
+	matrixZeroF(stringColorGray, 3);
+	matrixAddScaledF(stringColorGray, 0.5, stringColor, 3);
+	matrixAddScaledF(stringColorGray, 0.5, drawerBackColor, 3);
 	drawerInvokeRedisplay();
 }
 
 void drawerResetColors() {
 	int i;
-	matrixCopy((GLfloat[]) {0.1f, 0.1f, 0.3f, 0.3f}, drawerFaceColor, 4);
-	matrixCopy((GLfloat[]) {1.0f, 1.0f, 1.0f, -1.0f}, drawerSpaceColorCenter, 4);
-	matrixCopy((GLfloat[]) {1.0f, 0.0f, 0.0f, 1.0f}, drawerSelectedVertColor, 4);
+	matrixCopyF((GLfloat[]) {0.1f, 0.1f, 0.3f, 0.3f}, drawerFaceColor, 4);
+	matrixCopyF((GLfloat[]) {1.0f, 1.0f, 1.0f, -1.0f}, drawerSpaceColorCenter, 4);
+	matrixCopyF((GLfloat[]) {1.0f, 0.0f, 0.0f, 1.0f}, drawerSelectedVertColor, 4);
 	drawerSetBackColor((GLfloat[]) {0.0f, 0.0f, 0.0f, -1.0f});
 	for (i=0; i<drawerDim; i++) {
-		matrixZero(drawerSpaceColorPositive[i], 4);
-		matrixZero(drawerSpaceColorNegative[i], 4);
+		matrixZeroF(drawerSpaceColorPositive[i], 4);
+		matrixZeroF(drawerSpaceColorNegative[i], 4);
 	}
 	drawerInvokeRedisplay();
 }
@@ -145,7 +145,7 @@ void drawerResetColors() {
 void drawerSetDim(int dim) {
 	int i;
 	if (dim>=3) {
-		drawerCamPos=((GLfloat *)safeRealloc(drawerCamPos, dim*sizeof(int)));
+		drawerCamPos=((GLdouble *)safeRealloc(drawerCamPos, dim*sizeof(GLdouble)));
 		if (drawerDim<3) {
 			drawerCamPos[2]=3.5;
 			drawerDim=3;
@@ -160,8 +160,8 @@ void drawerSetDim(int dim) {
 		drawerSpaceColorPositive=safeRealloc(drawerSpaceColorPositive, dim*sizeof(GLfloat[4]));
 		drawerSpaceColorNegative=safeRealloc(drawerSpaceColorNegative, dim*sizeof(GLfloat[4]));
 		for (i=0; i<dim; i++) {
-			matrixZero(drawerSpaceColorPositive[i], 4);
-			matrixZero(drawerSpaceColorNegative[i], 4);
+			matrixZeroF(drawerSpaceColorPositive[i], 4);
+			matrixZeroF(drawerSpaceColorNegative[i], 4);
 		}
 	}
 	drawerDim=dim;
@@ -194,7 +194,7 @@ void drawerSetProjection() {
 				-drawerVisibleRadius*drawerHeight/drawerWidth, drawerVisibleRadius*drawerHeight/drawerWidth,
 				-drawerVisibleRadius, drawerVisibleRadius);
 	} else {
-		GLfloat r=sqrt((drawerCamPos[2]-drawerVisibleRadius)/(drawerCamPos[2]+drawerVisibleRadius))*drawerVisibleRadius;
+		GLdouble r=sqrt((drawerCamPos[2]-drawerVisibleRadius)/(drawerCamPos[2]+drawerVisibleRadius))*drawerVisibleRadius;
 		if (drawerHeight<drawerWidth)
 			glFrustum(-r*drawerWidth/drawerHeight, r*drawerWidth/drawerHeight, -r, r, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
 		else
@@ -218,9 +218,9 @@ void drawerSetProjection() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	if (drawerDim>=3)
-		glTranslatef(0, 0, -drawerCamPos[2]);
+		glTranslated(0, 0, -drawerCamPos[2]);
 	else
-		glTranslatef(0, 0, -1);
+		glTranslated(0, 0, -1);
 	drawerInvokeRedisplay();
 }
 
@@ -229,34 +229,34 @@ void drawerSetProjection() {
 // -- private section --
 
 
-static void calcSpaceColor(GLfloat *color, GLfloat *pos) {
+static void calcSpaceColor(GLfloat *color, GLdouble *pos) {
 	int i;
 	GLfloat alpha=0;
-	matrixZero(color, 3);
+	matrixZeroF(color, 3);
 	for (i=0; i<drawerDim; i++) {
 		if (pos[i]>0) {
 			alpha+=pos[i]*drawerSpaceColorPositive[i][3];
-			matrixAddScaled(color, pos[i]*drawerSpaceColorPositive[i][3], drawerSpaceColorPositive[i], 3);
+			matrixAddScaledF(color, pos[i]*drawerSpaceColorPositive[i][3], drawerSpaceColorPositive[i], 3);
 		} else {
 			alpha+=-pos[i]*drawerSpaceColorNegative[i][3];
-			matrixAddScaled(color, -pos[i]*drawerSpaceColorNegative[i][3], drawerSpaceColorNegative[i], 3);
+			matrixAddScaledF(color, -pos[i]*drawerSpaceColorNegative[i][3], drawerSpaceColorNegative[i], 3);
 		}
 	}
 	if (alpha>=1)
-		matrixScale(color, 1/alpha, 3);
+		matrixScaleF(color, 1/alpha, 3);
 	else
-		matrixAddScaled(color, 1-alpha, drawerSpaceColorCenter, 3);
+		matrixAddScaledF(color, 1-alpha, drawerSpaceColorCenter, 3);
 	color[3]=1;
 }
 
 static void drawFigure() {
 	int i, j;
-	static GLfloat **vertices=0;
+	static GLdouble **vertices=0;
 	static GLfloat (*vertcolors)[4];
-	static GLfloat **facevertc=0;
+	static GLdouble **facevertc=0;
 	int **facevert, facescount;
 	static int vertdim=0, vertcount=0;
-	GLfloat size1=1, size2=1;
+	GLdouble size1=1, size2=1;
 
 	if (drawerDim<0)
 		return;
@@ -270,12 +270,12 @@ static void drawFigure() {
 		}
 		vertdim=(drawerDim<=2?3:drawerDim);
 		vertcount=figureData.count[0];
-		vertices=safeMalloc(vertcount*sizeof(GLfloat *));
+		vertices=safeMalloc(vertcount*sizeof(GLdouble *));
 		vertcolors=safeMalloc(vertcount*4*sizeof(GLfloat));
 		free(facevertc);
-		facevertc=safeMalloc(vertcount*sizeof(GLfloat *));
+		facevertc=safeMalloc(vertcount*sizeof(GLdouble *));
 		for (i=0; i<vertcount; i++)
-			vertices[i]=safeMalloc(vertdim*sizeof(GLfloat));
+			vertices[i]=safeMalloc(vertdim*sizeof(GLdouble));
 	}
 
 	glEnable(GL_LIGHTING);
@@ -300,8 +300,8 @@ static void drawFigure() {
 			size1=vertices[i][3];
 		}
 		if (i==consoleCmdVertexSelected) {
-			matrixScale(vertcolors[i], 1-drawerSelectedVertColor[3], 3);
-			matrixAddScaled(vertcolors[i], drawerSelectedVertColor[3], drawerSelectedVertColor, 3);
+			matrixScaleF(vertcolors[i], 1-drawerSelectedVertColor[3], 3);
+			matrixAddScaledF(vertcolors[i], drawerSelectedVertColor[3], drawerSelectedVertColor, 3);
 			drawVert3D(vertices[i], size1*drawerSelectedVertSize/drawerVertSize, vertcolors[i]);
 		} else {
 			drawVert3D(vertices[i], size1, vertcolors[i]);
@@ -340,12 +340,12 @@ static void drawFigure() {
 	}
 }
 
-static void drawVert3D(GLfloat *coordinates, GLfloat size, GLfloat *color) {
-	static GLfloat vertScale=0;
+static void drawVert3D(GLdouble *coordinates, GLdouble size, GLfloat *color) {
+	static GLdouble vertScale=0;
 	static GLuint list=0;
 	glPushMatrix();
-	glTranslatef(coordinates[0], coordinates[1], coordinates[2]);
-	glScalef(size, size, size);
+	glTranslated(coordinates[0], coordinates[1], coordinates[2]);
+	glScaled(size, size, size);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
 	if (list==0)
 		list=glGenLists(1);
@@ -360,23 +360,23 @@ static void drawVert3D(GLfloat *coordinates, GLfloat size, GLfloat *color) {
 	glPopMatrix();
 }
 
-static void drawEdge3D(GLfloat *coords1, GLfloat size1, GLfloat *color1, GLfloat *coords2, GLfloat size2, GLfloat *color2) {
+static void drawEdge3D(GLdouble *coords1, GLdouble size1, GLfloat *color1, GLdouble *coords2, GLdouble size2, GLfloat *color2) {
 	glPushMatrix();
-	GLfloat d0=coords2[0]-coords1[0];
-	GLfloat d1=coords2[1]-coords1[1];
-	GLfloat d2=coords2[2]-coords1[2];
-	GLfloat length=sqrt(d0*d0+d1*d1+d2*d2);
+	GLdouble d0=coords2[0]-coords1[0];
+	GLdouble d1=coords2[1]-coords1[1];
+	GLdouble d2=coords2[2]-coords1[2];
+	GLdouble length=sqrt(d0*d0+d1*d1+d2*d2);
 	if (length==0) {
 		glPopMatrix();
 		return;
 	}
-	glTranslatef(coords1[0], coords1[1], coords1[2]);
+	glTranslated(coords1[0], coords1[1], coords1[2]);
 	if ((d0==0) && (d1==0))
 		d0=1;
-	glRotatef(acos(d2/length)*180*M_1_PI, -d1, d0, 0);
+	glRotated(acos(d2/length)*180*M_1_PI, -d1, d0, 0);
 
 	int i;
-	static float sinc[32]= {-1};
+	static double sinc[32]= {-1};
 	if (sinc[0]==-1)
 		for (i=0; i<32; i++)
 			sinc[i]=sin(2*M_PI*i/32);
@@ -385,32 +385,27 @@ static void drawEdge3D(GLfloat *coords1, GLfloat size1, GLfloat *color1, GLfloat
 	glBegin(GL_TRIANGLE_STRIP);
 		for (i=0; i<34; i++) {
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (i%2?color2:color1));
-			glNormal3f(sinc[i%32], sinc[(i+8)%32], 0);
-			glVertex3f((i%2?d2:d1)*sinc[i%32], (i%2?d2:d1)*sinc[(i+8)%32], (i%2)*length);
+			glNormal3d(sinc[i%32], sinc[(i+8)%32], 0);
+			glVertex3d((i%2?d2:d1)*sinc[i%32], (i%2?d2:d1)*sinc[(i+8)%32], (i%2)*length);
 		}
 	glEnd();
 	glPopMatrix();
 }
 
-static void drawFace3D(int count, GLfloat **coords) {
+static void drawFace3D(int count, GLdouble **coords) {
 	int i;
 	GLUtesselator *tess=gluNewTess();
-	GLdouble (*data)[3]=safeMalloc(count*sizeof(GLdouble[3]));
-	gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3fv);
+	gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
 	gluTessCallback(tess, GLU_TESS_BEGIN, (_GLUfuncptr)glBegin);
 	gluTessCallback(tess, GLU_TESS_END, (_GLUfuncptr)glEnd);
 	gluTessBeginPolygon(tess, 0);
 		gluTessBeginContour(tess);
 			for (i=0; i<count; i++) {
-				data[i][0]=coords[i][0];
-				data[i][1]=coords[i][1];
-				data[i][2]=coords[i][2];
-				gluTessVertex(tess, data[i], coords[i]);
+				gluTessVertex(tess, coords[i], coords[i]);
 			}
 		gluTessEndContour(tess);
 	gluTessEndPolygon(tess);
 	gluDeleteTess(tess);
-	free(data);
 }
 
 

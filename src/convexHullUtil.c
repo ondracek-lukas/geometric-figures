@@ -163,7 +163,7 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList **vertic
 	struct convexFig *edge; // dim-2
 	struct convexFig *vert;
 	struct convexFigList *list=0, *list2=0;
-	GLfloat maxDist, dist;
+	GLdouble maxDist, dist;
 	if (fig->boundary==0) {
 		face=convexHullUtilInitialFace(*vertices, fig->space->dim-1, inconsistent);
 		convexFigBoundaryAttach(fig, face);

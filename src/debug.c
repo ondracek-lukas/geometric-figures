@@ -62,17 +62,17 @@ void convexFigBstPrintR(struct convexFigBst *bst, char *parent, char *attr) {
 
 int convexFigBstCheck(struct convexFigBst *bst, char *str) {
 	int depth;
-	GLfloat min, max;
+	GLdouble min, max;
 	return convexFigBstCheckR(bst, &min, &max, &depth, str);
 }
 
-int convexFigBstCheckR(struct convexFigBst *bst, GLfloat *min, GLfloat *max, int *depth, char *str) {
+int convexFigBstCheckR(struct convexFigBst *bst, GLdouble *min, GLdouble *max, int *depth, char *str) {
 	if (!bst) {
 		*depth=0;
 		return 0;
 	}
 	int ldepth, lret, rdepth, rret;
-	GLfloat lmin, lmax, rmin, rmax;
+	GLdouble lmin, lmax, rmin, rmax;
 	if (lret=convexFigBstCheckR(bst->left, &lmin, &lmax, &ldepth, str))
 		return lret;
 	if (rret=convexFigBstCheckR(bst->right, &rmin, &rmax, &rdepth, str))

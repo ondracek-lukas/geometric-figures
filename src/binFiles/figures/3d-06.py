@@ -3,5 +3,5 @@ gf.figureOpen([[(-0.5773502588272095, -0.5773502588272095, -0.5773502588272095),
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Cube', 'One of the five Platonic solids (regular polyhedrons).\nIts faces are squared.', __file__)
+	figureInfo.setNameDescPath('Cube', 'One of the five Platonic solids (regular polyhedra).\nIts faces are squared.', __file__)
 except ImportError: pass

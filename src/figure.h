@@ -13,7 +13,7 @@
 struct figureData {
 	GLint dim;          // dimension of the figure (number of coordinates)
 	GLint *count;       // counts of faces of given dimension (0-vertices, 1-edges, ...)
-	GLfloat **vertices; // [vertex index][axis] = coordinate
+	GLdouble **vertices; // [vertex index][axis] = coordinate
 	GLint ***boundary;  // [face dimension][face index] = face border (array of (dim-1)-faces)
 	                    // [face dimension][face index][bordering face index] = index in boundary[dim-1]
 	// vertex index         from 0 to count[0]-1
@@ -26,10 +26,10 @@ struct figureData {
 extern struct figureData figureData;
 
 // Current figure rotation, read-only
-extern GLfloat *figureRotMatrix;
+extern GLdouble *figureRotMatrix;
 
 // Current figure scale, read-only
-extern GLfloat figureScale;
+extern GLdouble figureScale;
 
 
 // Module initialization, to be called only once
@@ -41,7 +41,7 @@ extern void figureInit();
 extern void figureResetRotation(); // [SCRIPT_NAME: resetRotation]
 
 // Rotates figure in the plane of given axes by given angle
-extern void figureRotate(int axis1, int axis2, GLfloat angle);
+extern void figureRotate(int axis1, int axis2, GLdouble angle);
 
 
 // Figure modifications:
@@ -57,10 +57,10 @@ extern void figureRotate(int axis1, int axis2, GLfloat angle);
 	extern void figureDestroy(struct figureData *figure, bool hard);
 
 	// Moves vertex with given index to given position
-	extern void figureVertexMove(int vertex, GLfloat *pos);
+	extern void figureVertexMove(int vertex, GLdouble *pos);
 
 	// Adds new vertex at given position
-	extern int figureVertexAdd(GLfloat *pos);
+	extern int figureVertexAdd(GLdouble *pos);
 
 	// Remove vertex with given index
 	extern void figureVertexRm(int vertex);
@@ -78,11 +78,11 @@ extern int figureVerticesOfFaces(int ***facevertOut);
 
 
 // Approximately compares distances
-#define figureDistCmpToleranceHigher 1.0/(1<<8)
-#define figureDistCmpToleranceDefault 1.0/(1<<13)
-#define figureDistCmpToleranceLower 1.0/(1<<16)
-extern int figureDistCmpZero(GLfloat distance, GLfloat tolerance);
-extern int figureDistCmpZeroSq(GLfloat squaredDistance, GLfloat tolerance);
-extern int figureDistCmp(GLfloat a, GLfloat b, GLfloat tolerance);
+#define figureDistCmpToleranceHigher (0.8/(1ll<<8))
+#define figureDistCmpToleranceDefault (0.8/(1ll<<13))
+#define figureDistCmpToleranceLower (0.8/(1ll<<16))
+extern int figureDistCmpZero(GLdouble distance, GLdouble tolerance);
+extern int figureDistCmpZeroSq(GLdouble squaredDistance, GLdouble tolerance);
+extern int figureDistCmp(GLdouble a, GLdouble b, GLdouble tolerance);
 
 #endif

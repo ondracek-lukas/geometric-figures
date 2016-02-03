@@ -24,6 +24,6 @@ extern void *safeRealloc(void *ptr, size_t size);
 extern void safeExitErr(char *str);
 
 // Determines whether coordinates in space are allowed
-extern bool safeCheckPos(GLfloat *pos, int dim);
+extern bool safeCheckPos(GLdouble *pos, int dim);
 
 #endif

@@ -31,7 +31,7 @@ void safeExitErr(char *str) {
 	exit(1);
 }
 
-bool safeCheckPos(GLfloat *pos, int dim) {
+bool safeCheckPos(GLdouble *pos, int dim) {
 	int i;
 	for (i=0; i<dim; i++)
 		if ((pos[i]<-safeMaxDist) || (pos[i]>safeMaxDist))

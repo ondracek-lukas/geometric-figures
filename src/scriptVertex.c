@@ -9,8 +9,8 @@
 #include "matrix.h"
 #include "scriptEvents.h"
 
-static bool coordsFromPython(PyObject *pyCoords, GLfloat *coords);
-static PyObject *coordsToPython(GLfloat *coords);
+static bool coordsFromPython(PyObject *pyCoords, GLdouble *coords);
+static PyObject *coordsToPython(GLdouble *coords);
 
 
 PyObject *scriptVertexAdd(PyObject *self, PyObject *args) {
@@ -23,7 +23,7 @@ PyObject *scriptVertexAdd(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	GLfloat coords[figureData.dim];
+	GLdouble coords[figureData.dim];
 	if (!coordsFromPython(pyCoords, coords))
 		return NULL;
 
@@ -50,7 +50,7 @@ PyObject *scriptVertexSetPos(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	GLfloat coords[figureData.dim];
+	GLdouble coords[figureData.dim];
 	if (!coordsFromPython(pyCoords, coords))
 		return NULL;
 
@@ -100,7 +100,7 @@ PyObject *scriptVertexRm(PyObject *self, PyObject *args) {
 
 PyObject *scriptVertexRotatePoint(PyObject *self, PyObject *args) {
 	PyObject *pyCoords;
-	GLfloat coords[figureData.dim], coords2[figureData.dim];
+	GLdouble coords[figureData.dim], coords2[figureData.dim];
 	if (!PyArg_ParseTuple(args, "O", &pyCoords))
 		return NULL;
 	if (!coordsFromPython(pyCoords, coords))
@@ -112,7 +112,7 @@ PyObject *scriptVertexRotatePoint(PyObject *self, PyObject *args) {
 
 PyObject *scriptVertexRotatePointBack(PyObject *self, PyObject *args) {
 	PyObject *pyCoords;
-	GLfloat coords[figureData.dim], coords2[figureData.dim];
+	GLdouble coords[figureData.dim], coords2[figureData.dim];
 	if (!PyArg_ParseTuple(args, "O", &pyCoords))
 		return NULL;
 	if (!coordsFromPython(pyCoords, coords))
@@ -125,7 +125,7 @@ PyObject *scriptVertexRotatePointBack(PyObject *self, PyObject *args) {
 
 // -- translating coordinates --
 
-bool coordsFromPython(PyObject *pyCoords, GLfloat *coords) {
+bool coordsFromPython(PyObject *pyCoords, GLdouble *coords) {
 	if (pyCoords==Py_None) {
 		for (int i=0; i<figureData.dim; i++)
 			coords[i]=0;
@@ -142,7 +142,7 @@ bool coordsFromPython(PyObject *pyCoords, GLfloat *coords) {
 	return true;
 }
 
-PyObject *coordsToPython(GLfloat *coords) {
+PyObject *coordsToPython(GLdouble *coords) {
 	PyObject *pyCoords=PyTuple_New(figureData.dim);
 	for (int i=0; i<figureData.dim; i++)
 		PyTuple_SET_ITEM(pyCoords, i, PyFloat_FromDouble(coords[i]));

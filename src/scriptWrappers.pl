@@ -26,7 +26,7 @@ sub getType($) {
 	local $_=shift;
 
 	my $rx_ignore      = qr/\s*(?:\b(?:extern|const)\b\s*)*/;
-	my $rx_type        = qr/(?:char\*|bool|int|float|void)/;
+	my $rx_type        = qr/(?:char\*|bool|int|float|double|void)/;
 	my %mapping = (
 		"char*" => {
 			pyType   => "PyString",
@@ -46,6 +46,11 @@ sub getType($) {
 		float => {
 			pyType   => "PyFloat",
 			pyFormat => "f",
+			converter=> "PyFloat_AsDouble"
+		},
+		double => {
+			pyType   => "PyFloat",
+			pyFormat => "d",
 			converter=> "PyFloat_AsDouble"
 		},
 		void => {

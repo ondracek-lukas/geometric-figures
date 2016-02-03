@@ -276,7 +276,7 @@ static struct waitingEvent {
 } *waitingEvents=0, *waitingEventsEnd=0, *waitingEventsFreed=0;
 static bool allEventsWaiting=false;
 
-float hidMouseSensitivity=0.5;
+double hidMouseSensitivity=0.5;
 bool hidGrabMouse=false;
 
 static void addWaitingEvent(int code) {

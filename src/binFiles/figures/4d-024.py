@@ -3,5 +3,5 @@ gf.figureOpen([[(-0.5, -0.5, -0.5, -0.5), (-0.5, -0.5, -0.5, 0.5), (-0.5, -0.5, 
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Icositetrachoron', 'Convex hull of the tesseract and regular hexadecachoron\nsharing their circumscribed spheres (and rotated appropriately).\nOne of the six regular polychorons (4-dimensional analogy of Platonic solids).\nIts cells are octahedral.', __file__)
+	figureInfo.setNameDescPath('Regular Icositetrachoron', 'Convex hull of the tesseract and regular hexadecachoron\nsharing their circumscribed spheres (and rotated appropriately).\nOne of the six regular polychora (4-dimensional analogy of Platonic solids).\nIts cells are octahedral.', __file__)
 except ImportError: pass

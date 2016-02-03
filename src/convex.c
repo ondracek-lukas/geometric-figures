@@ -231,7 +231,7 @@ void convexVertexRm(int index) {
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
 
-void convexVertexMove(int index, GLfloat *pos) {
+void convexVertexMove(int index, GLdouble *pos) {
 	if (convexHull) {
 		convexInteractStart("Updating convex hull...");
 		convexHullVertRm(convexShadow[0][index]);

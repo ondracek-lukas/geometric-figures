@@ -24,7 +24,7 @@
 	extern void consoleCmdClose(void); // [SCRIPT_NAME: close]
 
 	// Rotates figure in the plane of the given axes by the given angle
-	extern void consoleCmdRotate(int axis1, int axis2, float angle); // [SCRIPT_NAME: rotate]
+	extern void consoleCmdRotate(int axis1, int axis2, double angle); // [SCRIPT_NAME: rotate]
 
 	// Assigns/Unassigns rotation to the key
 	extern void consoleCmdRmap(char *key, int axis1, int axis2); // [SCRIPT_NAME: rmap]

@@ -49,6 +49,7 @@ void scriptInit() {
 		"	import sys\n"
 		"	sys.path.append(modulesPath)\n"
 		"	gl=globals()\n"
+		"	module=None\n"
 		"	for module in os.listdir(modulesPath):\n"
 		"		if module[-3:] == '.py':\n"
 		"			try:\n"

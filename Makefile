@@ -6,8 +6,16 @@
 LDFLAGS    = -lm
 CFLAGS     = -std=gnu99 -Wimplicit-function-declaration
 version    = $(shell cat VERSION)
-ifdef debug
-	CFLAGS  += -g -Wall
+
+ifndef debug
+ifeq ($(findstring dev, $(version)), dev)
+	debug=1
+else
+	debug=0
+endif
+endif
+ifeq ($(debug), 1)
+	CFLAGS  += -g -Wall -DCOREDUMP
 endif
 
 ifeq ($(arch), win32) # Windows

@@ -16,6 +16,12 @@
 #include "anim.h"
 #include "script.h"
 
+#ifdef COREDUMP
+#ifndef WIN32
+#include <sys/resource.h>
+#endif
+#endif
+
 static void mainKeyPress(unsigned char c, int x, int y) {
 	hidKeyEvent(hidCodeFromEvent(c, false, glutGetModifiers(), true));
 }
@@ -43,6 +49,16 @@ static void mainMouseMoveEvent(int x, int y) {
 }
 
 int main(int argc, char **argv) {
+
+#ifdef COREDUMP
+#ifndef WIN32
+	struct rlimit rlim;
+	getrlimit(RLIMIT_CORE, &rlim);
+	rlim.rlim_cur=rlim.rlim_max;
+	setrlimit(RLIMIT_CORE, &rlim);
+#endif
+#endif
+
 	char *path;
 	FILE *file;
 

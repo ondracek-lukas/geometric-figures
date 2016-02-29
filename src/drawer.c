@@ -3,6 +3,10 @@
 #include "drawer.h"
 
 #include <GL/freeglut.h>
+#ifndef _GLUfuncptr // not included in mingw32 version
+#define _GLUfuncptr void*
+#endif
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>

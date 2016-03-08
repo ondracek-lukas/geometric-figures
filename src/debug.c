@@ -2,13 +2,17 @@
 
 #include "debug.h"
 
+#ifdef DEBUG
+
 #include <stdio.h>
 
 #include "convex.h"
 #include "convexFig.h"
 #include "convexSpace.h"
+#include "script.h"
+#include "scriptFigure.h"
+#include "figure.h"
 
-#ifdef DEBUG
 void convexFigPrint() { // mark unsafe
 	printf("digraph{");
 	convexFigMarkReset(convexFigMarkIdLayer);
@@ -134,6 +138,38 @@ void consoleCmdsTriePrint(struct trie *trie) {
 	printf("--- TRIE START ---\n--");
 	triePrint(trie, 2);
 	printf("\n--- TRIE  END  ---\n");
+}
+
+
+// Convex hull progress
+
+void debugProgrStart(struct figureData *figure, struct convexFig ***shadow) {
+	char *figExpr=scriptFigureToPythonExpr(figure);
+	printf("import gf\nimport debugPlayback\n");
+	if (figExpr) {
+		printf("debugPlayback.open(%s, {", figExpr);
+		for (int i=0; i<=figure->dim; i++) {
+			for (int j=0; j<figure->count[i]; j++) {
+				if (shadow[i][j])
+					printf("%u:(%d,%d),", shadow[i][j]->hash, i, j);
+			}
+		}
+		printf("})\n");
+	} else {
+		printf("debugPlayback.figureOpen(None, None)\n");
+	}
+}
+
+void debugProgrAttach(struct convexFig *parent, struct convexFig *child) {
+	printf("debugPlayback.attach(%u,%u)\n", parent->hash, child->hash);
+}
+
+void debugProgrDetach(struct convexFig *parent, struct convexFig *child) {
+	printf("debugPlayback.detach(%u,%u)\n", parent->hash, child->hash);
+}
+
+void debugProgrHashChange(unsigned int oldHash, unsigned int newHash) {
+	printf("debugPlayback.rename(%u,%u)\n", oldHash, newHash);
 }
 
 #endif

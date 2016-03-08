@@ -8,11 +8,6 @@ it has only Python interface:
 
   figureFromArea(hyperplanes, innerPoint)
     -creates objFigure containing innerPoint and being bounded by the hyperplanes
-    -if innerPoint is not given, it is calculated
-     to has positive oriented distances from all hyperplanes
-    -this currently needs no figure to be opened
-     and during the process, some figures may be shown
-     (will be improved)
   hyperplaneOfFacet(facet, positivePoint)
     -creates hyperplane containing the given facet
     -optional positivePoint will have positive oriented distance from the hyperplane
@@ -37,23 +32,8 @@ class WrongAreaError(RuntimeError):
 		RuntimeError.__init__(self, "Inconsistent or infinite area")
 	pass
 
-def figureFromArea(hyperplanes, innerPoint=None):
-	if not innerPoint:
-		innerPoint=(0,)*len(hyperplanes[0].normal)
-		for h in hyperplanes:
-			dist=h.orientedDistance(innerPoint)
-			if dist<0:
-				innerPoint=algebra.vectSum(innerPoint, algebra.vectMult(-dist, h.normal))
-		pointDiff=(0,)*len(innerPoint)
-		hplanesCnt=len(hyperplanes)
-		for h in hyperplanes:
-			dist=h.orientedDistance(innerPoint)
-			pointDiff=algebra.vectSum(pointDiff, algebra.vectMult(-dist/hplanesCnt, h.normal))
-		innerPoint=algebra.vectSum(innerPoint, pointDiff)
-		for h in hyperplanes:
-			if h.orientedDistance(innerPoint)<0.0001:
-				raise WrongAreaError()
-	dualVertsPos=[duals.dualPointFromHyperplane(h, innerPoint) for h in hyperplanes];
+def figureFromArea(hyperplanes, innerPoint):
+	dualVertsPos=[duals.dualPointFromHyperplane(h, innerPoint) for h in hyperplanes]
 	dualFigure=gfUtils.createConvexObjFigure(dualVertsPos)
 	return duals.createDual(dualFigure, innerPoint)
 

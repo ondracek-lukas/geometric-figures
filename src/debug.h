@@ -22,6 +22,7 @@
 #define DEBUG_HULL_DOT     DEBUG_RM
 #define DEBUG_LOOP         DEBUG_RM
 #define DEBUG_CMDS         DEBUG_RM
+#define DEBUG_HULL_PROGR   DEBUG_RM
 
 
 #ifdef DEBUG
@@ -39,6 +40,14 @@ extern int convexFigBstCheckR(struct convexFigBst *bst, GLdouble *min, GLdouble 
 extern void convexLoopDetectPrint(int count, int parent, int child, int index, int next);
 struct trie;
 extern void consoleCmdsTriePrint(struct trie *trie);
+
+struct convexFig;
+struct figureData;
+extern void debugProgrHashChange(unsigned int oldHash, unsigned int newHash);
+extern void debugProgrDetach(struct convexFig *parent, struct convexFig *child);
+extern void debugProgrAttach(struct convexFig *parent, struct convexFig *child);
+extern void debugProgrStart(struct figureData *figure, struct convexFig ***shadow);
+
 #endif
 
 #endif

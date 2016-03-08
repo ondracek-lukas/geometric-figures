@@ -105,8 +105,8 @@ void convexHullCreate() {
 void convexHullUpdate() {
 	int i, dim;
 	struct convexFigList **pList, *figs=0, *figs2=0;
-	convexLoopDetectReset();
 	if (convexFigListLen(convexFigure)==1) {
+		convexLoopDetectReset();
 		convexSpaceCopy(convexShadow[0][0]->space, &tmpSpace);
 		for (i=1; i<convexAttached->count[0]; i++)
 			if (!convexSpaceContains(tmpSpace, convexShadow[0][i]->space))

@@ -25,9 +25,7 @@ List of other gf module functions (not accessible as commands):
   gf.vertexSelected()          | Manages vertices
   gf.posRotate(pos)            | and transformations of coordinates,
   gf.posRotateBack(pos)        | see :help python vertices.
-  gf.figureGet()                |
-  gf.figureOpen(figure)         |
-  gf.figureRead(path)           | Manages figures,
-  gf.figureWrite(path, figure)  | see :help python figure.
+  gf.figureGet()                | Manages figures,
+  gf.figureOpen(figure)         | see :help python figure.
   gf.registerCallback(name, function)    | Manages callbacks,
   gf.unregisterCallback(name, function)  | see :help python callbacks

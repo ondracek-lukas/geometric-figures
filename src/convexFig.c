@@ -70,6 +70,7 @@ void convexFigDelete(struct convexFig *fig) {
 
 void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) {
 	convexFigBoundaryDetach(parent, child);
+	DEBUG_HULL_PROGR(debugProgrAttach(parent, child);)
 	if (!child->parents)
 		convexFigListRmFig(&convexFreeVertices, child);
 	convexFigListAdd(&(parent->boundary), child);
@@ -79,6 +80,7 @@ void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) 
 int convexFigBoundaryDetach(struct convexFig *parent, struct convexFig *child) {
 	int ret=0;
 	convexLoopDetectAction(parent, child);
+	DEBUG_HULL_PROGR(debugProgrDetach(parent, child);)
 	convexFigListRmFig(&parent->boundary, child);
 	ret=convexFigListRmFig(&child->parents, parent);
 	if (ret && (child->space->dim==0) && (!child->parents))

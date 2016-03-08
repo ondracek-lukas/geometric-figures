@@ -47,7 +47,11 @@ ifeq ($(arch), 64)    # Linux 64-bit
 endif
 CFLAGS    += -D 'STRINGS_DATA_VERSION="$(version)"'
 
-binFiles=$(shell find src/binFiles -type f | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
+ifeq ($(debug), 1)
+	binFiles=$(shell find src/binFiles -type f | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
+else
+	binFiles=$(shell find src/binFiles -type f \! -name 'debug*' | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
+endif
 
 
 compile: bin$(suff)/$(name) $(patsubst src/binFiles/%,bin$(suff)/%,$(binFiles))

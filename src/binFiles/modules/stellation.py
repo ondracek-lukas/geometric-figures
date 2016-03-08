@@ -58,12 +58,22 @@ def stellateFigure(figure):
 			facets=facets.union(f2.bounds) # to be in-place
 		facets.remove(f)
 		hyperplanes=[spaceCuts.hyperplaneOfFacet(f2, innerPoint) for f2 in facets]
-		hyperplane=spaceCuts.hyperplaneOfFacet(f, innerPoint)
-		hyperplanes.append(hyperplane.inverse())
-		try:
-			apexFigure=spaceCuts.figureFromArea(hyperplanes)
-		except spaceCuts.WrongAreaError:
+		hyperplane=spaceCuts.hyperplaneOfFacet(f, innerPoint).inverse()
+		fv=[v.position for v in f if v.dim==0]
+		apexPoint=algebra.vectMult(1.0/len(fv), algebra.vectSum(*fv))
+		dist=float('inf')
+		for h in hyperplanes:
+			p=algebra.dotProduct(hyperplane.normal, h.normal)
+			if p<-0.0001:
+				d=-h.orientedDistance(apexPoint)/p
+				if d<dist:
+					dist=d
+		if dist == float('inf'):
 			raise RuntimeError("Infinite stellations are not supported")
+
+		hyperplanes.append(hyperplane)
+		apexInnerPoint=algebra.vectSum(apexPoint, algebra.vectMult(dist/2.0, hyperplane.normal))
+		apexFigure=spaceCuts.figureFromArea(hyperplanes, apexInnerPoint)
 		vertices=[v for v in f if v.dim == 0]
 		apexVertices=[v for v in apexFigure if v.dim == 0]
 		for f2 in sorted(apexFigure, key=attrgetter('dim')):

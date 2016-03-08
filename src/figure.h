@@ -78,9 +78,9 @@ extern int figureVerticesOfFaces(int ***facevertOut);
 
 
 // Approximately compares distances
-#define figureDistCmpToleranceHigher (0.8/(1ll<<8))
-#define figureDistCmpToleranceDefault (0.8/(1ll<<13))
-#define figureDistCmpToleranceLower (0.8/(1ll<<16))
+#define figureDistCmpToleranceHigher (1.0/(1ll<<8))
+#define figureDistCmpToleranceDefault (1.0/(1ll<<13))
+#define figureDistCmpToleranceLower (1.0/(1ll<<16))
 extern int figureDistCmpZero(GLdouble distance, GLdouble tolerance);
 extern int figureDistCmpZeroSq(GLdouble squaredDistance, GLdouble tolerance);
 extern int figureDistCmp(GLdouble a, GLdouble b, GLdouble tolerance);

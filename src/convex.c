@@ -63,15 +63,19 @@ bool convexAttach(struct figureData *figure) {
 		while (wrongDimList)
 			convexFigDestroy(convexFigListRm(&wrongDimList));
 	}
-	for (dim=figure->dim; (dim>0) && !convexFigure; dim--)
-		for (i=0; i<figure->count[dim]; i++)
-			if (convexShadow[dim][i])
+	for (dim=figure->dim; dim>0; dim--) {
+		for (i=0; i<figure->count[dim]; i++) {
+			if (convexShadow[dim][i] && !convexShadow[dim][i]->parents) {
 				convexFigListAdd(&convexFigure, convexShadow[dim][i]);
+			}
+		}
+	}
 	convexFigListDestroy(&convexFreeVertices);
 	for (i=0; i<figure->count[0]; i++)
 		if (!convexShadow[0][i]->parents)
 			convexFigListAdd(&convexFreeVertices, convexShadow[0][i]);
 
+	DEBUG_HULL_PROGR(debugProgrStart(figure, convexShadow);)
 	convexUpdateHull();
 	if (!convexHull && inconsistent)
 		exportHull();

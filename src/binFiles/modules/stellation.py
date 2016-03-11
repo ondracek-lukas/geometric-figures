@@ -43,7 +43,7 @@ def stellateFigure(figure):
 		for f2 in f:
 			f2.bounds.append(f)
 	vertsPos=[v.position for v in figure if v.dim == 0]
-	innerPoint=algebra.vectMult(len(vertsPos), algebra.vectSum(*vertsPos))
+	innerPoint=algebra.vectMult(1.0/len(vertsPos), algebra.vectSum(*vertsPos))
 	figByBoundary=dict()
 	for f in sorted(figure, key=attrgetter("dim")):
 		if f.dim == 0:

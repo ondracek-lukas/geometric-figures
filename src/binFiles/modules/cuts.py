@@ -270,7 +270,7 @@ def commandCutFaces(dim, ratio):
 		name = "Cutted edges from " + name
 	else:
 		gf.echo(str(dim) + "-faces of the figure has been cut")
-		name = "Cutted " + dim + "-faces from " + name
+		name = "Cutted " + str(dim) + "-faces from " + str(name)
 
 	if figureInfo:
 		figureInfo.setNameDescPath(name, None)

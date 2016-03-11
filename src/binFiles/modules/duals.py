@@ -39,8 +39,8 @@ except ImportError:
 def dualPointFromHyperplane(hyperplane, centerPoint=None):
 	if not centerPoint:
 		centerPoint=(0,)*len(hyperplane.normal)
-	dist=abs(hyperplane.orientedDistance(centerPoint))
-	if dist < 0.0001:
+	dist=hyperplane.orientedDistance(centerPoint)
+	if abs(dist) < 0.0001:
 		raise RuntimeError("Hyperplane passing through the center")
 	return algebra.vectSum(algebra.vectMult(-1/dist, hyperplane.normal), centerPoint)
 

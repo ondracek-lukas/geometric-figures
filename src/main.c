@@ -84,13 +84,17 @@ int main(int argc, char **argv) {
 	glutMouseFunc(mainMouseEvent);
 	glutMotionFunc(mainMouseMoveEvent);
 
+	consolePrintNamedBlock("help", "welcome");
 	path=utilExpandPath("%/config.py");
-	if (file=fopen(path, "r")) {
+	if ((file=fopen(path, "r"))) {
 		fclose(file);
 		consoleExecFile(path);
 	}
 
-	consolePrintNamedBlock("help", "welcome");
+	for (int i=1; i<argc; i++) {
+		consoleExecFile(argv[i]);
+	}
+
 
 	glutMainLoop();
 

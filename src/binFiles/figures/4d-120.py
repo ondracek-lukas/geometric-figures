@@ -3,5 +3,5 @@ gf.figureOpen([[(0.0, 0.0, -0.7071067690849304, -0.7071067690849304), (-0.707106
 
 try:
 	import figureInfo
-	figureInfo.setNameDescPath('Regular Dodecacontachoron', 'One of the six regular polychorons (4-dimensional analogy of Platonic solids).\nIts cells are dodecahedral.', __file__)
+	figureInfo.setNameDescPath('Regular Dodecacontachoron', 'One of the six regular polychora (4-dimensional analogy of Platonic solids).\nIts cells are dodecahedral.', __file__)
 except ImportError: pass

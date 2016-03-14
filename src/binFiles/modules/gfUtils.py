@@ -61,10 +61,8 @@ def openFileRelative(offset):
 def openConvexFromVertList(vertices, name=None, description=None, path=None):
 	if vertices:
 		gfFigure=[vertices]+[[]]*len(vertices[0])
-		convexhull=gf.get_convexhull()
-		gf.set_convexhull(True)
+		gfFigure=gf.figureConvexHullUpdate(gfFigure)
 		gf.figureOpen(gfFigure)
-		gf.set_convexhull(convexhull)
 	else:
 		gf.close()
 	if figureInfo:

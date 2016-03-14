@@ -48,18 +48,22 @@ gf.echo("To see the configuration press ?")
 config_readme=""
 
 def configPrint():
-	text = config_readme
-	text += "\n\nFor further help see configuration file,"
+	text=""
+	if config_readme:
+		text += config_readme
+		text += "\n\nFor further help see the configuration file,"
+	else:
+		text += "There is no help on configuration (maybe there is no config.py file at all),"
 	if main_help_pages:
 		text += """
-for help to imported modules type :help module <name>,
+for help on imported modules type :help module <name>,
   <name> can be:""";
-	i=0
-	for s in sorted(main_help_pages):
-		if i>0 and i % 6 == 0:
-			text += "\n                "
-		text+=" "+s+","
-		i+=1
+		i=0
+		for s in sorted(main_help_pages):
+			if i>0 and i % 6 == 0:
+				text += "\n                "
+			text+=" "+s+","
+			i+=1
 	text+="\nfor general help type :help."
 	gf.printCentered(text)
 

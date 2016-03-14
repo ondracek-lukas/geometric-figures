@@ -6,6 +6,7 @@
 #include "anim.h"
 #include "script.h"
 #include "console.h"
+#include "convex.h"
 
 #define GIL_ACQUIRE \
 	bool gilRelease=!scriptIsGILAcquired(); \
@@ -178,7 +179,7 @@ void scriptEventsPerform(struct scriptEvent *event, ...) {
 }
 
 static void performPending(int nothing) {
-	if (animSleepActive || consoleIsOpen())
+	if (animSleepActive || convexInteract || consoleIsOpen())
 		return;
 	GIL_ACQUIRE
 	if (invoked) {
@@ -202,6 +203,6 @@ static void performPending(int nothing) {
 }
 
 void scriptEventsSchedulePending() {
-	if (!animSleepActive)
+	if (!animSleepActive && !convexInteract)
 		glutTimerFunc(0, performPending, 0);
 }

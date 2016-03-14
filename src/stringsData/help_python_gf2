@@ -3,19 +3,19 @@ List of other gf module functions (not accessible as commands):
   gf.clear()  | Clears console, otherwise echo will only append new lines.
   gf.clearAfterCmd()     | Does echo msg; only this line is cleared when typing command,
   gf.clearAfterCmd(msg)  | the other will resist; default msg is used if not given.
-  gf.clearBeforePrinting()  | Clears console before next printing
-  gf.echoErr(string)  | Prints string with red color
-  gf.printCentered(string)  | Prints string centered like help pages
+  gf.clearBeforePrinting()  | Clears console before next printing.
+  gf.echoErr(string)  | Prints string with red color.
+  gf.printCentered(string)  | Prints string centered like help pages.
   gf.sleep(ms)  | Handles window events for at least given time and one repainting (if necessary);
                 | returns False if aborted by user, script has to end as soon as possible.
-  gf.time()  | Returns time for which application is running in msec
+  gf.time()  | Returns time for which application is running in msec.
   gf.addCommand(cmd, pyexpr)                |
   gf.addCommand(cmd, pyexpr, pCnt, pFlags)  | Creates/destroys user command(s),
-  gf.removeCommands(prefix)                 | see :help python commands
+  gf.removeCommands(prefix)                 | see :help python commands.
   gf.addColorAlias(alias, color)  |
   gf.resetColorAliases()          |
   gf.normalizeColor(color)        | Manages color format,
-  gf.normalizeColorAlpha(color)   | see :help python colors
+  gf.normalizeColorAlpha(color)   | see :help python colors.
   gf.expandPath()  | Expands %/ and ~/
   gf.vertexAdd()               |
   gf.vertexAdd(pos)            |
@@ -25,7 +25,8 @@ List of other gf module functions (not accessible as commands):
   gf.vertexSelected()          | Manages vertices
   gf.posRotate(pos)            | and transformations of coordinates,
   gf.posRotateBack(pos)        | see :help python vertices.
-  gf.figureGet()                | Manages figures,
-  gf.figureOpen(figure)         | see :help python figure.
+  gf.figureGet()                     |
+  gf.figureOpen(figure)              | Manages figures,
+  gf.figureConvexHullUpdate(figure)  | see :help python figure.
   gf.registerCallback(name, function)    | Manages callbacks,
-  gf.unregisterCallback(name, function)  | see :help python callbacks
+  gf.unregisterCallback(name, function)  | see :help python callbacks.

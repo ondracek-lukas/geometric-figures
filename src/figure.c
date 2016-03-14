@@ -10,6 +10,7 @@
 #include "safe.h"
 #include "matrix.h"
 #include "console.h"
+#include "consoleCmd.h"
 #include "script.h"
 #include "drawer.h"
 
@@ -60,6 +61,7 @@ bool figureOpen(struct figureData *figure, bool preserveRotation) {
 	}
 
 	drawerInvokeRedisplay();
+	consoleCmdVertexDeselect();
 	convexDetach();
 	figureDestroy(&figureData, false);
 

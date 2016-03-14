@@ -1,7 +1,21 @@
-import gf
-gf.figureOpen([[(-0.5773502588272095, -0.5773502588272095, -0.5773502588272095), (-0.5773502588272095, -0.5773502588272095, 0.5773502588272095), (-0.5773502588272095, 0.5773502588272095, -0.5773502588272095), (-0.5773502588272095, 0.5773502588272095, 0.5773502588272095), (0.5773502588272095, -0.5773502588272095, -0.5773502588272095), (0.5773502588272095, -0.5773502588272095, 0.5773502588272095), (0.5773502588272095, 0.5773502588272095, -0.5773502588272095), (0.5773502588272095, 0.5773502588272095, 0.5773502588272095)], [[1, 5], [4, 5], [0, 1], [0, 4], [2, 6], [4, 6], [0, 2], [5, 7], [6, 7], [1, 3], [2, 3], [7, 3]], [[0, 2, 3, 1], [4, 6, 3, 5], [7, 1, 5, 8], [9, 2, 6, 10], [7, 0, 9, 11], [8, 4, 10, 11]], [[0, 1, 2, 3, 4, 5]]])
+name="Cube"
+description="""
+One of the five Platonic solids (regular polyhedra).
+Its faces are squared.
+"""
 
-try:
-	import figureInfo
-	figureInfo.setNameDescPath('Cube', 'One of the five Platonic solids (regular polyhedra).\nIts faces are squared.', __file__)
-except ImportError: pass
+import math
+c=math.sqrt(1.0/3)
+vertices=[]
+for x in (-c, c):
+	for y in (-c, c):
+		for z in (-c, c):
+			vertices.append((x,y,z))
+
+import gfUtils
+gfUtils.openConvexFromVertList(vertices, name, description, __file__)
+
+	#del name
+	#del description
+	#del vertices
+	#del c

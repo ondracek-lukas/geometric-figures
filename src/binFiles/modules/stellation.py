@@ -66,7 +66,9 @@ def stellateFigure(figure):
 			p=algebra.dotProduct(hyperplane.normal, h.normal)
 			if p<-0.0001:
 				d=-h.orientedDistance(apexPoint)/p
-				if d<dist:
+				if d<0.0001:
+					raise RuntimeError("The figure is not convex")
+				elif d<dist:
 					dist=d
 		if dist == float('inf'):
 			raise RuntimeError("Infinite stellations are not supported")

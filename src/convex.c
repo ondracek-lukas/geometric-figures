@@ -228,9 +228,9 @@ void convexVertexRm(int index) {
 	}
 	convexShadow[0]=safeRealloc(convexShadow[0], (convexAttached->count[0]-1)*sizeof(struct convexFig *));
 	if (convexHull)
-		convexInteractStop("Convex hull has been updated");
+		convexInteractStop("Convex hull updated");
 	else
-		convexInteractStop("The appropriate faces have been removed");
+		convexInteractStop("Topology of the figure updated");
 	exportHull();
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
@@ -242,7 +242,7 @@ void convexVertexMove(int index, GLdouble *pos) {
 	} else {
 		convexInteractStart("Breaking appropriate faces...");
 		convexHullBreakNearVert(convexShadow[0][index]);
-		convexInteractStop("The appropriate faces have been broken");
+		convexInteractStop("Topology of the figure updated");
 	}
 	convexSpaceUnassign(convexShadow[0][index]);
 	convexSpaceCreateVert(&tmpSpace, pos);
@@ -250,7 +250,7 @@ void convexVertexMove(int index, GLdouble *pos) {
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 	if (convexHull) {
 		convexHullVertAdd(convexShadow[0][index]);
-		convexInteractStop("Convex hull has been updated");
+		convexInteractStop("Convex hull updated");
 	}
 	exportHull();
 };

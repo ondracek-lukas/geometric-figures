@@ -374,7 +374,7 @@ struct utilStrList *consoleCmdsPathComplete(char *prefix) {
 
 	struct dirent *file;
 	struct utilStrList *list=0;
-	while (file=readdir(dir)) {
+	while ((file=readdir(dir))) {
 		if ((strncmp(prefix, file->d_name, prefixLen)==0) && (*prefix || (*file->d_name!='.'))) {
 			utilStrListAddAfter(&list);
 			utilStrRealloc(&list->str, 0, strlen(file->d_name)-prefixLen+1);

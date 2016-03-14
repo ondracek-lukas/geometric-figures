@@ -1,6 +1,6 @@
 help:welcome;help:license;help:about
                      The Geometric Figures @VERSION@
- Copyright (C) 2015  Luk\x27\ba\x27\b\x60\bs Ondr\x27\ba\x27\b\x60\bcek <ondracek.lukas@gmail.com>
+ Copyright (C) 2016  Luk\x27\ba\x27\b\x60\bs Ondr\x27\ba\x27\b\x60\bcek <ondracek.lukas@gmail.com>
                      <http://ondracek-lukas.hys.cz/projects>
 
 This program is free software: you can redistribute it and/or modify
@@ -8,7 +8,7 @@ This program is free software: you can redistribute it and/or modify
             as published by the Free Software Foundation.
 
  You should have received a copy of the GNU General Public License
-          along with this program in file called COPYING.
+         along with this program in a file called COPYING.
             If not, see <http://www.gnu.org/licenses/>.
 
           This program comes with ABSOLUTELY NO WARRANTY;

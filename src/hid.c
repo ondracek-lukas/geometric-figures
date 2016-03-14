@@ -93,16 +93,19 @@ int hidCodeFromString(char *s) {
 		s++;
 	}
 
-	if ((s[1]=='>') && (s[2]=='\0'))
-		if (((s[0]>='a') && (s[0]<='z')) || !(m & (FLAG_CTRL|FLAG_SHIFT)))
+	if ((s[1]=='>') && (s[2]=='\0')) {
+		if (((s[0]>='a') && (s[0]<='z')) || !(m & (FLAG_CTRL|FLAG_SHIFT))) {
 			return m | *s;
-		else
+		} else {
 			return 0;
+		}
+	}
 
-	if (!(m & (FLAG_CTRL|FLAG_SHIFT)))
+	if (!(m & (FLAG_CTRL|FLAG_SHIFT))) {
 		tbl("space", 32);
-	else
+	} else {
 		tbl("space", -m);
+	}
 
 	tbl("tab", 9);
 
@@ -499,7 +502,6 @@ void evalExprSubstr(char *expr, int param) {
 }
 
 void hidMouseMoveEvent(int x, int y, int modifiers) {
-	consoleClear();
 	static int originX, originY;
 	static int warpingX=INT_MIN, warpingY;
 	if ((x==warpingX) && (y==warpingY))
@@ -517,6 +519,9 @@ void hidMouseMoveEvent(int x, int y, int modifiers) {
 		if ((diffX==0) && (diffY==0))
 			return;
 		updateMouseRots(modifiers);
+		if (!(diffX && mouseXItem) && !(diffY && mouseYItem))
+			return;
+		consoleClear();
 		if (diffX && mouseXItem) {
 			if (mouseXItem->rot)
 				animCustomRot(mouseXItem->rot, diffX*hidMouseSensitivity);

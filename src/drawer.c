@@ -535,7 +535,7 @@ static void drawStatusLine() {
 
 	glColor3fv(stringColor);
 
-	if (lines=consoleLines) {
+	if ((lines=consoleLines)) {
 		consoleSize=consoleStrWidth(lines->str);
 		count=1;
 		while (lines->prev) {

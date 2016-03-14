@@ -26,7 +26,7 @@ bool convexHullUtilExpandDim(struct convexFig *fig, struct convexFig *vert, stru
 	convexFigMarkReset(convexFigMarkIdHash);
 	vertCount=convexFigHashCalc(fig, &hash);
 	vertCount+=convexFigHashCalc(vert, &hash);
-	if (*newFig=convexFigHashFind(fig->parents, hash, vertCount)) {
+	if ((*newFig=convexFigHashFind(fig->parents, hash, vertCount))) {
 		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (fig exists)\n", fig->space->dim+1);)
 		return 0;
 	}

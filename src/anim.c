@@ -123,7 +123,7 @@ void frame(int value) {
 
 	lastTime=time;
 	glutTimerFunc(animFrameDelay, frame, 0);
-	if (animSleepActive) {
+	if (animSleepActive || convexInteract) {
 		return;
 	} else if (!animSleepActive && sleepInterrupted) {
 		sleepInterrupted=false;

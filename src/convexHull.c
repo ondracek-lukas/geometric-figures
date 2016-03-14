@@ -182,7 +182,7 @@ void convexHullBreakNearVert(struct convexFig *vertIn) {
 			vertCount=0;
 			for (list=verticesCenterFace; list; list=list->next)
 				vertCount+=convexFigHashCalc(list->fig, &hash);
-			if (edgeCenter=convexFigHashFind(verticesCenterFace->fig->parents, hash, vertCount)) {
+			if ((edgeCenter=convexFigHashFind(verticesCenterFace->fig->parents, hash, vertCount))) {
 				faceIn=faces->fig;
 			} else {
 				edgeCenter=convexFigNew();

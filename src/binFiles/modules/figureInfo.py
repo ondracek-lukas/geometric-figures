@@ -10,15 +10,9 @@ Commands:
 
 Some information is generated automatically, other can be set.
 
-
-When opening figure from file <name>.dat,
-metadata are read from file .<name>.txt,
-the first line is the name, the others are description.
-
 After figure is generated,
-figureInfo.setNameDescPath(name, description, path) should be called.
-
-In both cases information is printed.
+figureInfo.setNameDescPath(name, description, path) should be called,
+the information is then printed.
 
 
 Python interface:
@@ -62,19 +56,6 @@ def onOpen(path):
 	global name
 	global description
 	global filePath
-	if path and path[-4:]==".dat":
-		filePath=gf.expandPath(path)
-		parts=os.path.split(filePath)
-		metaPath=os.path.join(parts[0], "." + parts[1][:-4] + ".txt")
-		if os.access(metaPath, os.R_OK):
-			with open(metaPath) as f:
-				lines=f.readlines()
-			if lines:
-				name=lines.pop(0).rstrip()
-				if len(lines)>0:
-					description=str.join("", lines).rstrip()
-		else:
-			name=parts[1][:-4]
 	gf.clear()
 	printAll()
 def onModify():

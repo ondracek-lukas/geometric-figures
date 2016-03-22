@@ -15,10 +15,11 @@ Commands:
 Python interface:
   cutFigure(figure, hyperplane)                    -returns both parts and section
   cutOff(figure, hyperplanes, showProgress)        -cuts off parts
+  cutOffConvex(figure, hyperplanes, innerPoint)    -cuts off parts, faster than the previous
   cutOffFaces(figure, ratio, faces, showProgress)  -cuts off given faces
   cutOffFacesDim(figure, ratio, dim, showProgress) -cuts off all <dim>-faces
 
-uses modules: algebra, objFigure, [figureInfo], [helpMod]
+uses modules: algebra, objFigure, spaceCuts, check, [figureInfo], [helpMod]
 
 For more information see cuts.py
 """
@@ -30,6 +31,9 @@ from objFigure import Figure, Vertex, figuresIterator;
 import algebra
 from algebra import Hyperplane;
 import gf
+import spaceCuts
+import check
+
 try:
 	import figureInfo
 except ImportError:
@@ -203,8 +207,8 @@ def cutFigure(figure, hyperplane, reuseCache=False):
 			return cache(leftComp, section, rightComp)
 
 
-
-# Cuts off parts of the Figure object determined by given Hyperplanes
+# Cuts off parts of the Figure object determined by the given Hyperplanes,
+# iteratively calls cutFigure function, slow
 # returns list of new figures
 def cutOff(figure, hyperplanes, showProgress=False):
 	figures=[figure]
@@ -225,41 +229,52 @@ def cutOff(figure, hyperplanes, showProgress=False):
 		gf.echo("Figure has been cut")
 	return figures
 
+# Cuts off parts of the Figure object determined by the given Hyperplanes,
+# the figure has to be convex, the innerPoint has to lie in the new figure,
+# much faster than cutOff function
+# returns list of new figures (always one-item)
+def cutOffConvex(figure, hyperplanes, innerPoint=None):
+	hyperplanes=hyperplanes+spaceCuts.hyperplanesOfFigure(figure)
+	return [spaceCuts.figureFromArea(hyperplanes, innerPoint)]
 
 
 # Cuts off specified vertices/edges/faces of a figure,
 # ratio = d(face, hyperplane) : d(face, origin)
-def cutOffFaces(figure, ratio, faces, showProgress=False):
+def cutOffFaces(figure, ratio, faces):
 	hyperplanes=[]
+	innerPoint=algebra.vectAvg(*[v.position for v in figure if v.dim==0])
 	for f in faces:
 		points=[v.position for v in f if v.dim==0]
 		basis=algebra.orthonormalBasisFromPoints(points)
-		normal=algebra.orthogonalizeVect(points[0], basis)
+		normal=algebra.orthogonalizeVect(algebra.vectDiff(points[0], innerPoint), basis)
 		if algebra.vectLen(normal)<0.0001:
-			raise RuntimeError("Face passes through the origin")
-		hyperplanes.append(Hyperplane(normal, 1-ratio))
-	return cutOff(figure, hyperplanes, showProgress)
+			raise RuntimeError("Cannot cut faces")
+		hyperplanes.append(Hyperplane(normal, (1-ratio+algebra.dotProduct(normal, innerPoint)/algebra.vectLen(normal)**2)))
+	return cutOffConvex(figure, hyperplanes, innerPoint)
 
 # Cuts off faces of specified dimension of a figure,
 # ratio = d(vertex, hyperplane) : d(vertex, origin)
-def cutOffFacesDim(figure, ratio, dim, showProgress=False):
+def cutOffFacesDim(figure, ratio, dim):
 	faces=[]
 	for f in figure:
 		if f.dim==dim:
 			faces.append(f)
 	if not faces:
 		raise RuntimeError("No faces of the specified dimension found")
-	return cutOffFaces(figure, ratio, faces, showProgress)
+	return cutOffFaces(figure, ratio, faces)
 
 
 
 def commandCutFaces(dim, ratio):
 	figures=objFigure.fromGfFigure(gf.figureGet())
+	for f in figures:
+		if not check.isFigureConvex(f):
+			raise RuntimeError("The figure is not convex")
 	if figureInfo:
 		name, desc = figureInfo.getNameDesc()
 	figures2=[]
 	for f in figures:
-		figures2.extend(cutOffFacesDim(f, ratio, dim, True))
+		figures2.extend(cutOffFacesDim(f, ratio, dim))
 	gf.figureOpen(objFigure.toGfFigure(figures2), True)
 	gf.clear()
 	if dim==0:

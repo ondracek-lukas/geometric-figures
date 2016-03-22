@@ -9,8 +9,9 @@ it has only Python interface:
   dotProduct(vector1, vector2)                 -dot product of vectors
   vectLen(vector)                              -euclidian vector length
   vectDiff(vector1, vector2)                   -difference of vectors
-  vectSum(vector1, vector2)                    -sum of vectors
+  vectSum(vector1, ...)                        -sum of vectors
   vectMult(multiplier, vector)                 -multiple of vector
+  vectAvg(vector1, ...)                        -arithmetic mean of the vectors
   pointsDist(point1, point2)                   -euclidian distance of the points
   orthogonalizeVect(vector, orthonormalBasis)  -orthogolalization of vector
   orthonormalizeBasis(basis)                   -Gram-Schmidt orthonormalization
@@ -48,6 +49,9 @@ def vectSum(*vectors):
 
 def vectMult(mult, vector):
 	return tuple(map(lambda x: mult*x, vector))
+
+def vectAvg(*vectors):
+	return vectMult(1.0/len(vectors), vectSum(*vectors))
 
 def pointsDist(point1, point2):
 	return vectLen(vectDiff(point1, point2))

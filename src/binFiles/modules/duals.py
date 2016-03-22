@@ -16,7 +16,7 @@ Python interface:
     -creates dual point to the given hyperplane
      using polar reciprocation with the given center and radius 1
 
-using modules: algebra, objFigure, [figureInfo]
+uses modules: algebra, check, objFigure, [figureInfo], [helpMod]
 
 For more information see duals.py
 """
@@ -26,6 +26,8 @@ from objFigure import Figure, Vertex
 import gf
 from operator import attrgetter
 import algebra
+import check
+
 try: import figureInfo
 except ImportError: figureInfo=None
 
@@ -71,6 +73,9 @@ def createDual(figure, centerPoint=None):
 
 def commandCreateDual():
 	figures=objFigure.fromGfFigure(gf.figureGet())
+	for f in figures:
+		if not check.isFigureConvex(f):
+			raise RuntimeError("The figure is not convex")
 	if figureInfo:
 		name, desc = figureInfo.getNameDesc()
 	figures=[createDual(f) for f in figures]

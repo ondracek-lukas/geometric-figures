@@ -15,7 +15,7 @@ Python interface:
     -creates stellated Figure object from the given one
     -it can last long time, application can freeze
 
-uses modules: algebra, objFigure, spaceCuts, [figureInfo]
+uses modules: algebra, objFigure, spaceCuts, [figureInfo], [helpMod]
 
 For more information see stellation.py
 """

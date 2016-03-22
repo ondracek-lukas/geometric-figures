@@ -3,7 +3,7 @@
 # This module allows to create convex figure from hyperplanes bordering it
 
 module_help = """
-Module spaceCuts creates convex figures from hyperplanes bordering them.
+Module spaceCuts creates convex figures from hyperplanes bordering them,
 it has only Python interface:
 
   figureFromArea(hyperplanes, innerPoint)
@@ -11,6 +11,8 @@ it has only Python interface:
   hyperplaneOfFacet(facet, positivePoint)
     -creates hyperplane containing the given facet
     -optional positivePoint will have positive oriented distance from the hyperplane
+  hyperplanesOfFigure(figure)
+    -returns list of hyperplanes containing the facets of the figure
 
 uses modules: algebra, duals, gfUtils, [helpMod]
 
@@ -23,7 +25,7 @@ import gfUtils
 
 try:
 	import helpMod
-	helpMod.addModule("spaceCuts", module_help)
+	helpMod.addModule("spacecuts", module_help)
 except ImportError:
 	pass
 
@@ -44,7 +46,7 @@ def hyperplaneOfFacet(facet, positivePoint=None):
 def hyperplanesOfFigure(figure):
 	hyperplanes=[]
 	vertsPos=[v.position for v in figure if v.dim == 0]
-	innerPoint=algebra.vectMult(1.0/len(vertsPos), algebra.vectSum(*vertsPos))
+	innerPoint=algebra.vectAvg(*vertsPos)
 	for facet in figure.boundary:
 		hyperplanes.append(hyperplaneOfFacet(facet, innerPoint))
 	return hyperplanes

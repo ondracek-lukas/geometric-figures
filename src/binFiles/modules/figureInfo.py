@@ -22,7 +22,7 @@ Python interface:
   counts(figure)        -returns counts of faces of Figure object
   printAll()            -prints information about opened figure
 
-uses modules: objFigure, [helpMod]
+uses modules: objFigure, [snapshots], [helpMod]
 
 For more information see figureInfo.py
 """
@@ -31,6 +31,9 @@ import gf
 import os
 import pprint
 import objFigure
+
+try: import snapshots
+except ImportError: snapshots=None
 
 try:
 	import helpMod
@@ -43,7 +46,10 @@ name=None
 description=None
 filePath=None
 modified=False
+
 def onNew():
+	if snapshots and snapshots.restoringInProgress():
+		return
 	global name
 	global description
 	global filePath
@@ -52,16 +58,26 @@ def onNew():
 	description=None
 	filePath=None
 	modified=False
+	if snapshots:
+		updateSnapshotState()
 def onOpen(path):
+	if snapshots and snapshots.restoringInProgress():
+		return
 	global name
 	global description
 	global filePath
+	if snapshots:
+		updateSnapshotState()
 	gf.clear()
 	printAll()
 def onModify():
+	if snapshots and snapshots.restoringInProgress():
+		return
 	global modified
 	global name
 	modified=True
+	if snapshots:
+		updateSnapshotState()
 def onWrite(path):
 	filePath=gf.expandPath(path)
 	if os.access(filePath, os.W_OK):
@@ -73,11 +89,31 @@ try:
 except ImportError: pass""")
 
 
-
 gf.registerCallback("new", onNew)
 gf.registerCallback("open", onOpen)
 gf.registerCallback("modified", onModify)
 gf.registerCallback("write", onWrite)
+
+if snapshots:
+	def updateSnapshotState():
+		snapshots.setState("figureInfo", (name, description, filePath, modified))
+	def onSnapshotRestore(oldIndex):
+		global name
+		global description
+		global filePath
+		global modified
+		state=snapshots.getState("figureInfo")
+		if state:
+			#(name, description, filePath, modified) = state
+			name=state[0]
+			description=state[1]
+			filePath=state[2]
+			modified=state[3]
+		else:
+			onNew()
+		gf.clear()
+		printAll()
+	snapshots.registerCallback(onSnapshotRestore)
 
 def setNameDescPath(newName, newDescription, path=None):
 	global name
@@ -92,6 +128,8 @@ def setNameDescPath(newName, newDescription, path=None):
 		description=description.strip()
 	filePath=path
 	modified=False
+	if snapshots:
+		updateSnapshotState()
 	gf.clear()
 	printAll()
 def getNameDesc():

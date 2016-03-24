@@ -106,7 +106,7 @@ def commandStellate():
 	if name:
 		name="Stellated " + name
 	desc=None
-	gf.figureOpen(objFigure.toGfFigure(figures))
+	gf.figureOpen(objFigure.toGfFigure(figures), True)
 	if figureInfo:
 		figureInfo.setNameDescPath(name, desc)
 

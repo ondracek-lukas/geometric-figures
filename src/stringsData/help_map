@@ -9,7 +9,7 @@ help:map
                       and Release event (instead of press).
           Key can be also ASCII character or one of enter, esc, bs, delete,
              up, down, left, right, home, end, pageup, pagedown, insert,
-                             f1..f12, mouse0..mouse9.
+             f1..f12, mouse0..mouse9 (not all combinations are allowed)
                  Mouse buttons are numbered according to freeglut,
 it would be 0 left, 1 center, 2 right, 3/4 vertical wheel, 5/6 horizontal wheel, ...
 

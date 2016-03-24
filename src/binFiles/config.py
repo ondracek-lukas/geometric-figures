@@ -139,12 +139,16 @@ gf.map("i", "vertex move 0 0 0.2")
 gf.map("m", "vertex move 0 0 0 -0.2")
 gf.map(",", "vertex move 0 0 0 0.2")
 
+gf.map("<bs>", "undo")
+gf.map("<c-r>", "redo")
+
 helpMod.configAdd("""
 Modifications:
   Remove/add vertex:    P-N
   Select previous/next: p-n
   Deselect:             o/Esc
   Move in an axis:      h-l 1(x), j-k 2(y), u-i 3(z), m-, 4
+  Undo, redo:           Backspace, Ctrl-r
 """)
 
 

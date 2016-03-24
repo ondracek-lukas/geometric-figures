@@ -45,15 +45,16 @@
 #define KEY_DEL  127
 
 int hidCodeFromEvent(int keyCode, bool isSpecial, int modifiers, bool pressed) {
-	int c=keyCode, m=modifiers;
-	if (isSpecial) c|=FLAG_SPECIAL;                  // special keys
-	else if ((m&2) && (c>=1) && (c<=26))  c+='a'-1; // Ctrl + letter
-	if (pressed)   c|=FLAG_PRESS;
+	int c=keyCode, m=modifiers<<SHIFT_MOD_FLAGS;
+	if (isSpecial) m|=FLAG_SPECIAL;                           // special keys
+	else if ((m & FLAG_CTRL) && (c>=1) && (c<=26))  c+='a'-1; // Ctrl + letter
+	if (pressed)   m|=FLAG_PRESS;
 
-	if (((c>='a') && (c<='z')) || (c & FLAG_SPECIAL) || (c==KEY_ENTER) || (c==KEY_ESC) || (c==KEY_BS) || (c==KEY_DEL))
-		return c | (m<<SHIFT_MOD_FLAGS);             // [Ctrl +] [Alt +] [Shift +] (letter|special|Enter|Esc|BS|Delete)
-	else
-		return c | ((m<<SHIFT_MOD_FLAGS) & FLAG_ALT); // [Alt +] other
+	if ((m & FLAG_SPECIAL) || (c==KEY_ENTER) || (c==KEY_ESC) || (c==KEY_BS) || (c==KEY_DEL)) {
+		return c | m;              // [Ctrl +] [Alt +] [Shift +] (letter|special|Enter|Esc|BS|Delete)
+	} else {
+		return c | (m & (FLAG_ALT|FLAG_PRESS|FLAG_CTRL)); // [Ctrl +] [Alt +] other
+	}
 }
 
 int hidCodeFromMouseEvent(int button, int modifiers, bool pressed) {
@@ -94,10 +95,10 @@ int hidCodeFromString(char *s) {
 	}
 
 	if ((s[1]=='>') && (s[2]=='\0')) {
-		if (((s[0]>='a') && (s[0]<='z')) || !(m & (FLAG_CTRL|FLAG_SHIFT))) {
-			return m | *s;
-		} else {
+		if (m & FLAG_SHIFT) {
 			return 0;
+		} else if (!(m & FLAG_CTRL) || ((s[0]>='a') && (s[0]<='z'))) {
+			return m | *s;
 		}
 	}
 

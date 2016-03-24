@@ -88,6 +88,8 @@ bool figureOpen(struct figureData *figure, bool preserveRotation) {
 			scriptThrowException("Several faces generating spaces of wrong dimension removed");
 			return false;
 		}
+	} else {
+		drawerSetDim(-1);
 	}
 	return true;
 }

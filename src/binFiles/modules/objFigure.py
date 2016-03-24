@@ -46,6 +46,8 @@ def figuresIterator(figures):
 
 # Takes gf.figure structure, returns set of figures
 def fromGfFigure(gfFigure):
+	if not gfFigure:
+		return []
 	figures=[[]]
 	for i in range(0, len(gfFigure[0])):
 		figures[0].append(Vertex(gfFigure[0][i], i))

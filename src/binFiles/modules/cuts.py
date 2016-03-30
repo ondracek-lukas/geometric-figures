@@ -7,10 +7,13 @@ module_help="""
 Module cuts allows cutting figures.
 
 Commands:
-  cut vertices <ratio>     -cuts off vertices
-  cut edges <ratio>        -cuts off edges
-  cut faces <dim> <ratio>  -cuts off faces of given dimension
-    <ratio> = d(face, hyperplane) : d(face, origin)
+  cut figure [<lastCoord>]     -cross-section by a hyperplane orthogonal to the last axis
+  cut off [<lastCoord>]        -cuts off the nearer part of the figure det. by the hyperplane
+    <lastCoord> = last coordinate of points in the hyperplane, defaults to 0
+  cut vertices [<ratio>]       -cuts off vertices
+  cut edges [<ratio>]          -cuts off edges
+  cut faces [<dim> [<ratio>]]  -cuts off faces of given dimension (defaults to 2)
+    <ratio> = d(face, hyperplane) : d(face, origin), defaults to 0.1
 
 Python interface:
   cutFigure(figure, hyperplane)                    -returns both parts and section
@@ -265,7 +268,9 @@ def cutOffFacesDim(figure, ratio, dim):
 
 
 
-def commandCutFaces(dim, ratio):
+def commandCutFaces(dim=2, ratio=0.1):
+	if ratio>=1 or ratio<=0:
+		raise RuntimeError("Wrong ratio")
 	figures=objFigure.fromGfFigure(gf.figureGet())
 	for f in figures:
 		if not check.isFigureConvex(f):
@@ -278,18 +283,70 @@ def commandCutFaces(dim, ratio):
 	gf.figureOpen(objFigure.toGfFigure(figures2), True)
 	gf.clear()
 	if dim==0:
-		gf.echo("Vertices of the figure has been cut")
-		name = "Cutted vertices from " + name
+		name = name + " with vertices cut off"
 	elif dim==1:
-		gf.echo("Edges of the figure has been cut")
-		name = "Cutted edges from " + name
+		name = name + " with edges cut off"
 	else:
-		gf.echo(str(dim) + "-faces of the figure has been cut")
-		name = "Cutted " + str(dim) + "-faces from " + str(name)
+		name = name + " with " + str(dim) + "-faces cut off"
 
 	if figureInfo:
 		figureInfo.setNameDescPath(name, None)
 
-gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", 1, '-')
-gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", 1, '-')
-gf.addCommand("cut faces ", "cuts.commandCutFaces(%,%)", 2, '-')
+
+def commandCutOff(lastCoordinate=0):
+	gfFigure=gf.figureGet()
+	if gfFigure:
+		gfFigure[0]=[gf.posRotate(p) for p in gfFigure[0]]
+	figures=objFigure.fromGfFigure(gfFigure)
+	if not figures:
+		raise RuntimeError("Nothing opened")
+	dim=figures[0].spaceDim
+	hyperplane=algebra.Hyperplane((0,)*(dim-1)+(1,), lastCoordinate)
+	newFigures=[]
+	for f in figures:
+		newFigures.extend(cutFigure(f, hyperplane)[0])
+	gfFigure=objFigure.toGfFigure(newFigures)
+	if gfFigure:
+		gfFigure[0]=[gf.posRotateBack(p) for p in gfFigure[0]]
+	if figureInfo:
+		name, desc=figureInfo.getNameDesc()
+	gf.figureOpen(gfFigure, True)
+	if figureInfo:
+		figureInfo.setNameDescPath("Truncated "+name, None)
+
+def commandCutFigure(lastCoordinate=0):
+	gfFigure=gf.figureGet()
+	gfFigure[0]=[gf.posRotate(p) for p in gfFigure[0]]
+	figures=objFigure.fromGfFigure(gfFigure)
+	if not figures:
+		raise RuntimeError("Nothing opened")
+	dim=figures[0].spaceDim
+	if dim<=0:
+		raise RuntimeError("The figure cannot be cut")
+	hyperplane=algebra.Hyperplane((0,)*(dim-1)+(1,), lastCoordinate)
+	newFigures=[]
+	for f in figures:
+		newFigures.extend(cutFigure(f, hyperplane)[1])
+	gfFigure=objFigure.toGfFigure(newFigures)
+	if gfFigure:
+		gfFigure[0]=[p[:-1] for p in gfFigure[0]]
+		del gfFigure[dim]
+	if figureInfo:
+		name, desc=figureInfo.getNameDesc()
+	gf.figureOpen(gfFigure)
+	if figureInfo:
+		figureInfo.setNameDescPath("Cross-section of "+name, None)
+
+
+
+gf.addCommand("cut vertices", "cuts.commandCutFaces(0)")
+gf.addCommand("cut edges", "cuts.commandCutFaces(1)")
+gf.addCommand("cut faces", "cuts.commandCutFaces()")
+gf.addCommand("cut off", "cuts.commandCutOff()")
+gf.addCommand("cut figure", "cuts.commandCutFigure()")
+
+gf.addCommand("cut vertices ", "cuts.commandCutFaces(0,%)", -1, '-')
+gf.addCommand("cut edges ", "cuts.commandCutFaces(1,%)", -1, '-')
+gf.addCommand("cut faces ", "cuts.commandCutFaces(%)", -2, '-')
+gf.addCommand("cut off ", "cuts.commandCutOff(%)", -1, '-')
+gf.addCommand("cut figure ", "cuts.commandCutFigure(%)", -1, '-')

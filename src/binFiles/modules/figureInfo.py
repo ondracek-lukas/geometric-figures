@@ -61,12 +61,10 @@ def onNew():
 	if snapshots:
 		updateSnapshotState()
 def onOpen(path):
-	if snapshots and snapshots.restoringInProgress():
-		return
 	global name
 	global description
 	global filePath
-	if snapshots:
+	if snapshots and not snapshots.restoringInProgress():
 		updateSnapshotState()
 	gf.clear()
 	printAll()
@@ -110,7 +108,10 @@ if snapshots:
 			filePath=state[2]
 			modified=state[3]
 		else:
-			onNew()
+			name=None
+			description=None
+			filePath=None
+			modified=False
 		gf.clear()
 		printAll()
 	snapshots.registerCallbackRestore(onSnapshotRestore)

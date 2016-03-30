@@ -105,7 +105,7 @@ struct figureData *figureFromPython(PyObject *pyFigure) {
 	}
 	figure->dim=PyList_Size(pyFigure)-1;
 
-	if (PyErr_Occurred())
+	if (PyErr_Occurred() || figure->dim<0)
 		throw("Wrong figure");
 	figure->count=safeMalloc(sizeof(GLint) * (figure->dim+1));
 

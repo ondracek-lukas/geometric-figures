@@ -113,7 +113,7 @@ if snapshots:
 			onNew()
 		gf.clear()
 		printAll()
-	snapshots.registerCallback(onSnapshotRestore)
+	snapshots.registerCallbackRestore(onSnapshotRestore)
 
 def setNameDescPath(newName, newDescription, path=None):
 	global name

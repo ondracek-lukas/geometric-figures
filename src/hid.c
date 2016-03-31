@@ -283,6 +283,8 @@ static bool allEventsWaiting=false;
 double hidMouseSensitivity=0.5;
 bool hidGrabMouse=false;
 
+static void keyEvent(int code, bool allowInvoke);
+
 static void addWaitingEvent(int code) {
 	if (!code)
 		return;
@@ -303,15 +305,19 @@ static void addWaitingEvent(int code) {
 	waitingEventsEnd=event;
 }
 static void doWaitingEvents(int nothing) {
-	allEventsWaiting=false;
+	if (animSleepActive)
+		return;
 	while (waitingEvents) {
 		struct waitingEvent *event=waitingEvents;
 		waitingEvents=event->next;
-		if (!waitingEvents)
+		if (!waitingEvents) {
 			waitingEventsEnd=0;
+			allEventsWaiting=false;
+			animSleepClearInterruption();
+		}
 		event->next=waitingEventsFreed;
 		waitingEventsFreed=event;
-		hidKeyEvent(event->code);
+		keyEvent(event->code, false);
 	}
 }
 void hidInvokeWaitingEvents() {
@@ -357,10 +363,9 @@ static inline void updateMouseRots(int modifiers) {
 }
 
 void hidKeyEvent(int code) {
-	if (allEventsWaiting) {
-		addWaitingEvent(code);
-		return;
-	}
+	keyEvent(code, true);
+}
+static void keyEvent(int code, bool allowInvoke) {
 	int wholeCode=code;
 	bool pressed = code & FLAG_PRESS;
 	code &= ~FLAG_PRESS;
@@ -399,6 +404,10 @@ void hidKeyEvent(int code) {
 			addWaitingEvent(wholeCode);
 			animSleepInterrupt();
 		}
+
+	} else if (allEventsWaiting && allowInvoke) {
+
+		addWaitingEvent(code);
 
 	} else if (consoleIsOpen() && !(code & FLAG_MOUSE)) {
 

@@ -133,12 +133,6 @@ pkg/geometric_figures$(suff).zip: compile
 	rm -rf $$tmp
 
 
-src/consoleCmdSetMacrosDef.c.tmp: src/consoleCmdSetMacros.sh src/consoleCmdSet.c
-	@# Generate consoleCmdSet macros files
-	src/consoleCmdSetMacros.sh write
-src/consoleCmdSetMacrosUndef.c.tmp: src/consoleCmdSetMacros.sh src/consoleCmdSet.c
-	@# Generate consoleCmdSet macros files
-	src/consoleCmdSetMacros.sh write
 src/stringsData.c.tmp: src/stringsData.awk src/stringsData src/stringsData/* VERSION
 	@# Generate stringsData file
 	cd src/stringsData/ && ../stringsData.awk -v version="$(version)" * > ../stringsData.c.tmp

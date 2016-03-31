@@ -123,11 +123,7 @@ void frame(int value) {
 
 	lastTime=time;
 	glutTimerFunc(animFrameDelay, frame, 0);
-	if (animSleepActive || convexInteract) {
-		return;
-	} else if (!animSleepActive && sleepInterrupted) {
-		sleepInterrupted=false;
-		hidInvokeWaitingEvents();
+	if (animSleepActive || convexInteract || sleepInterrupted) {
 		return;
 	}
 
@@ -177,11 +173,15 @@ bool animSleep(int ms) {
 	animSleepActive=false;
 	scriptAcquireGIL();
 	scriptEventsSchedulePending();
+	hidInvokeWaitingEvents();
 	return !sleepInterrupted;
 }
 
 void animSleepInterrupt() {
 	sleepInterrupted=true;
+}
+void animSleepClearInterruption() {
+	sleepInterrupted=false;
 }
 
 int animGetTime() {

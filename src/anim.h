@@ -53,6 +53,9 @@ extern bool animSleep(int ms); // [SCRIPT_NAME: sleep]
 // Interrupts sleeping, events waiting in hid module will be invoked
 extern void animSleepInterrupt();
 
+// Clears interruptions, to be called after performing all waiting events in hid module
+extern void animSleepClearInterruption();
+
 // Returns time in ms from the start of app
 int animGetTime(); // [SCRIPT_NAME: time]
 

@@ -305,9 +305,13 @@ static void addWaitingEvent(int code) {
 	waitingEventsEnd=event;
 }
 static void doWaitingEvents(int nothing) {
-	if (animSleepActive)
+	if (animSleepActive) {
 		return;
-	while (waitingEvents) {
+	}
+	if (!waitingEvents) {
+		allEventsWaiting=false;
+		animSleepClearInterruption();
+	} else while (waitingEvents) {
 		struct waitingEvent *event=waitingEvents;
 		waitingEvents=event->next;
 		if (!waitingEvents) {

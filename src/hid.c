@@ -283,7 +283,7 @@ static bool allEventsWaiting=false;
 double hidMouseSensitivity=0.5;
 bool hidGrabMouse=false;
 
-static void keyEvent(int code, bool allowInvoke);
+static void keyEvent(int code, bool instant);
 
 static void addWaitingEvent(int code) {
 	if (!code)
@@ -369,7 +369,7 @@ static inline void updateMouseRots(int modifiers) {
 void hidKeyEvent(int code) {
 	keyEvent(code, true);
 }
-static void keyEvent(int code, bool allowInvoke) {
+static void keyEvent(int code, bool instant) {
 	int wholeCode=code;
 	bool pressed = code & FLAG_PRESS;
 	code &= ~FLAG_PRESS;
@@ -379,7 +379,7 @@ static void keyEvent(int code, bool allowInvoke) {
 	if (pressed)
 		consoleClearBlock();
 
-	if (code & FLAG_MOUSE) {
+	if ((code & FLAG_MOUSE) && instant) {
 		int button = code & FLAGS_MOUSE_BUTTONS;
 		if (pressed) {
 			if (!mouseState)
@@ -409,7 +409,7 @@ static void keyEvent(int code, bool allowInvoke) {
 			animSleepInterrupt();
 		}
 
-	} else if (allEventsWaiting && allowInvoke) {
+	} else if (allEventsWaiting && instant) {
 
 		addWaitingEvent(code);
 

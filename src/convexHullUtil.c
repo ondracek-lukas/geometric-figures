@@ -83,10 +83,11 @@ bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *newVertic
 
 	convexHullUtilNormalsCalc(fig);
 
+	convexFigMarkSet(fig, convexFigMarkIdHullInconsistent);
 	while (unprocVertices) {
-		convexFigMarkSet(fig, convexFigMarkIdHullInconsistent);
 		struct convexFigList **verticesEnd;
-		if (convexHullUtilWrongFacesRm(fig, &unprocVertices, &inconSameDim, &verticesEnd)) {
+		if (convexHullUtilWrongFacesRm(fig, &unprocVertices, &verticesEnd)) {
+			convexFigListCopy(fig->parents, inconsistent, convexFigMarkIdHullInconsistent);
 			expansionNeeded=true;
 			convexFigTouch(fig);
 			unprocVertices=*verticesEnd;
@@ -94,8 +95,8 @@ bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *newVertic
 			convexHullUtilComplete(fig, &vertices, &inconSameDim);
 			*verticesEnd=unprocVertices;
 		} else unprocVertices=NULL;
-		convexFigMarkClear(fig, convexFigMarkIdHullInconsistent);
 	}
+	convexFigMarkClear(fig, convexFigMarkIdHullInconsistent);
 
 	convexFigListDestroy(&vertices);
 	convexHullUtilRepair(&inconSameDim, inconsistent);
@@ -120,7 +121,7 @@ void convexHullUtilRepair(struct convexFigList **pList, struct convexFigList **i
 
 		while (unprocVertices) {
 			struct convexFigList **verticesEnd;
-			convexHullUtilWrongFacesRm(fig, &unprocVertices, pList, &verticesEnd);
+			convexHullUtilWrongFacesRm(fig, &unprocVertices, &verticesEnd);
 			unprocVertices=*verticesEnd;
 			*verticesEnd=NULL;
 			convexHullUtilComplete(fig, &vertices, pList);
@@ -136,9 +137,8 @@ void convexHullUtilRepair(struct convexFigList **pList, struct convexFigList **i
 }
 
 
-int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVertices, struct convexFigList **inconsistent, struct convexFigList ***pSkippedVertices) {
+int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVertices, struct convexFigList ***pSkippedVertices) {
 	// returns count of removed faces
-	// inconsistent are neighbours (same dim)
 	// pSkippedVertices: NULL - nothing skipped, otherwise at least one face is preserved, ptr to skipped part of vertices list is returned
 	// normals of faces needed
 	struct convexFigList *rmList=0;
@@ -162,8 +162,6 @@ int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVe
 				if (convexFigListLen(rmList->fig->parents)==1) {
 					convexFigDestroy(rmList->fig);
 				} else {
-					for (struct convexFigList *list=rmList->fig->parents; list; list=list->next)
-						convexHullUtilAddInconsistent(inconsistent, list->fig);
 					convexFigBoundaryDetach(fig, rmList->fig);
 				}
 				removed++;
@@ -253,7 +251,7 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList **vertic
 				convexFigListMarkSet(*vertices, convexFigMarkIdHull);
 				if (convexFigGetLayer(face, 0, convexFigMarkIdTrue, convexFigMarkIdHull, &list)) {
 					DEBUG_HULL_VERBOSE(printf("-Complete: new vertices discovered\n");)
-					convexHullUtilWrongFacesRm(fig, &list, inconsistent, NULL);
+					convexHullUtilWrongFacesRm(fig, &list, NULL);
 					convexFigListMove(&list, vertices);
 				}
 			}

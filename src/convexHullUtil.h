@@ -18,9 +18,9 @@ extern bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *ve
 // Repairs boundary of the figs in list (and the figs it breaks), returns inconsistent figs of higher dimension
 extern void convexHullUtilRepair(struct convexFigList **pList, struct convexFigList **inconsistent);
 
-// Removes faces of fig which have outer vertices in pVertices list, returns its count and inconsistent neighbours of fig
+// Removes faces of fig which have outer vertices in pVertices list, returns their count
 // if pSkippedVertices is not NULL, part of the pVertices can be unprocessed (and returned) not all faces to be removed
-extern int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVertices, struct convexFigList **inconsistent, struct convexFigList ***pSkippedVertices);
+extern int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVertices, struct convexFigList ***pSkippedVertices);
 
 // Completes fig boundary, which has to be the convex hull of given vertices
 extern void convexHullUtilComplete(struct convexFig *fig, struct convexFigList **vertices, struct convexFigList **inconsistent);

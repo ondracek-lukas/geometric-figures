@@ -16,6 +16,7 @@
 #include "script.h"
 #include "scriptEvents.h"
 #include "scriptFigure.h"
+#include "convexInteract.h"
 
 void consoleCmdSource(char *path) {
 	path=utilExpandPath(path);
@@ -123,6 +124,7 @@ void consoleCmdHistory() {
 }
 
 void consoleCmdQuit() {
-	glutLeaveMainLoop();
-	animSleepInterrupt();
+	exit(0);
+	//glutLeaveMainLoop();
+	//animSleepInterrupt();
 }

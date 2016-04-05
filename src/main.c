@@ -95,7 +95,6 @@ int main(int argc, char **argv) {
 		consoleExecFile(argv[i]);
 	}
 
-
 	glutMainLoop();
 
 	drawerFree();

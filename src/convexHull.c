@@ -23,129 +23,84 @@ void convexHullVertAdd(struct convexFig *vert) {
 	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
-	struct convexFigList *list=0;
-	struct convexFig *fig;
 	convexFigListAdd(&convexFreeVertices, vert);
-	if (!convexHull)
-		return;
-	if (!convexFigure)
-		convexFigListAdd(&convexFigure, vert);
-	else {
-		if (convexSpaceContains(convexFigure->fig->space, vert->space)) {
-			convexFigListAdd(&list, vert);
-			convexHullUtilExpand(convexFigure->fig, list, 0);
-			convexFigListRm(&list);
-		} else {
-			convexHullUtilExpandDim(convexFigListRm(&convexFigure), vert, &fig, 0);
-			convexFigListAdd(&convexFigure, fig);
-		}
+	if (convexHull) {
+		convexHullCreate();
 	}
-	DEBUG_LOOP(convexLoopDetectPrint();)
+	/* Update only, sometimes causes errors
+	if (convexHull) {
+		if (!convexFigure) {
+			convexFigListAdd(&convexFigure, vert);
+		} else {
+			convexFigMarkReset(convexFigMarkIdHullProcessed);
+			struct convexFigList *vertices=0;
+			convexFigListAdd(&vertices, vert);
+			if (convexSpaceContains(convexFigure->fig->space, vert->space)) {
+				convexHullUtilExpand(convexFigure->fig, vertices);
+			} else {
+				struct convexFig *fig;
+				// calculate newSpace
+				fig=convexHullUtilExpandDim(convexFigListRm(&convexFigure), vertices, newSpace);
+				convexFigListAdd(&convexFigure, fig);
+			}
+			convexFigListDestroy(&vertices);
+		}
+		DEBUG_LOOP(convexLoopDetectPrint();)
+	}
+	*/
 }
+
+static void removeFig(struct convexFig *fig);
 
 void convexHullVertRm(struct convexFig *vert) {
 	DEBUG_HULL(printf("\n--  rm vert %02d-%08x --\n", vert->index, vert->hash);)
 	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
-	struct convexFigList *list=0;
-	struct convexFig *fig;
-	if (!vert->parents)
-		convexFigListRmFig(&convexFigure, vert);
-	else {
-		int figureBroken=(convexFigListLen(convexFigure)>1);
-		convexFigGetLayer(vert,
-			convexFigure->fig->space->dim-!figureBroken,
-			convexFigMarkIdTrue, convexFigMarkIdTrue, &list);
-		figureBroken=!figureBroken && list;
-		while (list) {
-			convexFigListRmFig(&convexFigure, list->fig);
-			convexFigDestroy(convexFigListRm(&list));
-		}
-		if (convexHull)
-			figureBroken=!convexFigure->fig->boundary->next; // only one face remains
-		if (figureBroken) {
-			DEBUG_HULL_VERBOSE(printf("Decreasing dimen\n");)
-			fig=convexFigListRm(&convexFigure);
-			convexFigListCopy(fig->boundary, &convexFigure, convexFigMarkIdTrue);
-			while (fig->boundary)
-				convexFigBoundaryDetach(fig, fig->boundary->fig);
-			convexFigDestroy(fig);
-		} else if (convexHull) {
-				DEBUG_HULL_VERBOSE(printf("Closing hull\n");)
-				convexHullUtilAddInconsistent(&list, convexFigure->fig);
-				convexHullUtilRepair(&list, 0);
-		}
-		DEBUG_LOOP(convexLoopDetectPrint();)
-	}
-	convexFigListRmFig(&convexFreeVertices, vert);
-
 	if (convexHull) {
-		DEBUG_HULL_VERBOSE(printf("Adding free vertices\n");)
-		list=convexFreeVertices;
-		convexFreeVertices=0;
-		while (list)
-			convexHullVertAdd(convexFigListRm(&list));
+		removeFig(vert);
+		convexFigListRmFig(&convexFreeVertices, vert);
+		convexHullCreate();
+	} else {
+		convexHullBreakNearVert(vert);
+		removeFig(vert);
+		convexFigListRmFig(&convexFreeVertices, vert);
 	}
+}
+
+static void removeFig(struct convexFig *fig) {
+	while (fig->parents) {
+		struct convexFig *parent=fig->parents->fig;
+		convexFigBoundaryDetach(parent, fig);
+		if (!convexHull || parent->parents || (convexFigListLen(parent->boundary)<=1)) {
+			while (parent->boundary) {
+				struct convexFig *fig2=parent->boundary->fig;
+				convexFigBoundaryDetach(parent, fig2);
+				if (!fig2->parents && (!convexHull || !parent->parents)) {
+					convexFigListAdd(&convexFigure, fig2);
+				}
+			}
+			removeFig(parent);
+		}
+	}
+	convexFigListRmFig(&convexFigure, fig);
+	convexFigDestroy(fig);
 }
 
 void convexHullCreate() {
 	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
-	struct convexFigList *list=0;
 	convexHullDestroy();
+	convexFigMarkResetHard(convexFreeVertices);
 	if (convexFreeVertices) {
+		struct convexFigList *list=0;
+		convexFigMarkReset(convexFigMarkIdHullProcessed);
 		convexFigListCopy(convexFreeVertices, &list, convexFigMarkIdTrue);
-		convexFigListAdd(&convexFigure, convexHullUtilCreate(list, 0));
+		convexFigListAdd(&convexFigure,
+			convexHullUtilCreate(list));
 		convexFigListDestroy(&list);
 	}
-}
-
-void convexHullUpdate() {
-	int i, dim;
-	struct convexFigList **pList, *figs=0, *figs2=0;
-	if (convexFigListLen(convexFigure)==1) {
-		convexLoopDetectReset();
-		convexSpaceCopy(convexShadow[0][0]->space, &tmpSpace);
-		for (i=1; i<convexAttached->count[0]; i++)
-			if (!convexSpaceContains(tmpSpace, convexShadow[0][i]->space))
-				convexSpaceExpand(tmpSpace, convexShadow[0][i]->space);
-		if (convexSpaceEq(tmpSpace, convexFigure->fig->space)) {
-			for (dim=1; dim<convexFigure->fig->space->dim; dim++) {
-				convexFigGetLayer(convexFigure->fig, dim, convexFigMarkIdTrue, convexFigMarkIdTrue, &figs);
-				pList=&figs;
-				while (*pList) {
-					convexSpaceGetFigs((*pList)->fig->space, &figs2);
-					convexFigListRmFig(&figs2, (*pList)->fig);
-					if (figs2) {
-						while ((*pList)->fig->parents) {
-							convexFigBoundaryAttach((*pList)->fig->parents->fig, figs2->fig);
-							convexFigBoundaryDetach((*pList)->fig->parents->fig, (*pList)->fig);
-						}
-						while ((*pList)->fig->boundary) {
-							convexFigBoundaryAttach(figs2->fig, (*pList)->fig->boundary->fig);
-							convexFigBoundaryDetach((*pList)->fig, (*pList)->fig->boundary->fig);
-						}
-						convexFigDestroy(convexFigListRm(pList));
-						convexFigListDestroy(&figs2);
-					} else
-						pList=&(*pList)->next;
-				}
-				convexHullUtilRepair(&figs, &figs2);
-				convexFigListDestroy(&figs2);
-				if (convexInteractAborted)
-					return;
-			}
-			convexFigListAdd(&figs, convexFigure->fig);
-			convexHullUtilRepair(&figs, 0);
-			convexFigListCopy(convexFreeVertices, &figs, convexFigMarkIdTrue);
-			convexHullUtilExpand(convexFigure->fig, figs, 0);
-			convexFigListDestroy(&figs);
-			return;
-		}
-	}
-	convexHullCreate();
 }
 
 void convexHullBreakNearVert(struct convexFig *vertIn) {
@@ -191,6 +146,9 @@ void convexHullBreakNearVert(struct convexFig *vertIn) {
 				for (list=verticesCenterFace; list; list=list->next)
 					convexFigBoundaryAttach(edgeCenter, list->fig);
 				convexSpaceCreate(&tmpSpace, edgeCenter);
+				if (edgeCenter->space->dim != tmpSpace->dim) {
+					convexInteractAbort("Error: generated figure has wrong dimension (BreakFaces)");
+				}
 				convexSpaceAssign(tmpSpace, edgeCenter);
 				faceOut=faces->fig;
 				faceIn=convexFigNew();

@@ -13,6 +13,7 @@
 #include "consoleCmd.h"
 #include "script.h"
 #include "drawer.h"
+#include "scriptEvents.h"
 
 struct figureData figureData;
 
@@ -107,6 +108,7 @@ static bool checkTopology(struct figureData *figure) {
 void figureBoundaryChanged() {
 	boundaryChanged=1;
 	drawerInvokeRedisplay();
+	scriptEventsPerform(&scriptEventsModified);
 }
 
 void figureResetBoundary() {
@@ -117,7 +119,7 @@ void figureResetBoundary() {
 	int i, j;
 	boundaryChanged=1;
 	if (convexAttached==&figureData) {
-		convexDestroyHull();
+		convexDestroyHull(true);
 	} else {
 		for (i=1; i<=figureData.dim; i++) {
 			for (j=0; j<figureData.count[i]; j++)
@@ -284,6 +286,7 @@ void figureVertexMove(int vertex, GLdouble *pos) {
 		convexAttach(&figureData);
 	convexVertexMove(vertex, pos);
 	matrixCopy(pos, figureData.vertices[vertex], figureData.dim);
+
 	updateScale();
 	drawerInvokeRedisplay();
 }
@@ -316,14 +319,14 @@ void figureVertexRm(int vertex) {
 }
 
 
-int figureDistCmpZero(GLdouble distance, GLdouble tolerance) {
-	return (fabs(distance)*figureScale>tolerance?(distance>0?1:-1):0);
+int figureDistCmpZero(GLdouble distance) {
+	return (fabs(distance)>0.0001?(distance>0?1:-1):0);
 }
 
-int figureDistCmpZeroSq(GLdouble squaredDistance, GLdouble tolerance) {
-	return squaredDistance*figureScale*figureScale>tolerance*tolerance;
+int figureDistCmpZeroSq(GLdouble squaredDistance) {
+	return squaredDistance>0.0001*0.0001;
 }
 
-int figureDistCmp(GLdouble a, GLdouble b, GLdouble tolerance) {
-	return figureDistCmpZero(a-b, tolerance);
+int figureDistCmp(GLdouble a, GLdouble b) {
+	return figureDistCmpZero(a-b);
 }

@@ -12,6 +12,7 @@
 #include "convexSpace.h"
 
 struct convexFigList *convexFigFreed=0;
+int convexFigCount=0;
 
 static int hashFigEqual(struct convexFig *fig);
 
@@ -40,11 +41,12 @@ struct convexFig *convexFigNew() {
 	fig->index=-1;
 	fig->hash=0;
 	for (i=0; i<convexFigMarkCount; i++)
-		fig->mark[i]=0;
+		convexFigMarkClear(fig, i);
 	fig->parents=0;
 	fig->boundary=0;
 	fig->space->normalPos=0;
 	fig->space->ortBasis=0;
+	convexFigCount++;
 	return fig;
 }
 
@@ -52,13 +54,6 @@ void convexFigDelete(struct convexFig *fig) {
 	DEBUG_HULL(
 		if (fig->space->ortBasis)
 			printf("err: basis exists on delete\n");
-		struct convexFigList *list=0;
-		convexFigBstGetAll(convexSpaces, &list);
-		while (list) {
-			if (list->fig==fig)
-				printf("err: fig space assigned on delete\n");
-			convexFigListRm(&list);
-		}
 		if (fig->index<-1)
 			printf("Err: fig deleted twice\n");
 		fig->index=-fig->index-100;
@@ -66,12 +61,13 @@ void convexFigDelete(struct convexFig *fig) {
 
 	fig->space->dim=convexAttached->dim;
 	convexFigListAdd(&convexFigFreed, fig);
+	convexFigCount--;
 }
 
 void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) {
 	convexFigBoundaryDetach(parent, child);
 	DEBUG_HULL_PROGR(debugProgrAttach(parent, child);)
-	if (!child->parents)
+	if ((child->space->dim==0) && !child->parents)
 		convexFigListRmFig(&convexFreeVertices, child);
 	convexFigListAdd(&(parent->boundary), child);
 	convexFigListAdd(&(child->parents), parent);

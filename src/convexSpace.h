@@ -21,9 +21,6 @@ struct convexSpace {
 struct convexFig;
 struct convexFigList;
 
-// BST of all affine spaces assigned to a fig
-extern struct convexFigBst *convexSpaces;
-
 
 // Creates 0-dimensional space (reuses given space or allocates it)
 extern void convexSpaceCreateVert(struct convexSpace **pSpace, GLdouble *pos);
@@ -44,6 +41,9 @@ extern void convexSpaceExpand(struct convexSpace *space, struct convexSpace *ver
 // Expands given space by given vertex canceling previous expansion
 extern void convexSpaceReexpand(struct convexSpace *space, struct convexSpace *vert);
 
+// Decreases dimension of space by one removing the last basis vector and setting it as normal
+extern void convexSpaceDecreaseDim(struct convexSpace *space);
+
 
 // Assigns space to the fig (copies it to fig->space, adds fig to convexSpaces)
 extern void convexSpaceAssign(struct convexSpace *space, struct convexFig *fig);
@@ -55,8 +55,8 @@ extern void convexSpaceUnassign(struct convexFig *fig);
 // Sets space->pos to the center of gravity of given vertices
 extern void convexSpaceCenterPos(struct convexSpace *space, struct convexFigList *vertices);
 
-// Gets list of assigned figs generating given space, returns its count
-extern int convexSpaceGetFigs(struct convexSpace *space, struct convexFigList **list);
+// Moves space to cross the given vertex, normalPos is updated
+extern void convexSpaceMoveTo(struct convexSpace *space, struct convexFig *vertex);
 
 // Calculates normals (and normalPos) of the space in another space
 extern void convexSpaceNormalCalc(struct convexSpace *space, struct convexSpace *inSpace);

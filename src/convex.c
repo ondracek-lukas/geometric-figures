@@ -63,7 +63,7 @@ bool convexAttach(struct figureData *figure) {
 		while (wrongDimList)
 			convexFigDestroy(convexFigListRm(&wrongDimList));
 	}
-	for (dim=figure->dim; dim>0; dim--) {
+	for (dim=1; dim<=figure->dim; dim++) {
 		for (i=0; i<figure->count[dim]; i++) {
 			if (convexShadow[dim][i] && !convexShadow[dim][i]->parents) {
 				convexFigListAdd(&convexFigure, convexShadow[dim][i]);
@@ -77,7 +77,7 @@ bool convexAttach(struct figureData *figure) {
 
 	DEBUG_HULL_PROGR(debugProgrStart(figure, convexShadow);)
 	convexUpdateHull();
-	if (!convexHull && inconsistent)
+	if (!convexHull && inconsistent && !convexInteractAborted)
 		exportHull();
 	return !inconsistent;
 }
@@ -86,9 +86,14 @@ bool convexAttach(struct figureData *figure) {
 void convexUpdateHull() {
 	if (convexHull) {
 		convexInteractStart("Checking and updating convex hull...");
-		convexHullUpdate();
+		//convexHullUpdate();
+		convexHullCreate();
 		convexInteractStop("Convex hull has been checked and updated...");
-		exportHull();
+		if (convexInteractAborted) {
+			convexDetach();
+		} else {
+			exportHull();
+		}
 	}
 }
 
@@ -98,8 +103,11 @@ bool convexUpdateHullAtOnce(struct figureData *figure) {
 	convexAttach(figure);
 	convexInteractAborted=false;
 	convexHull=true;
-	convexHullUpdate();
-	exportHull();
+	//convexHullUpdate();
+	convexHullCreate();
+	if (!convexInteractAborted) {
+		exportHull();
+	}
 	convexDetach();
 	convexHull=origConvexHull;
 	return !convexInteractAborted;
@@ -113,6 +121,7 @@ void convexDestroyHull() {
 static void exportHull() {
 	int dim, count, i, j;
 	struct convexFigList *list1, *list2=0;
+	bool changed=false;
 	for (dim=1; dim<=convexAttached->dim; dim++) {
 		count=0;
 		convexFigMarkReset(convexFigMarkIdLayer);
@@ -125,12 +134,14 @@ static void exportHull() {
 					convexFigTouch(convexShadow[dim][i]);
 			convexAttached->boundary[dim]=safeRealloc(convexAttached->boundary[dim], count*sizeof(GLint *));
 			convexShadow[dim]=safeRealloc(convexShadow[dim], count*sizeof(struct convexFig *));
+			changed=true;
 		}
 		for (i=0; i<count; i++) {
 			if ((i<convexAttached->count[dim]) && convexShadow[dim][i]) {
 				DEBUG_HULL_VERBOSE(printf("Skipping shadow[%d][%d] - fig index %d\n", dim, i, convexShadow[dim][i]->index);)
 				continue;
 			}
+			changed=true;
 			while (list2->fig->index>=0) {
 				DEBUG_HULL_VERBOSE(printf("Skipping fig index %d-%d\n", dim, list2->fig->index);)
 				convexFigListRm(&list2);
@@ -151,11 +162,12 @@ static void exportHull() {
 		}
 		DEBUG_HULL_VERBOSE(
 			while (list2 && (list2->fig->index>=0)) {
-				printf("Skipping fig index %d-%d\n", dim, list2->fig->index);
+				// printf("Skipping fig index %d-%d\n", dim, list2->fig->index);
 				convexFigListRm(&list2);
 			}
 			if (list2)
 				safeExitErr("convex export error");)
+
 		convexFigListDestroy(&list2);
 		convexAttached->count[dim]=count;
 	}
@@ -165,12 +177,13 @@ static void exportHull() {
 				for (j=1; j<=convexAttached->boundary[dim][i][0]; j++)
 					if (convexAttached->boundary[dim][i][j]<0)
 						safeExitErr("convex export error");)
-	figureBoundaryChanged();
+	if (changed) {
+		figureBoundaryChanged();
+	}
 }
 
 void convexDetach() {
 	int dim;
-	struct convexFigList *list=0;
 	if (!convexAttached)
 		return;
 	convexHullDestroy();
@@ -181,11 +194,6 @@ void convexDetach() {
 		convexSpaceUnassign(convexFreeVertices->fig);
 		convexFigDelete(convexFigListRm(&convexFreeVertices));
 	}
-	if (convexFigBstGetAll(convexSpaces, &list)) // needed after abortion
-		while (list) {
-			convexSpaceUnassign(list->fig);
-			convexFigDelete(convexFigListRm(&list));
-		}
 	convexShadow=0;
 	convexAttached=NULL;
 }
@@ -207,8 +215,9 @@ void convexVertexAdd(int index) {
 		convexInteractStop("Convex hull has been updated");
 	else
 		convexInteractStop(0);
-	if (convexHull || convexInteractAborted)
+	if (convexHull) {
 		exportHull();
+	}
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
 
@@ -231,14 +240,15 @@ void convexVertexRm(int index) {
 		convexInteractStop("Convex hull updated");
 	else
 		convexInteractStop("Topology of the figure updated");
-	exportHull();
+	if (!convexInteractAborted)
+		exportHull();
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
 
 void convexVertexMove(int index, GLdouble *pos) {
 	if (convexHull) {
 		convexInteractStart("Updating convex hull...");
-		convexHullVertRm(convexShadow[0][index]);
+		// convexHullVertRm(convexShadow[0][index]);
 	} else {
 		convexInteractStart("Breaking appropriate faces...");
 		convexHullBreakNearVert(convexShadow[0][index]);
@@ -249,8 +259,13 @@ void convexVertexMove(int index, GLdouble *pos) {
 	convexSpaceAssign(tmpSpace, convexShadow[0][index]);
 	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 	if (convexHull) {
-		convexHullVertAdd(convexShadow[0][index]);
+		// convexHullVertAdd(convexShadow[0][index]);
+		convexHullCreate();
 		convexInteractStop("Convex hull updated");
 	}
-	exportHull();
+	if (convexInteractAborted) {
+		convexDetach();
+	} else {
+		exportHull();
+	}
 };

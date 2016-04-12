@@ -143,8 +143,9 @@ bool consoleCmdGetConvexhull() {
 	return convexHull;
 }
 void consoleCmdSetConvexhull(bool value) {
-	if ((convexHull=value))
+	if ((convexHull=value)) {
 		convexAttach(&figureData);
+	}
 }
 
 int consoleCmdGetDimen() {

@@ -10,8 +10,6 @@
 #include "convex.h"
 #include "convexFig.h"
 
-struct convexFigBst *convexSpaces=0;
-
 static int dim=-1;
 static struct convexSpace *hashPoint=0;
 static GLdouble *tempVect=0;
@@ -83,7 +81,7 @@ void convexSpaceCreate(struct convexSpace **pSpace, struct convexFig *fig) {
 			(*pSpace)->ortBasis,
 			(*pSpace)->ortBasis+(*pSpace)->dim*dim,
 			(*pSpace)->dim, dim);
-		if (figureDistCmpZeroSq(matrixVectorNormSq((*pSpace)->ortBasis+(*pSpace)->dim*dim, dim), figureDistCmpToleranceDefault)!=0) {
+		if (figureDistCmpZeroSq(matrixVectorNormSq((*pSpace)->ortBasis+(*pSpace)->dim*dim, dim))!=0) {
 			matrixVectorNormalize((*pSpace)->ortBasis+(*pSpace)->dim*dim, dim);
 			(*pSpace)->dim++;
 		}
@@ -134,17 +132,22 @@ void convexSpaceReexpand(struct convexSpace *space, struct convexSpace *vert) {
 	convexSpaceExpand(space, vert);
 }
 
+void convexSpaceDecreaseDim(struct convexSpace *space) {
+	space->dim--;
+	matrixCopy(space->ortBasis+space->dim*dim, space->normal, dim);
+	space->normalPos=0;
+	space->normalPos+=convexSpaceOrientedDist(space, space);
+}
+
 void convexSpaceAssign(struct convexSpace *space, struct convexFig *fig) {
 	fig->space->dim=space->dim;
 	matrixCopy(space->pos, fig->space->pos, dim);
 	fig->space->ortBasis=safeMalloc(space->dim*dim*sizeof(GLdouble));
 	matrixCopy(space->ortBasis, fig->space->ortBasis, dim*space->dim);
 	fig->space->hash=space->hash;
-	convexFigBstAdd(&convexSpaces, fig);
 }
 
 void convexSpaceUnassign(struct convexFig *fig) {
-	convexFigBstRm(&convexSpaces, fig);
 	free(fig->space->ortBasis);
 	fig->space->ortBasis=0;
 }
@@ -162,8 +165,9 @@ void convexSpaceCenterPos(struct convexSpace *space, struct convexFigList *verti
 	matrixScale(space->pos, 1.0/vertCount, dim);
 }
 
-int convexSpaceGetFigs(struct convexSpace *space, struct convexFigList **list) {
-	return convexFigBstFind(convexSpaces, space, list);
+void convexSpaceMoveTo(struct convexSpace *space, struct convexFig *vertex) {
+	matrixCopy(vertex->space->pos, space->pos, dim);
+	space->normalPos+=convexSpaceOrientedDist(space, space);
 }
 
 void convexSpaceNormalCalc(struct convexSpace *space, struct convexSpace *inSpace) {
@@ -177,7 +181,7 @@ void convexSpaceNormalCalc(struct convexSpace *space, struct convexSpace *inSpac
 			space->ortBasis,
 			space->normal,
 			space->dim, dim);
-		if (figureDistCmpZeroSq(matrixVectorNormSq(space->normal, dim), figureDistCmpToleranceDefault)!=0) {
+		if (figureDistCmpZeroSq(matrixVectorNormSq(space->normal, dim))!=0) {
 			matrixVectorNormalize(space->normal, dim);
 			break;
 		}
@@ -202,7 +206,7 @@ bool convexSpaceContains(struct convexSpace *space1, struct convexSpace *space2)
 	int i;
 	if (space1->dim<space2->dim)
 		return 0;
-	if (figureDistCmpZeroSq(convexSpaceDistSq(space1, space2), figureDistCmpToleranceDefault)!=0)
+	if (figureDistCmpZeroSq(convexSpaceDistSq(space1, space2))!=0)
 		return 0;
 	for (i=0; i<space2->dim; i++) {
 		matrixCopy(
@@ -213,7 +217,7 @@ bool convexSpaceContains(struct convexSpace *space1, struct convexSpace *space2)
 			space1->ortBasis,
 			tempVect,
 			space1->dim, dim);
-		if (figureDistCmpZeroSq(matrixVectorNormSq(tempVect, dim), figureDistCmpToleranceDefault)!=0)
+		if (figureDistCmpZeroSq(matrixVectorNormSq(tempVect, dim))!=0)
 			return 0;
 	}
 	return 1;
@@ -237,7 +241,7 @@ GLdouble convexSpaceOrientedDist(struct convexSpace *space, struct convexSpace *
 int convexSpaceCmpLex(struct convexSpace *vert1, struct convexSpace *vert2) {
 	int i, cmp;
 	for (i=0; i<dim; i++)
-		if ((cmp=figureDistCmp(vert1->pos[i], vert2->pos[i], figureDistCmpToleranceDefault))!=0)
+		if ((cmp=figureDistCmp(vert1->pos[i], vert2->pos[i]))!=0)
 			return cmp;
 	return 0;
 }

@@ -32,6 +32,7 @@ void convexInteractStart(char *msg) {
 	strcpy(message, msg);
 	messageStatus=strchr(message, '\0');
 	consoleClear();
+	updateTime=glutGet(GLUT_ELAPSED_TIME);
 }
 
 void convexInteractStop(char *msg) {
@@ -54,55 +55,23 @@ void convexInteractStop(char *msg) {
 
 void updateStatus() {
 	char *str=messageStatus;
-	int maxdim=0, dim=0, count=0;
-	struct convexFigList *figures=0, *list;
 	utilStrRealloc(&message, &str, 8);
 	utilStrReallocPtrUpdate(&messageStatus);
 	sprintf(str, " (");
 	str=strchr(str, '\0');
-	convexFigBstGetAll(convexSpaces, &figures);
-	for (list=figures; list; list=list->next)
-		if (list->fig->space->dim==maxdim)
-			count++;
-		else if (list->fig->space->dim>maxdim) {
-			maxdim=list->fig->space->dim;
-			count=1;
-		}
 
 	utilStrRealloc(&message, &str,
-		(ceil(log(convexFigListLen(figures))/log(10))+20)*maxdim);
+		ceil(log(abs(convexFigCount)+1)/log(10))+20);
 	utilStrReallocPtrUpdate(&messageStatus);
-	if (maxdim>0) {
-		sprintf(str, "%d figures, ", count);
-		str=strchr(str, '\0');
-		dim=maxdim-1;
-	}
-	for (; dim>=0; dim--) {
-		if (dim<maxdim) {
-			count=0;
-			for (list=figures; list; list=list->next)
-				if (list->fig->space->dim==dim)
-					count++;
-		}
-		if (dim>=4)
-			sprintf(str, "%d %d-faces, ", count, dim);
-		else if (dim==3)
-			sprintf(str, "%d cells, ", count);
-		else if (dim==2)
-			sprintf(str, "%d faces, ", count);
-		else if (dim==1)
-			sprintf(str, "%d edges, ", count);
-		else
-			sprintf(str, "%d vertices)", count);
-		str=strchr(str, '\0');
-	}
-	convexFigListDestroy(&figures);
+
+	sprintf(str, "%d faces in total)", convexFigCount);
+	str=strchr(str, '\0');
 }
 
 void convexInteractUpdate() {
 	if (!convexInteract)
 		return;
-	if (glutGet(GLUT_ELAPSED_TIME)-updateTime<100)
+	if (glutGet(GLUT_ELAPSED_TIME)-updateTime<200)
 		return;
 	if (*message!='\0')
 		updateStatus();

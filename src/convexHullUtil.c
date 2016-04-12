@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "convex.h"
 #include "convexSpace.h"
@@ -11,268 +12,256 @@
 #include "convexInteract.h"
 #include "figure.h"
 #include "debug.h"
+#include "matrix.h"
 
-struct convexSpace *tmpSpace;
-
-bool convexHullUtilExpandDim(struct convexFig *fig, struct convexFig *vert, struct convexFig **newFig, struct convexFigList **inconsistent) {
-	// returns whether new fig is larger than it should be
-	// inconsistent are (dim+1)-figs
+struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFigList *newVertices, struct convexSpace *newSpace) {
 	unsigned int hash=0;
-	bool larger=0;
 	int vertCount;
-	struct convexFigList *list=0, *list2=0;
+	struct convexFigList *list=0;
+	struct convexFig *newFig;
 	DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - enter\n", fig->space->dim+1);)
 
 	convexFigMarkReset(convexFigMarkIdHash);
 	vertCount=convexFigHashCalc(fig, &hash);
-	vertCount+=convexFigHashCalc(vert, &hash);
-	if ((*newFig=convexFigHashFind(fig->parents, hash, vertCount))) {
+	for (list=newVertices; list; list=list->next) {
+		if (list->fig->parents) { // if figure exists, bordering vertices == vertices with parents
+			vertCount+=convexFigHashCalc(list->fig, &hash);
+		}
+	}
+	if ((newFig=convexFigHashFind(fig->parents, hash, vertCount))) {
 		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (fig exists)\n", fig->space->dim+1);)
-		return 0;
+		return newFig;
 	}
 
-	convexSpaceCopy(fig->space, &tmpSpace);
-	convexSpaceExpand(tmpSpace, vert->space);
-	if (convexSpaceGetFigs(tmpSpace, &list)) {
-		*newFig=list->fig;
-		convexFigListDestroy(&list);
-		convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &list);
-		convexFigListAdd(&list, vert);
-		convexHullUtilExpand(*newFig, list, inconsistent);
-		convexFigListDestroy(&list);
-		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (space exists)\n", fig->space->dim+1);)
-		return 1;
-	}
+	newFig=convexFigNew();
+	convexSpaceAssign(newSpace, newFig);
+	convexFigBoundaryAttach(newFig, fig);
+	struct convexFigList *allVertices=0;
+	convexFigMarkReset(convexFigMarkIdHull);
+	convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdHull, &allVertices);
+	convexFigListCopy(newVertices, &allVertices, convexFigMarkIdHull);
+	convexSpaceCenterPos(newFig->space, allVertices);
+	convexSpaceNormalCalc(fig->space, newSpace);
 
-	*newFig=convexFigNew();
-	(*newFig)->hash=hash;
-	convexSpaceAssign(tmpSpace, *newFig);
-	convexFigBoundaryAttach(*newFig, fig);
-	if (fig->space->dim==0) {
-		convexFigBoundaryAttach(*newFig, vert);
-	} else {
-		for (list=fig->boundary; list; list=list->next) {
-			larger|=convexHullUtilExpandDim(list->fig, vert, &fig, &list2);
-			convexFigBoundaryAttach(*newFig, fig);
-		}
-		if (larger) {
-			convexHullUtilAddInconsistent(&list2, *newFig);
-			convexHullUtilRepair(&list2, inconsistent);
-		}
-	}
+	convexHullUtilComplete(newFig, allVertices);
+	convexFigMarkSet(newFig, convexFigMarkIdHullProcessed);
 
-	convexFigGetLayer(*newFig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &list);
-	convexSpaceCenterPos((*newFig)->space, list);
-	convexFigListDestroy(&list);
 	DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (created)\n", fig->space->dim+1);)
-	return larger;
+	return newFig;
 }
 
-bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *newVertices, struct convexFigList **inconsistent) {
+/* Can be used for updating convex hull, which is not currently implemented
+bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *newVertices) {
 	// returns whether expansion was needed
-	// inconsistent are (dim+1)-figs
 	DEBUG_HULL_VERBOSE(printf("-Expand(%d) - enter\n", fig->space->dim);)
-	struct convexFigList *inconSameDim=0;
-	struct convexFigList *vertices=0, *unprocVertices;
+	struct convexFigList *vertices=0;
 	bool expansionNeeded=false;
 
 	convexFigMarkReset(convexFigMarkIdHull);
 	convexFigListCopy(newVertices, &vertices, convexFigMarkIdHull);
-	unprocVertices=vertices;
 	convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdHull, &vertices);
 
 	convexHullUtilNormalsCalc(fig);
 
-	convexFigMarkSet(fig, convexFigMarkIdHullInconsistent);
-	while (unprocVertices) {
-		struct convexFigList **verticesEnd;
-		if (convexHullUtilWrongFacesRm(fig, &unprocVertices, &verticesEnd)) {
-			convexFigListCopy(fig->parents, inconsistent, convexFigMarkIdHullInconsistent);
-			expansionNeeded=true;
-			convexFigTouch(fig);
-			unprocVertices=*verticesEnd;
-			*verticesEnd=NULL;
-			convexHullUtilComplete(fig, &vertices, &inconSameDim);
-			*verticesEnd=unprocVertices;
-		} else unprocVertices=NULL;
+	if(convexHullUtilWrongFacesRm(fig, newVertices)) {
+		expansionNeeded=true;
+		convexFigTouch(fig);
+		if (fig->boundary) {
+			convexHullUtilComplete(fig, vertices);
+		} else { // this branch wasn't tested
+			struct convexFig *newFig=convexHullUtilCreate(vertices);
+			while (newFig->boundary) {
+				struct convexFig *facet=newFig->boundary->fig;
+				convexFigBoundaryDetach(newFig, facet);
+				convexFigBoundaryAttach(newFig, facet);
+			}
+			fig->hash=newFig->hash;
+			if (fig->space->dim != newFig->space->dim) {
+				convexInteractAbort("Error: generated figure has wrong dimension (in Expand)");
+			}
+			convexFigDestroy(newFig);
+		}
 	}
-	convexFigMarkClear(fig, convexFigMarkIdHullInconsistent);
 
 	convexFigListDestroy(&vertices);
-	convexHullUtilRepair(&inconSameDim, inconsistent);
 	DEBUG_HULL_VERBOSE(printf("-Expand(%d) - exit\n", fig->space->dim);)
+	convexFigMarkSet(fig, convexFigMarkIdHullProcessed);
 	return expansionNeeded;
 }
 
-void convexHullUtilRepair(struct convexFigList **pList, struct convexFigList **inconsistent) {
-	// repairs list of figs, returns higher-dim inconsistent figs
-	struct convexFigList *vertices=0, *unprocVertices;
-	struct convexFig *fig;
-	while (*pList) {
-		DEBUG_HULL_VERBOSE(printf("-Repair(%d) - enter (one fig)\n", (*pList)->fig->space->dim);)
-		fig=convexFigListRm(pList);
-		convexFigTouch(fig);
-		for (struct convexFigList *list=fig->parents; list; list=list->next)
-			convexHullUtilAddInconsistent(inconsistent, list->fig);
-		convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &vertices);
-		convexSpaceCenterPos(fig->space, vertices);
-		convexHullUtilNormalsCalc(fig);
-		unprocVertices=vertices;
-
-		while (unprocVertices) {
-			struct convexFigList **verticesEnd;
-			convexHullUtilWrongFacesRm(fig, &unprocVertices, &verticesEnd);
-			unprocVertices=*verticesEnd;
-			*verticesEnd=NULL;
-			convexHullUtilComplete(fig, &vertices, pList);
-			*verticesEnd=unprocVertices;
-		}
-
-		convexFigMarkClear(fig, convexFigMarkIdHullInconsistent);
-		convexFigListDestroy(&vertices);
-		DEBUG_HULL_VERBOSE(printf("-Repair(%d) - exit (one fig)\n", fig->space->dim);)
-		if (convexInteractAborted)
-			convexFigListDestroy(pList);
-	}
-}
-
-
-int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList **pVertices, struct convexFigList ***pSkippedVertices) {
+int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList *vertices) {
 	// returns count of removed faces
-	// pSkippedVertices: NULL - nothing skipped, otherwise at least one face is preserved, ptr to skipped part of vertices list is returned
 	// normals of faces needed
-	struct convexFigList *rmList=0;
 	int removed=0;
-	bool removeAll;
 	DEBUG_HULL_VERBOSE(printf("-FacesRm(%d) - enter\n", fig->space->dim);)
-	for (; *pVertices; pVertices=&(*pVertices)->next) {
-		removeAll=true;
-		for (struct convexFigList *list=fig->boundary; list; list=list->next) {
-			if (figureDistCmpZero(convexSpaceOrientedDist(list->fig->space, (*pVertices)->fig->space), figureDistCmpToleranceDefault)>0) {
-				convexFigListAdd(&rmList, list->fig);
-			} else {
-				removeAll=false;
-			}
-		}
-		if (!removeAll || !pSkippedVertices) {
-			for (; rmList; convexFigListRm(&rmList)) {
+	struct convexFigList *facets=0;
+	convexFigListCopy(fig->boundary, &facets, convexFigMarkIdTrue);
+	for (; facets; convexFigListRm(&facets)) {
+		for (struct convexFigList *vertList=vertices; vertList; vertList=vertList->next) {
+			if (figureDistCmpZero(convexSpaceOrientedDist(facets->fig->space, vertList->fig->space))>0) {
 				DEBUG_HULL(printf("Removing %dD-%02d-%08x from %dD-%02d-%08x...\n",
-					rmList->fig->space->dim, rmList->fig->index, rmList->fig->hash,
+					facets->fig->space->dim, facets->fig->index, facets->fig->hash,
 					fig->space->dim, fig->index, fig->hash);)
-				if (convexFigListLen(rmList->fig->parents)==1) {
-					convexFigDestroy(rmList->fig);
+				if (convexFigListLen(facets->fig->parents)==1) {
+					convexFigDestroy(facets->fig);
 				} else {
-					convexFigBoundaryDetach(fig, rmList->fig);
+					convexFigBoundaryDetach(fig, facets->fig);
 				}
 				removed++;
 			}
-		} else {
-			break;
 		}
 		convexInteractUpdate();
-	}
-	if (pSkippedVertices) {
-		(*pSkippedVertices)=pVertices;
 	}
 	DEBUG_HULL_VERBOSE(printf("-FacesRm(%d) - exit\n", fig->space->dim);)
 	return removed;
 }
+*/
 
-void convexHullUtilComplete(struct convexFig *fig, struct convexFigList **vertices, struct convexFigList **inconsistent) {
-	// inconsistent are neighbours (same dim)
-	// normals of faces needed
+void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertices) {
+	// normals of facets needed
 	DEBUG_HULL_VERBOSE(
 		printf("-Complete(%d) - enter\n", fig->space->dim);
 		DEBUG_HULL_DOT(convexFigPrint();))
-	struct convexFig *face; // dim-1
-	struct convexFig *edge; // dim-2
-	struct convexFig *vert;
-	struct convexFigList *list=0, *list2=0;
-	GLdouble maxDist, dist;
+
 	if (fig->space->dim==1) {
 		if (fig->boundary->next) // at least two vertices bordering edge
 			return;
+		GLdouble maxDist, dist;
 		maxDist=-1;
-		for (list=(*vertices); list; list=list->next) {
-			dist=convexSpaceDist(fig->boundary->fig->space, list->fig->space);
+		struct convexFig *vert;
+		for (struct convexFigList *vertList=vertices; vertList; vertList=vertList->next) {
+			dist=convexSpaceDist(fig->boundary->fig->space, vertList->fig->space);
 			if (dist>maxDist) {
-				vert=list->fig;
+				vert=vertList->fig;
 				maxDist=dist;
 			}
 		}
 		convexFigBoundaryAttach(fig, vert);
-	} else
-		while (!convexInteractAborted) {
-			convexFigMarkReset(convexFigMarkIdHull);
-			convexFigGetLayer(fig, fig->space->dim-2, convexFigMarkIdTrue, convexFigMarkIdHull, &list);
-			edge=0;
-			for (; list; convexFigListRm(&list)) {
-				if (convexFigGetLayer(list->fig, fig->space->dim-1, convexFigMarkIdHull, convexFigMarkIdTrue, &list2)==1) {
-					edge=list->fig;  // edge which bounds just one face from fig
-					face=list2->fig; // the face with opened boundary
-					convexFigListDestroy(&list2);
-					break;
-				}
-				convexFigListDestroy(&list2);
-			}
-			convexFigListDestroy(&list);
-			if (!edge)
-				break;
-			DEBUG_HULL_VERBOSE(printf("-Complete: edge %8x selected\n", edge->hash);)
-
-			for (list=(*vertices); list; list=list->next)
-				if (convexSpaceContains(face->space, list->fig->space))
-					convexFigListAdd(&list2, list->fig);
-			if (convexHullUtilExpand(face, list2, inconsistent)) {
-				convexFigListDestroy(&list2);
-				continue;
-			}
-			convexFigListDestroy(&list2);
-
-			convexSpaceCopy(edge->space, &tmpSpace);
-			for (list=(*vertices); convexSpaceContains(face->space, list->fig->space); list=list->next);
-			vert=list->fig;
-			convexSpaceExpand(tmpSpace, vert->space);
-			convexSpaceNormalCalc(tmpSpace, face->space);
-			for (list=list->next; list; list=list->next) {
-				if (convexSpaceContains(face->space, list->fig->space))
-					continue;
-				if (figureDistCmpZero(convexSpaceOrientedDist(tmpSpace, list->fig->space), figureDistCmpToleranceLower)>0) {
-					vert=list->fig;
-					convexSpaceReexpand(tmpSpace, vert->space);
-					convexSpaceNormalCalc(tmpSpace, face->space);
+	} else {
+		// Mark ridges with just one parent within facets of the figure
+		// older oneParent marks in higner dimensions won't be change
+		// using newer oneParent marks in lower dimensions is allowed
+		unsigned int oneParentMarkV=convexFigMarkReset(convexFigMarkIdHullOneParent);
+		unsigned int moreParentsMarkV=convexFigMarkReset(convexFigMarkIdHullOneParent);
+		for (struct convexFigList *facets=fig->boundary; facets; facets=facets->next) {
+			for (struct convexFigList *ridges=facets->fig->boundary; ridges; ridges=ridges->next) {
+				if (convexFigMarkGetV(ridges->fig, convexFigMarkIdHullOneParent, moreParentsMarkV)) {
+					convexInteractAbort("Error: more than two facets sharing ridge");
+				} else if(convexFigMarkGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV)) {
+					convexFigMarkSetV(ridges->fig, convexFigMarkIdHullOneParent, moreParentsMarkV);
+				} else {
+					convexFigMarkSetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
 				}
 			}
-			DEBUG_HULL_VERBOSE(printf("-Complete: vert %8x selected\n", vert->hash);)
-
-			if (convexHullUtilExpandDim(edge, vert, &face, inconsistent)) {
-				DEBUG_HULL_VERBOSE(printf("-Complete: space of face exists\n");)
-				convexFigMarkReset(convexFigMarkIdHull);
-				convexFigListMarkSet(*vertices, convexFigMarkIdHull);
-				if (convexFigGetLayer(face, 0, convexFigMarkIdTrue, convexFigMarkIdHull, &list)) {
-					DEBUG_HULL_VERBOSE(printf("-Complete: new vertices discovered\n");)
-					convexHullUtilWrongFacesRm(fig, &list, NULL);
-					convexFigListMove(&list, vertices);
-				}
-			}
-			convexSpaceNormalCalc(face->space, fig->space);
-			convexFigBoundaryAttach(fig, face);
-
-			DEBUG_HULL(printf("Adding   %dD-%02d-%08x  to  %dD-%02d-%08x... (%dD-%02d-%08x + %dD-%02d-%08x)\n",
-				face->space->dim,
-				face->index,
-				face->hash,
-				fig->space->dim,
-				fig->index,
-				fig->hash,
-				edge->space->dim,
-				edge->index,
-				edge->hash,
-				vert->space->dim,
-				vert->index,
-				vert->hash);)
-			convexInteractUpdate();
 		}
+
+		/* Update facets near holes (and oneParent marks in ridges if needed)
+		 * Needed only in case of update
+		for (struct convexFigList *facets=fig->boundary; facets; facets=facets->next) {
+			struct convexFig *facet=facets->fig;
+			if (!convexFigMarkGet(facet, convexFigMarkIdHullProcessed)) {
+				bool holeNeighbour=false;
+				for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
+					if (convexFigMarkGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV)) {
+						holeNeighbour=true;
+						break;
+					}
+				}
+				if (holeNeighbour) {
+					for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
+						convexFigMarkNegGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
+					}
+					struct convexFigList *facetVertices=convexHullUtilSpaceFilter(vertices, facet->space);
+					convexHullUtilExpand(facet, facetVertices);
+					convexFigListDestroy(&facetVertices);
+					for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
+						convexFigMarkNegGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
+					}
+				}
+			}
+		}
+		*/
+
+
+		// Create missing facets, begin from hole-bordering ridges
+		struct convexFigList *facets=0;
+		convexFigListCopy(fig->boundary, &facets, convexFigMarkIdTrue);
+		while (facets && !convexInteractAborted) {
+			struct convexFig *facet=convexFigListRm(&facets);
+			for (struct convexFigList *ridges=facet->boundary; ridges && !convexInteractAborted; ridges=ridges->next) {
+				struct convexFig *ridge=ridges->fig;
+				if (!convexFigMarkGetV(ridge, convexFigMarkIdHullOneParent, oneParentMarkV)) {
+					continue;
+				}
+
+				DEBUG_HULL_VERBOSE(printf("-Complete: ridge %8x selected\n", ridge->hash);)
+
+				struct convexSpace *facetSpace=0;
+				convexSpaceCopy(ridge->space, &facetSpace);
+				struct convexFigList *vertList=vertices;
+
+				for(; convexSpaceContains(facet->space, vertList->fig->space); vertList=vertList->next);
+				struct convexFig *vert=vertList->fig;
+				struct convexFigList *facetVertices=0;
+				convexFigListAdd(&facetVertices, vert);
+				convexSpaceExpand(facetSpace, vert->space);
+				convexSpaceNormalCalc(facetSpace, facet->space);
+				for (vertList=vertList->next; vertList; vertList=vertList->next) {
+					if (convexSpaceContains(facet->space, vertList->fig->space))
+						continue;
+					int cmp=figureDistCmpZero(convexSpaceOrientedDist(facetSpace, vertList->fig->space));
+					if (cmp>0) {
+						vert=vertList->fig;
+						convexSpaceReexpand(facetSpace, vert->space);
+						convexSpaceNormalCalc(facetSpace, facet->space);
+						convexFigListAdd(&facetVertices, vertList->fig);
+					} else if (cmp==0) {
+						convexFigListAdd(&facetVertices, vertList->fig);
+					}
+				}
+				for (struct convexFigList **pList=&facetVertices; *pList; ) {
+					if (!convexSpaceContains(facetSpace, (*pList)->fig->space)) {
+						convexFigListRm(pList);
+					} else {
+						pList=&(*pList)->next;
+					}
+				}
+
+				DEBUG_HULL_VERBOSE(printf("-Complete: vert %8x selected\n", vert->hash);)
+
+				struct convexFig *newFacet=convexHullUtilExpandDim(ridge, facetVertices, facetSpace);
+				convexSpaceNormalCalc(newFacet->space, fig->space);
+				convexFigBoundaryAttach(fig, newFacet);
+
+				convexFigListAdd(&facets, newFacet);
+				for (struct convexFigList *ridges2=newFacet->boundary; ridges2; ridges2=ridges2->next) {
+					if (convexFigMarkGetV(ridges2->fig, convexFigMarkIdHullOneParent, moreParentsMarkV)) {
+						convexInteractAbort("Error: more than two facets sharing ridge");
+					} else if(convexFigMarkGetV(ridges2->fig, convexFigMarkIdHullOneParent, oneParentMarkV)) {
+						convexFigMarkSetV(ridges2->fig, convexFigMarkIdHullOneParent, moreParentsMarkV);
+					} else {
+						convexFigMarkSetV(ridges2->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
+					}
+				}
+
+				DEBUG_HULL(printf("Adding   %dD-%02d-%08x  to  %dD-%02d-%08x... (%dD-%02d-%08x + %dD-%02d-%08x)\n",
+					facet->space->dim,
+					facet->index,
+					facet->hash,
+					fig->space->dim,
+					fig->index,
+					fig->hash,
+					ridge->space->dim,
+					ridge->index,
+					ridge->hash,
+					vert->space->dim,
+					vert->index,
+					vert->hash);)
+				convexInteractUpdate();
+			}
+		}
+		convexFigListDestroy(&facets);
+	}
 
 	DEBUG_HULL_PROGR(unsigned int oldHash=fig->hash;)
 	fig->hash=0;
@@ -284,39 +273,86 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList **vertic
 		DEBUG_HULL_DOT(convexFigPrint();))
 }
 
-struct convexFig *convexHullUtilInitialFace(struct convexFigList *vertices, int dim, struct convexFigList **inconsistent) {
-	// inconsistent are (dim+1)-figs
-	struct convexFig *fig;
-	struct convexFig *vert=0;
-	struct convexFigList *list=0;
-	DEBUG_HULL_VERBOSE(printf("-InitialFace(%d) - enter\n", dim);)
-	if (dim==0) {
-		for (; vertices; vertices=vertices->next)
-			if (!vert || convexSpaceCmpLex(vertices->fig->space, vert->space)<0)
-				vert=vertices->fig;
-		fig=vert;
-	} else {
-		fig=convexHullUtilInitialFace(vertices, dim-1, &list);
-		for (; vertices; vertices=vertices->next)
-			if ((!vert || (convexSpaceCmpLex(vertices->fig->space, vert->space)<0)) && (!convexSpaceContains(fig->space, vertices->fig->space)))
-					vert=vertices->fig;
-		if (vert) {
-			convexHullUtilRepair(&list, inconsistent);
-			convexHullUtilExpandDim(fig, vert, &fig, inconsistent);
-		} else
-			if (list)
-				convexFigListMove(&list, inconsistent);
+struct convexFig *convexHullUtilCreate(struct convexFigList *vertices) {
+	if (!vertices) {
+		return 0;
 	}
-	DEBUG_HULL_VERBOSE(printf("-InitialFace(%d) - exit\n", dim);)
+
+	struct convexSpace *inSpace=0;
+	convexSpaceCopy(vertices->fig->space, &inSpace);
+	for (struct convexFigList *list=vertices->next; list; list=list->next) {
+		if (!convexSpaceContains(inSpace, list->fig->space)) {
+			convexSpaceExpand(inSpace, list->fig->space);
+		}
+	}
+
+	if (inSpace->dim==0) {
+		return vertices->fig;
+	}
+
+	struct convexSpace *hyppSpace=0;
+	convexSpaceCopy(inSpace, &hyppSpace);
+	convexSpaceDecreaseDim(hyppSpace);
+
+	struct convexFig *minVert=vertices->fig;
+	GLdouble min=convexSpaceOrientedDist(hyppSpace, minVert->space);
+	for (struct convexFigList *list=vertices->next; list; list=list->next) {
+		GLdouble d=convexSpaceOrientedDist(hyppSpace, list->fig->space);
+		if (d<min) {
+			min=d;
+			minVert=list->fig;
+		}
+	}
+
+	convexSpaceMoveTo(hyppSpace, minVert);
+
+	struct convexFigList *vertices2 = convexHullUtilSpaceFilter(vertices, hyppSpace);
+	struct convexFig *fig = convexHullUtilCreate(vertices2);
+	convexFigListDestroy(&vertices2);
+
+	while (hyppSpace->dim > fig->space->dim) {
+		struct convexSpace *figSpace=0;
+		convexSpaceCopy(fig->space, &figSpace);
+
+		min=1.1;
+		minVert=0;
+		for (struct convexFigList *list=vertices; list; list=list->next) {
+			if (!convexSpaceContains(figSpace, list->fig->space)) {
+				convexSpaceExpand(figSpace, list->fig->space);
+				convexSpaceDecreaseDim(figSpace);
+				GLdouble cosine=fabs(matrixScalarProduct(hyppSpace->normal, figSpace->normal, hyppSpace->coordsCnt));
+				if (min>cosine) {
+					min=cosine;
+					minVert=list->fig;
+				}
+			}
+		}
+		convexSpaceExpand(figSpace, minVert->space);
+
+		vertices2=convexHullUtilSpaceFilter(vertices, figSpace);
+		fig=convexHullUtilExpandDim(fig, vertices2, figSpace);
+		convexFigListDestroy(&vertices2);
+	}
+
+	if (fig->space->dim == hyppSpace->dim) {
+		fig=convexHullUtilExpandDim(fig, vertices, inSpace);
+	} else {
+		convexInteractAbort("Error: generated figure has wrong dimension");
+	}
+
+	convexSpaceDestroy(&inSpace);
+	convexSpaceDestroy(&hyppSpace);
 	return fig;
 }
 
-struct convexFig *convexHullUtilCreate(struct convexFigList *vertices, struct convexFigList **inconsistent) {
-	if (!vertices)
-		return 0;
-	struct convexFig *fig=convexHullUtilInitialFace(vertices, convexAttached->dim, inconsistent);
-	convexHullUtilExpand(fig, vertices, inconsistent);
-	return fig;
+struct convexFigList *convexHullUtilSpaceFilter(struct convexFigList *figures, struct convexSpace *inSpace) {
+	struct convexFigList *filtered=0;
+	for (; figures; figures=figures->next) {
+		if (convexSpaceContains(inSpace, figures->fig->space)) {
+			convexFigListAdd(&filtered, figures->fig);
+		}
+	}
+	return filtered;
 }
 
 void convexHullUtilNormalsCalc(struct convexFig *fig) {
@@ -325,9 +361,3 @@ void convexHullUtilNormalsCalc(struct convexFig *fig) {
 		convexSpaceNormalCalc(list->fig->space, fig->space);
 }
 
-void convexHullUtilAddInconsistent(struct convexFigList **list, struct convexFig *fig) {
-	if (!convexFigMarkGet(fig, convexFigMarkIdHullInconsistent)) {
-		convexFigListAdd(list, fig);
-		convexFigMarkSet(fig, convexFigMarkIdHullInconsistent);
-	}
-}

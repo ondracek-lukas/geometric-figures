@@ -11,7 +11,6 @@ struct convexSpace;
 // Other parts of convexFig, read for info, don't include directly
 #include "convexFigMark.h"
 #include "convexFigList.h"
-#include "convexFigBst.h"
 
 // Stores figure in convex module
 struct convexFig {
@@ -19,9 +18,12 @@ struct convexFig {
 	unsigned int hash;
 	unsigned int mark[convexFigMarkCount];
 	struct convexFigList *parents;
-	struct convexFigList *boundary; // childs
+	struct convexFigList *boundary; // children
 	struct convexSpace *space;
 };
+
+// Total number of existing figures (read-only)
+extern int convexFigCount;
 
 // Creates new convexFig
 extern struct convexFig *convexFigNew();

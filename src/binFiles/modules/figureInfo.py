@@ -20,6 +20,7 @@ Python interface:
   getNameDesc()
   getPath()
   counts(figure)        -returns counts of faces of Figure object
+  countsToStr(counts)   -converts counts to string describing the figure
   printAll()            -prints information about opened figure
 
 uses modules: objFigure, [snapshots], [helpMod]
@@ -70,6 +71,8 @@ def onOpen(path):
 	printAll()
 def onModify():
 	if snapshots and snapshots.restoringInProgress():
+		gf.clear()
+		printAll()
 		return
 	global modified
 	global name
@@ -143,21 +146,28 @@ def getPath():
 	return filePath
 
 def counts(figure):
-	cnts=[0]*(figure.dim+1)
+	cnts=[0,]*(figure.dim+1)
 	for f in figure:
 		cnts[f.dim]+=1
-	text=str(figure.dim) + "-dimensional figure ("
-	if figure.dim>4:
-		for i in range(figure.dim-1, 3, -1):
-			text+= str(cnts[i]) + " " + str(i) + "-faces, "
-	if figure.dim>3:
-		text+= str(cnts[3]) + " cells, "
-	if figure.dim>2:
-		text+= str(cnts[2]) + " faces, "
-	if figure.dim>1:
-		text+= str(cnts[1]) + " edges, "
-	text+= str(cnts[0]) + " vertices)"
-	return text;
+	return tuple(cnts)
+
+def countsToStr(cnts):
+	dim=len(cnts)-1
+	if dim==0:
+		return "free vertex"
+	else:
+		text=str(dim) + "D figure ("
+		if dim>4:
+			for i in range(dim-1, 3, -1):
+				text+= str(cnts[i]) + " " + str(i) + "-faces, "
+		if dim>3:
+			text+= str(cnts[3]) + " cells, "
+		if dim>2:
+			text+= str(cnts[2]) + " faces, "
+		if dim>1:
+			text+= str(cnts[1]) + " edges, "
+		text+= str(cnts[0]) + " vertices)"
+		return text;
 
 def printAll():
 	figures=objFigure.fromGfFigure(gf.figureGet())
@@ -177,7 +187,22 @@ def printAll():
 		if description:
 			gf.echo(str.join("\n", ["   "+s for s in description.split("\n")]))
 		gf.echo("Content:")
-		gf.echo(str.join("\n", ["   "+counts(f) for f in figures]))
+		cntsD=dict()
+		groupLines=False
+		for f in figures:
+			cnts=counts(f)
+			if cnts in cntsD:
+				cntsD[cnts]+=1
+				groupLines=True
+			else:
+				cntsD[cnts]=1
+		for cnts in cntsD:
+			if not groupLines:
+				gf.echo("   "+countsToStr(cnts))
+			elif cntsD[cnts]==1:
+				gf.echo("      "+countsToStr(cnts))
+			else:
+				gf.echo(("%4d" % cntsD[cnts])+"x "+countsToStr(cnts))
 
 gf.addCommand("info", "figureInfo.printAll()")
 

@@ -28,7 +28,7 @@ struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFi
 			vertCount+=convexFigHashCalc(list->fig, &hash);
 		}
 	}
-	if ((newFig=convexFigHashFind(fig->parents, hash, vertCount))) {
+	if ((newFig=convexFigHashFind(hash, newSpace->dim, vertCount))) {
 		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (fig exists)\n", fig->space->dim+1);)
 		return newFig;
 	}
@@ -50,72 +50,6 @@ struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFi
 	return newFig;
 }
 
-/* Can be used for updating convex hull, which is not currently implemented
-bool convexHullUtilExpand(struct convexFig *fig, struct convexFigList *newVertices) {
-	// returns whether expansion was needed
-	DEBUG_HULL_VERBOSE(printf("-Expand(%d) - enter\n", fig->space->dim);)
-	struct convexFigList *vertices=0;
-	bool expansionNeeded=false;
-
-	convexFigMarkReset(convexFigMarkIdHull);
-	convexFigListCopy(newVertices, &vertices, convexFigMarkIdHull);
-	convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdHull, &vertices);
-
-	convexHullUtilNormalsCalc(fig);
-
-	if(convexHullUtilWrongFacesRm(fig, newVertices)) {
-		expansionNeeded=true;
-		convexFigTouch(fig);
-		if (fig->boundary) {
-			convexHullUtilComplete(fig, vertices);
-		} else { // this branch wasn't tested
-			struct convexFig *newFig=convexHullUtilCreate(vertices);
-			while (newFig->boundary) {
-				struct convexFig *facet=newFig->boundary->fig;
-				convexFigBoundaryDetach(newFig, facet);
-				convexFigBoundaryAttach(newFig, facet);
-			}
-			fig->hash=newFig->hash;
-			if (fig->space->dim != newFig->space->dim) {
-				convexInteractAbort("Error: generated figure has wrong dimension (in Expand)");
-			}
-			convexFigDestroy(newFig);
-		}
-	}
-
-	convexFigListDestroy(&vertices);
-	DEBUG_HULL_VERBOSE(printf("-Expand(%d) - exit\n", fig->space->dim);)
-	convexFigMarkSet(fig, convexFigMarkIdHullProcessed);
-	return expansionNeeded;
-}
-
-int convexHullUtilWrongFacesRm(struct convexFig *fig, struct convexFigList *vertices) {
-	// returns count of removed faces
-	// normals of faces needed
-	int removed=0;
-	DEBUG_HULL_VERBOSE(printf("-FacesRm(%d) - enter\n", fig->space->dim);)
-	struct convexFigList *facets=0;
-	convexFigListCopy(fig->boundary, &facets, convexFigMarkIdTrue);
-	for (; facets; convexFigListRm(&facets)) {
-		for (struct convexFigList *vertList=vertices; vertList; vertList=vertList->next) {
-			if (figureDistCmpZero(convexSpaceOrientedDist(facets->fig->space, vertList->fig->space))>0) {
-				DEBUG_HULL(printf("Removing %dD-%02d-%08x from %dD-%02d-%08x...\n",
-					facets->fig->space->dim, facets->fig->index, facets->fig->hash,
-					fig->space->dim, fig->index, fig->hash);)
-				if (convexFigListLen(facets->fig->parents)==1) {
-					convexFigDestroy(facets->fig);
-				} else {
-					convexFigBoundaryDetach(fig, facets->fig);
-				}
-				removed++;
-			}
-		}
-		convexInteractUpdate();
-	}
-	DEBUG_HULL_VERBOSE(printf("-FacesRm(%d) - exit\n", fig->space->dim);)
-	return removed;
-}
-*/
 
 void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertices) {
 	// normals of facets needed
@@ -265,8 +199,11 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 
 	DEBUG_HULL_PROGR(unsigned int oldHash=fig->hash;)
 	fig->hash=0;
+	convexFigListDestroy(&fig->vertices);
+	convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &fig->vertices);
 	convexFigMarkReset(convexFigMarkIdHash);
 	convexFigHashCalc(fig, &fig->hash);
+	convexFigHashAdd(fig);
 	DEBUG_HULL_PROGR(debugProgrHashChange(oldHash, fig->hash);)
 	DEBUG_HULL_VERBOSE(
 		printf("-Complete(%d) - exit\n", fig->space->dim);

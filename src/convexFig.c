@@ -14,8 +14,6 @@
 struct convexFigList *convexFigFreed=0;
 int convexFigCount=0;
 
-static int hashFigEqual(struct convexFig *fig);
-
 struct convexFig *convexFigNew() {
 	struct convexFig *fig;
 	int i;
@@ -44,6 +42,7 @@ struct convexFig *convexFigNew() {
 		convexFigMarkClear(fig, i);
 	fig->parents=0;
 	fig->boundary=0;
+	fig->vertices=0;
 	fig->space->normalPos=0;
 	fig->space->ortBasis=0;
 	convexFigCount++;
@@ -59,6 +58,7 @@ void convexFigDelete(struct convexFig *fig) {
 		fig->index=-fig->index-100;
 	)
 
+	// convexFigHashRm(fig);
 	fig->space->dim=convexAttached->dim;
 	convexFigListAdd(&convexFigFreed, fig);
 	convexFigCount--;
@@ -97,6 +97,7 @@ void convexFigDestroy(struct convexFig *fig) {
 	}
 	if (fig->space->dim>0) {
 		convexSpaceUnassign(fig);
+		convexFigHashRm(fig);
 		convexFigDelete(fig);
 	}
 }
@@ -147,35 +148,4 @@ int convexFigGetLayer(struct convexFig *fig, int dim, enum convexFigMarkId filte
 		}
 	}
 	return count;
-}
-
-int convexFigHashCalc(struct convexFig *fig, unsigned int *hash) {
-	// hash-marked figures are skipped, the others are marked
-	struct convexFigList *vertices=0;
-	int vertCount=convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdHash, &vertices);
-	while (vertices)
-		*hash^=convexFigListRm(&vertices)->hash;
-	return vertCount;
-}
-
-static int hashFigEqual(struct convexFig *fig) {
-	// all vertices hash-marked ? returns count : returns 0
-	struct convexFigList *vertices=0;
-	int vertCount=convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &vertices);
-	while (vertices)
-		if (!convexFigMarkGet(convexFigListRm(&vertices), convexFigMarkIdHash)) {
-			convexFigListDestroy(&vertices);
-			return 0;
-		}
-	return vertCount;
-}
-
-struct convexFig *convexFigHashFind(struct convexFigList *list, unsigned int hash, int vertCount) {
-	// returns figure from list with given hash and all vertices (given count) hash-marked or 0
-	while (list) {
-		if ((list->fig->hash==hash) && (hashFigEqual(list->fig)==vertCount))
-			return list->fig;
-		list=list->next;
-	}
-	return 0;
 }

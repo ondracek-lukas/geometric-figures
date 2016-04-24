@@ -100,7 +100,8 @@ endif
 obj$(suff)/%.d: src/%.c
 	@mkdir -p obj$(suff)/
 	@echo Generating dependencies of $< to $@
-	@{ { echo "obj$(suff)/$*.o:"; sed -nr 's=#include\s*"([^"]*)".*=src/\1=p' $<; } | tr "\n" " "; echo; } > $@
+	@{ { echo "obj$(suff)/$*.o:"; sed -nr 's=#include\s*"([^"]*)".*=src/\1=p' $<; } | tr "\n" " "; echo; \
+	{ echo "obj$(suff)/$*.d:"; sed -nr 's=#include\s*"([^"]*)".*=src/\1=p' $<; } | tr "\n" " "; echo; } > $@
 
 -include $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.d=')
 obj$(suff)/%.o: src/%.c VERSION

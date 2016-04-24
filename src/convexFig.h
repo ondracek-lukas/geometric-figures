@@ -11,6 +11,7 @@ struct convexSpace;
 // Other parts of convexFig, read for info, don't include directly
 #include "convexFigMark.h"
 #include "convexFigList.h"
+#include "convexFigHash.h"
 
 // Stores figure in convex module
 struct convexFig {
@@ -19,6 +20,7 @@ struct convexFig {
 	unsigned int mark[convexFigMarkCount];
 	struct convexFigList *parents;
 	struct convexFigList *boundary; // children
+	struct convexFigList *vertices; // vertices in boundary
 	struct convexSpace *space;
 };
 
@@ -28,7 +30,8 @@ extern int convexFigCount;
 // Creates new convexFig
 extern struct convexFig *convexFigNew();
 
-// Deletes convexFig (it has to be detached from all parents and childs)
+// Deletes convexFig
+// it has to be detached from all parents and childs and removed from hash
 extern void convexFigDelete(struct convexFig *fig);
 
 // Attaches (or detaches) child to parent as the part of its boundary
@@ -45,13 +48,5 @@ extern void convexFigTouch(struct convexFig *fig);
 // Gets ancestors/successors of given dimension marked by filterMark
 // skipMarked figures are skipped, the others are marked; not-skipping if mark-true
 extern int convexFigGetLayer(struct convexFig *fig, int dim, enum convexFigMarkId filterMark, enum convexFigMarkId skipMark, struct convexFigList **layer);
-
-// Calculates hash of fig except its hash-marked components and combines it with given hash
-// Intended use: reset hash-mark, assign 0 to hash, call convexFigHashCalc with all selected figs
-// All vertices are hash-marked
-extern int convexFigHashCalc(struct convexFig *fig, unsigned int *hash);
-
-// Returns figure from list with given hash and all vertices (given count) hash-marked or 0
-extern struct convexFig *convexFigHashFind(struct convexFigList *list, unsigned int hash, int vertCount);
 
 #endif

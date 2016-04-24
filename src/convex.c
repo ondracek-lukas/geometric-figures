@@ -57,6 +57,7 @@ bool convexAttach(struct figureData *figure) {
 				convexFigListAdd(&wrongDimList, fig);
 				inconsistent=true;
 			}
+			convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &fig->vertices);
 			convexFigMarkReset(convexFigMarkIdHash);
 			convexFigHashCalc(fig, &fig->hash);
 		}

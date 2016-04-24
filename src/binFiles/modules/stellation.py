@@ -36,14 +36,17 @@ except ImportError:
 	pass
 
 def stellateFigure(figure):
-	for f in figure.boundary:
-		for f2 in f:
-			f2.bounds=[]
-	for f in figure.boundary:
-		for f2 in f:
-			f2.bounds.append(f)
 	vertsPos=[v.position for v in figure if v.dim == 0]
 	innerPoint=algebra.vectMult(1.0/len(vertsPos), algebra.vectSum(*vertsPos))
+
+	for f in figure.boundary:
+		for f2 in f.boundary:
+			f2.bounds=[]
+	for f in figure.boundary:
+		f.hyperplane=spaceCuts.hyperplaneOfFacet(f, innerPoint);
+		for f2 in f.boundary:
+			f2.bounds.append(f)
+
 	figByBoundary=dict()
 	for f in sorted(figure, key=attrgetter("dim")):
 		if f.dim == 0:
@@ -55,10 +58,10 @@ def stellateFigure(figure):
 	for f in figure.boundary:
 		facets=set()
 		for f2 in f.boundary:
-			facets=facets.union(f2.bounds) # to be in-place
+			facets.update(f2.bounds)
 		facets.remove(f)
-		hyperplanes=[spaceCuts.hyperplaneOfFacet(f2, innerPoint) for f2 in facets]
-		hyperplane=spaceCuts.hyperplaneOfFacet(f, innerPoint).inverse()
+		hyperplanes=[f2.hyperplane for f2 in facets]
+		hyperplane=f.hyperplane.inverse()
 		fv=[v.position for v in f if v.dim==0]
 		apexPoint=algebra.vectMult(1.0/len(fv), algebra.vectSum(*fv))
 		dist=float('inf')

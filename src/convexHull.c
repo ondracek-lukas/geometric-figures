@@ -104,10 +104,10 @@ void convexHullCreate() {
 }
 
 void convexHullBreakNearVert(struct convexFig *vertIn) {
-	struct convexFigList *verticesCenter=0, *verticesCenterFace=0, *edgesCenter=0;
-	struct convexFigList *edgesIn=0, *facesIn=0, *faces=0;
+	struct convexFigList *peaksCenter=0, *peaksCenterFace=0, *ridgesCenter=0;
+	struct convexFigList *ridgesIn=0, *facesIn=0, *faces=0;
 	struct convexFigList *list;
-	struct convexFig *edgeCenter, *faceIn, *faceOut;
+	struct convexFig *ridgeCenter, *faceIn, *faceOut;
 	unsigned int hash;
 	int vertCount;
 	int dim;
@@ -117,68 +117,73 @@ void convexHullBreakNearVert(struct convexFig *vertIn) {
 		return;
 	convexLoopDetectDisable();
 
-	convexFigGetLayer(vertIn, 1, convexFigMarkIdTrue, convexFigMarkIdTrue, &edgesIn);
+	convexFigGetLayer(vertIn, 1, convexFigMarkIdTrue, convexFigMarkIdTrue, &ridgesIn);
 	convexFigMarkReset(convexFigMarkIdHull);
-	for (list=edgesIn; list; list=list->next)
+	for (list=ridgesIn; list; list=list->next)
 		convexFigGetLayer(list->fig, 0, convexFigMarkIdTrue, convexFigMarkIdHull, 0);
 	convexFigMarkClear(vertIn, convexFigMarkIdHull);
 
 	for (dim=2; dim<convexAttached->dim; dim++) {
 		// state:
-			// verticesCenter (dim-2) are hull-marked
-			// edgesIn (dim-1) list exist
+			// peaksCenter (dim-2) are hull-marked
+			// ridgesIn (dim-1) list exist
 			// vertIn - still the same vertex
 		convexFigGetLayer(vertIn, dim, convexFigMarkIdTrue, convexFigMarkIdTrue, &faces);
 		for (; faces; convexFigListRm(&faces)) {
 			convexFigTouch(faces->fig);
-			convexFigGetLayer(faces->fig, dim-2, convexFigMarkIdHull, convexFigMarkIdTrue, &verticesCenterFace);
+			convexFigGetLayer(faces->fig, dim-2, convexFigMarkIdHull, convexFigMarkIdTrue, &peaksCenterFace);
 			convexFigMarkReset(convexFigMarkIdHash);
 			hash=0;
 			vertCount=0;
-			for (list=verticesCenterFace; list; list=list->next)
+			for (list=peaksCenterFace; list; list=list->next)
 				vertCount+=convexFigHashCalc(list->fig, &hash);
-			if ((edgeCenter=convexFigHashFind(verticesCenterFace->fig->parents, hash, vertCount))) {
+			if ((ridgeCenter=convexFigHashFind(hash, dim-1, vertCount))) {
 				faceIn=faces->fig;
 			} else {
-				edgeCenter=convexFigNew();
-				edgeCenter->space->dim=dim-1;
-				edgeCenter->hash=hash;
-				for (list=verticesCenterFace; list; list=list->next)
-					convexFigBoundaryAttach(edgeCenter, list->fig);
-				convexSpaceCreate(&tmpSpace, edgeCenter);
-				if (edgeCenter->space->dim != tmpSpace->dim) {
+				ridgeCenter=convexFigNew();
+				ridgeCenter->space->dim=dim-1;
+				ridgeCenter->hash=hash;
+				convexFigMarkReset(convexFigMarkIdLayer);
+				for (list=peaksCenterFace; list; list=list->next) {
+					convexFigGetLayer(list->fig, 0, convexFigMarkIdTrue, convexFigMarkIdLayer, &ridgeCenter->vertices);
+				}
+				convexFigHashAdd(ridgeCenter);
+				for (list=peaksCenterFace; list; list=list->next)
+					convexFigBoundaryAttach(ridgeCenter, list->fig);
+				convexSpaceCreate(&tmpSpace, ridgeCenter);
+				if (ridgeCenter->space->dim != tmpSpace->dim) {
 					convexInteractAbort("Error: generated figure has wrong dimension (BreakFaces)");
 				}
-				convexSpaceAssign(tmpSpace, edgeCenter);
+				convexSpaceAssign(tmpSpace, ridgeCenter);
 				faceOut=faces->fig;
 				faceIn=convexFigNew();
 				convexSpaceCopy(faceOut->space, &tmpSpace);
 				convexSpaceAssign(tmpSpace, faceIn);
-				for (list=edgesIn; list; list=list->next)
+				for (list=ridgesIn; list; list=list->next)
 					if (convexFigBoundaryDetach(faceOut, list->fig))
 						convexFigBoundaryAttach(faceIn, list->fig);
-				convexFigBoundaryAttach(faceOut, edgeCenter);
-				convexFigBoundaryAttach(faceIn, edgeCenter);
+				convexFigBoundaryAttach(faceOut, ridgeCenter);
+				convexFigBoundaryAttach(faceIn, ridgeCenter);
 				for (list=faceOut->parents; list; list=list->next)
 					convexFigBoundaryAttach(list->fig, faceIn);
 				if (convexFigListContains(convexFigure, faceOut))
 					convexFigListAdd(&convexFigure, faceIn);
 			}
-			convexFigListDestroy(&verticesCenterFace);
-			convexFigListAdd(&edgesCenter, edgeCenter);
+			convexFigListDestroy(&peaksCenterFace);
+			convexFigListAdd(&ridgesCenter, ridgeCenter);
 			convexFigListAdd(&facesIn, faceIn);
 			convexInteractUpdate();
 			if (convexInteractAborted)
 				break;
 		}
-		convexFigListDestroy(&edgesIn);
-		edgesIn=facesIn;
+		convexFigListDestroy(&ridgesIn);
+		ridgesIn=facesIn;
 		facesIn=0;
-		verticesCenter=edgesCenter;
-		edgesCenter=0;
+		peaksCenter=ridgesCenter;
+		ridgesCenter=0;
 		convexFigMarkReset(convexFigMarkIdHull);
-		convexFigListMarkSet(verticesCenter, convexFigMarkIdHull);
-		convexFigListDestroy(&verticesCenter);
+		convexFigListMarkSet(peaksCenter, convexFigMarkIdHull);
+		convexFigListDestroy(&peaksCenter);
 		convexInteractUpdate();
 		if (convexInteractAborted)
 			break;

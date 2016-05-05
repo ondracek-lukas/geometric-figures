@@ -29,7 +29,12 @@ ifeq ($(arch), win32) # Windows
 	pkg      = zip
 	txtext   = .txt
 	version += for Windows
-else                  # Linux (native/32/64)
+else ifeq ($(OS), Windows_NT)  # Windows under MinGW and gitbash
+        CC       = gcc
+        CFLAGS  += -I"C:\Program Files\Python27\include" -DMS_WIN64
+        LDFLAGS += -L"C:\Program Files\Python27\libs" -lglut -lglu32 -lopengl32 -lpython27
+        name     = geometric_figures.exe
+else # Linux (native/32/64)
 	LDFLAGS += -lglut -lGLU -lGL -lpython2.7
 	CFLAGS  += -I/usr/include/python2.7
 	name     = geometric_figures
@@ -99,7 +104,7 @@ endif
 
 obj$(suff)/%.d: src/%.c
 	@mkdir -p obj$(suff)/
-	@echo Generating dependencies of $< to $@
+	@"echo" "Generating dependencies of $< to $@"
 	@{ { echo "obj$(suff)/$*.o:"; sed -nr 's=#include\s*"([^"]*)".*=src/\1=p' $<; } | tr "\n" " "; echo; } > $@
 
 -include $(shell ls src/*.c | sed 's=src/\(.*\)\.c=obj$(suff)/\1.d=')
@@ -138,5 +143,5 @@ src/stringsData.c.tmp: src/stringsData.awk src/stringsData src/stringsData/* VER
 	cd src/stringsData/ && ../stringsData.awk -v version="$(version)" * > ../stringsData.c.tmp
 src/scriptWrappers.h.tmp src/scriptWrappers.c.tmp: src/scriptWrappers.pl src/*.h
 	@# Generate scriptWrappers
-	cd src && ./scriptWrappers.pl *.h
+	cd src && perl scriptWrappers.pl *.h
 

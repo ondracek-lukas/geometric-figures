@@ -24,13 +24,20 @@
 ################################################################################
 
 
-To compile and execute the application you will need:
+To compile and execute the application under *nix system, you will need:
   Standard Linux components (GNU make, gcc, sed, ...)
   Gawk
   Perl 5.10
   OpenGL, GLU, Freeglut 3.0
   Python 2.7
 On debian: gawk, perl, freeglut3, freeglut3-dev, python2.7, python2.7-dev
+
+To compile and execute the application under Windows, you will need:
+   MinGW
+   Git Bash (sh, GNU make, gawk, sed, ...)
+   Perl 5.10
+   Python 2.7
+   Update Makefile properly (python includes and libs dir)
 
 To cross-compile the application for Windows you will also need:
   unix2dos command (dos2unix package)

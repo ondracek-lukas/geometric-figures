@@ -7,20 +7,22 @@ module_help="""
 Module objFigure provides OOP access to figures,
 it has only Python interface:
 
-  Figure(boundary, gfIndex)  -the Figure object
-    .addToBoundary(figure)   -adds figure to boundary
-    .rmFromBoundary(figure)  -removes figure from boundary
-    .boundary                -the set of bounding figures
-    .dim                     -the dimension of the figure
-    .spaceDim                -space dimension
-    .gfIndex                 -index in gf figure (or None)
-    .__iter__                -iterator over all-level bounding figures
-  Vertex(position, gfIndex)  -the Vertex object (subclass)
-    .position                -tuple of coordinates
-  fromGfFigure(gfFigure)     -creates Figure from gf figure
-  toGfFigure(figure)         -creates gf figure from Figure
+  Figure(boundary, gfIndex)    -the Figure object
+    .addToBoundary(figure)     -adds figure to boundary
+    .rmFromBoundary(figure)    -removes figure from boundary
+    .boundary                  -the set of bounding figures
+    .dim                       -the dimension of the figure
+    .spaceDim                  -space dimension
+    .gfIndex                   -index in gf figure (or None)
+    .__iter__                  -iterator over all-level bounding figures
+  Vertex(position, gfIndex)    -the Vertex object (subclass)
+    .position                  -tuple of coordinates
+  fromGfFigure(gfFigure)       -creates Figure from gf figure
+  toGfFigure(figure)           -creates gf figure from Figure
   figuresIterator(figures)
     -returns iterator over all-level bounding figures
+  updateParentsLists(figure)   -creates list .parents in every face
+  updateVerticesLists(figure)  -creates list .vertices in every face
 
 uses modules: [helpMod]
 
@@ -92,6 +94,31 @@ def toGfFigure(figures):
 			gfFigure[dim][i]=map(lambda f: f.gfIndex, gfFigure[dim][i].boundary)
 	return gfFigure;
 
+def updateParentsLists(figure):
+	for face in figure:
+		face.parents=[]
+	for face in figure:
+		for son in face.boundary:
+			son.parents.append(face)
+
+def updateVerticesLists(figure):
+	for face in figure:
+		face.vertices=None
+	def update(figure):
+		if figure.dim==0:
+			figure.vertices=[figure]
+		else:
+			for facet in figure.boundary:
+				if not facet.vertices:
+					update(facet)
+			figure.vertices=[]
+			mark=object()
+			for facet in figure.boundary:
+				for vertex in facet.vertices:
+					if vertex.mark!=mark:
+						vertex.mark=mark
+						figure.vertices.append(vertex)
+	update(figure)
 
 class Figure:
 
@@ -135,7 +162,7 @@ class Figure:
 				yield f
 
 
-	def setDim(self, dim, spaceDim): # internal method
+	def setDim(self, dim, spaceDim):
 		if self.dim != None:
 			if self.dim != dim or self.spaceDim != spaceDim:
 				raise RuntimeError("Wrong number of dimensions")

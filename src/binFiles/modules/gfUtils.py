@@ -74,6 +74,7 @@ def createConvexObjFigure(vertices):
 	if vertices:
 		gfFigure=[vertices]+[[]]*len(vertices[0])
 		gfFigure=gf.figureConvexHullUpdate(gfFigure)
+		gfFigure[0]=vertices; # to avoid rounding, tuples will have the same hash as original
 		figures=objFigure.fromGfFigure(gfFigure)
 		if len(figures)>1:
 			figures=[f for f in figures if f.dim>0]

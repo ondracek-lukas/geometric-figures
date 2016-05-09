@@ -11,29 +11,14 @@
 #include "convexFig.h"
 
 static int dim=-1;
-static struct convexSpace *hashPoint=0;
 static GLdouble *tempVect=0;
 
-static void hashCalc(struct convexSpace *space);
 
 static void init() {
-	int i;
 	if (dim!=convexAttached->dim) {
 		dim=convexAttached->dim;
-		if (!hashPoint)
-			hashPoint=safeMalloc(sizeof(struct convexSpace));
-		else
-			free(hashPoint->pos);
 		free(tempVect);
-
 		tempVect=safeMalloc(dim*sizeof(GLdouble));
-		hashPoint->pos=safeMalloc(dim*sizeof(GLdouble));
-		for (i=0; i<dim; i++)
-			hashPoint->pos[i]=rand()-RAND_MAX/2;
-		matrixScale(
-			hashPoint->pos,
-			1.0/matrixVectorNorm(hashPoint->pos, dim)*rand()/RAND_MAX,
-			dim);
 	}
 }
 
@@ -59,7 +44,6 @@ void convexSpaceCreateVert(struct convexSpace **pSpace, GLdouble *pos) {
 	create(pSpace);
 	(*pSpace)->dim=0;
 	matrixCopy(pos, (*pSpace)->pos, dim);
-	hashCalc(*pSpace);
 }
 
 void convexSpaceCreate(struct convexSpace **pSpace, struct convexFig *fig) {
@@ -86,7 +70,6 @@ void convexSpaceCreate(struct convexSpace **pSpace, struct convexFig *fig) {
 			(*pSpace)->dim++;
 		}
 	}
-	hashCalc(*pSpace);
 }
 
 void convexSpaceDestroy(struct convexSpace **pSpace) {
@@ -103,7 +86,6 @@ void convexSpaceCopy(struct convexSpace *src, struct convexSpace **pDst) {
 	(*pDst)->dim=src->dim;
 	matrixCopy(src->pos, (*pDst)->pos, dim);
 	matrixCopy(src->ortBasis, (*pDst)->ortBasis, dim*(*pDst)->dim);
-	(*pDst)->hash=src->hash;
 }
 
 
@@ -124,7 +106,6 @@ void convexSpaceExpand(struct convexSpace *space, struct convexSpace *vert) {
 		space->ortBasis+space->dim*dim,
 		dim);
 	space->dim++;
-	hashCalc(space);
 }
 
 void convexSpaceReexpand(struct convexSpace *space, struct convexSpace *vert) {
@@ -144,7 +125,6 @@ void convexSpaceAssign(struct convexSpace *space, struct convexFig *fig) {
 	matrixCopy(space->pos, fig->space->pos, dim);
 	fig->space->ortBasis=safeMalloc(space->dim*dim*sizeof(GLdouble));
 	matrixCopy(space->ortBasis, fig->space->ortBasis, dim*space->dim);
-	fig->space->hash=space->hash;
 }
 
 void convexSpaceUnassign(struct convexFig *fig) {
@@ -192,10 +172,6 @@ void convexSpaceNormalCalc(struct convexSpace *space, struct convexSpace *inSpac
 		matrixScale(space->normal, -1, dim);
 		space->normalPos*=-1;
 	}
-}
-
-void hashCalc(struct convexSpace *space) {
-	space->hash=convexSpaceDist(space, hashPoint);
 }
 
 bool convexSpaceEq(struct convexSpace *space1, struct convexSpace *space2) {

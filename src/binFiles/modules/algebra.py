@@ -110,5 +110,5 @@ class Hyperplane:
 
 	def inverse(self):
 		return Hyperplane(vectMult(-1, self.normal), -self.normalPos)
-		
+
 

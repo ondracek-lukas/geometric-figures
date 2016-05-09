@@ -22,9 +22,9 @@
 
 GLdouble *drawerCamPos=0;
 int drawerDim=0;
-GLdouble drawerVertSize=20;
-GLdouble drawerEdgeSize=20;
-GLdouble drawerSelectedVertSize=30;
+GLdouble drawerVertSize=10;
+GLdouble drawerEdgeSize=10;
+GLdouble drawerSelectedVertSize=15;
 const GLdouble drawerVisibleRadius=1.1;
 GLfloat drawerFaceColor[4];
 GLfloat drawerBackColor[4]={0,0,0,1};
@@ -205,9 +205,9 @@ void drawerSetProjection() {
 			glFrustum(-r, r, -r*drawerHeight/drawerWidth, r*drawerHeight/drawerWidth, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
 	}
 	if (drawerHeight<drawerWidth)
-		scale=drawerVisibleRadius/drawerHeight;
+		scale=2*drawerVisibleRadius/drawerHeight;
 	else
-		scale=drawerVisibleRadius/drawerWidth;
+		scale=2*drawerVisibleRadius/drawerWidth;
 
 	if (drawerVisibleRadius<scale*drawerSelectedVertSize/2) {
 		drawerSelectedVertSize=drawerVisibleRadius/scale*2;

@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 
-// Updates list of variables in consoleCmds module
+// Updates list of variables in consoleTransl module
 extern void consoleCmdSetUpdateCmds();
 
 // See ':help set varname' for description of consoleCmdGetVarname or consoleCmdSetVarname

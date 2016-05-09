@@ -45,7 +45,7 @@ void convexLoopDetectPrint(int count, int parent, int child, int index, int next
 		next);
 }
 
-// consoleCmds.c:
+// consoleTransl.c:
 struct trie {
 	char c;
 	struct trie *sibling;
@@ -65,7 +65,7 @@ void triePrint(struct trie *trie, int indent) {
 		triePrint(trie->child, indent+2);
 	}
 }
-void consoleCmdsTriePrint(struct trie *trie) {
+void consoleTranslTriePrint(struct trie *trie) {
 	printf("--- TRIE START ---\n--");
 	triePrint(trie, 2);
 	printf("\n--- TRIE  END  ---\n");

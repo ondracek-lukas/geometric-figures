@@ -36,34 +36,24 @@ except ImportError:
 	pass
 
 def stellateFigure(figure):
-	vertsPos=[v.position for v in figure if v.dim == 0]
-	innerPoint=algebra.vectMult(1.0/len(vertsPos), algebra.vectSum(*vertsPos))
+	objFigure.updateVerticesLists(figure)
+	objFigure.updateParentsLists(figure)
+	innerPoint=algebra.vectAvg(*[v.position for v in figure.vertices])
 
-	for f in figure.boundary:
-		for f2 in f.boundary:
-			f2.bounds=[]
 	for f in figure.boundary:
 		f.hyperplane=spaceCuts.hyperplaneOfFacet(f, innerPoint);
-		for f2 in f.boundary:
-			f2.bounds.append(f)
-
-	figByBoundary=dict()
-	for f in sorted(figure, key=attrgetter("dim")):
-		if f.dim == 0:
-			pass
-		else:
-			figByBoundary[frozenset(f.boundary)]=f
+		f.hyperplane.origFacet=f
 
 	newFacets=[]
 	for f in figure.boundary:
 		facets=set()
 		for f2 in f.boundary:
-			facets.update(f2.bounds)
+			facets.update(f2.parents)
 		facets.remove(f)
 		hyperplanes=[f2.hyperplane for f2 in facets]
 		hyperplane=f.hyperplane.inverse()
-		fv=[v.position for v in f if v.dim==0]
-		apexPoint=algebra.vectMult(1.0/len(fv), algebra.vectSum(*fv))
+		hyperplane.origFacet=f
+		apexPoint=algebra.vectAvg(*[v.position for v in f.vertices])
 		dist=float('inf')
 		for h in hyperplanes:
 			p=algebra.dotProduct(hyperplane.normal, h.normal)
@@ -79,26 +69,42 @@ def stellateFigure(figure):
 		hyperplanes.append(hyperplane)
 		apexInnerPoint=algebra.vectSum(apexPoint, algebra.vectMult(dist/2.0, hyperplane.normal))
 		apexFigure=spaceCuts.figureFromArea(hyperplanes, apexInnerPoint)
-		vertices=[v for v in f if v.dim == 0]
-		apexVertices=[v for v in apexFigure if v.dim == 0]
-		for f2 in sorted(apexFigure, key=attrgetter('dim')):
-			f2.copy=None
-			if f2.dim==0:
-				for v in vertices: # slow, can be improved
-					if algebra.pointsDist(v.position, f2.position) < 0.0001:
-						f2.copy = v
-						break
-			else:
-				boundary=set()
-				shared=True
-				for f3 in f2.boundary:
-					boundary.add(f3.copy or f3)
-					shared = shared and f3.copy
-				f2.boundary=boundary
-				if shared:
-					f2.copy=figByBoundary[frozenset(boundary)]
-				elif f2.dim==f.dim:
-					newFacets.append(f2)
+
+		apexBaseFacet=[f3 for f3 in apexFigure.boundary if f3.origHypp.origFacet==f][0]
+		for f3 in apexFigure:
+			f3.origFace=None
+		apexFigure.rmFromBoundary(apexBaseFacet)
+		for apexFacet in apexFigure.boundary:
+			apexRidge=(apexFacet.boundary & apexBaseFacet.boundary).pop()
+			apexRidge.origFace=(apexFacet.origHypp.origFacet.boundary & f.boundary).pop()
+		objFigure.updateParentsLists(apexBaseFacet)
+		queue=[]
+		for apexRidge in apexBaseFacet.boundary:
+			queue.extend(apexRidge.boundary)
+		while queue:
+			apexFace=queue.pop(0)
+			if apexFace.origFace: continue
+			origP1=apexFace.parents[0].origFace
+			origP2=apexFace.parents[1].origFace
+			apexFace.origFace=(origP1.boundary & origP2.boundary).pop()
+			queue.extend(apexFace.boundary)
+		for f3 in apexBaseFacet:
+			del f3.parents
+		queue=[apexFigure]
+		apexFigure.mark=True
+		while queue:
+			apexFace=queue.pop(0)
+			if not apexFace.mark: continue
+			apexFace.mark=None
+			for apexFace2 in list(apexFace.boundary):
+				if apexFace2.origFace:
+					apexFace.boundary.remove(apexFace2)
+					apexFace.boundary.add(apexFace2.origFace)
+				else:
+					apexFace2.mark=True
+					queue.append(apexFace2)
+		newFacets.extend(apexFigure.boundary)
+
 	return objFigure.Figure(newFacets)
 
 def commandStellate():

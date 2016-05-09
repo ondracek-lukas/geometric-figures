@@ -1,6 +1,6 @@
 // Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
-#include "consoleCmds.h"
+#include "consoleTransl.h"
 
 #include <string.h>
 #include <stdbool.h>
@@ -244,7 +244,7 @@ static struct utilStrList *trieGetSuffixes(struct trie *trie) {
 
 static struct trie commands;
 
-bool consoleCmdsAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags, bool alias) {
+bool consoleTranslAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags, bool alias) {
 	return trieAdd(
 		&commands,
 		prefix,
@@ -255,7 +255,7 @@ bool consoleCmdsAdd(char *prefix, char *scriptExpr, int params, char *paramsFlag
 	);
 }
 
-void consoleCmdsRmBranch(char *prefix) {
+void consoleTranslRmBranch(char *prefix) {
 	if (*prefix) {
 		struct trie **pTrie=trieGetChildPtr(&commands, *prefix);
 		if (!*pTrie)
@@ -268,14 +268,14 @@ void consoleCmdsRmBranch(char *prefix) {
 			trieDestroy(pt, builtinAliasCmd);
 		}
 	}
-	DEBUG_CMDS(consoleCmdsTriePrint(&commands);)
+	DEBUG_CMDS(consoleTranslTriePrint(&commands);)
 }
 
-char *consoleCmdsToScriptExpr(char *cmd) {
+char *consoleTranslToScriptExpr(char *cmd) {
 	return trieTranslate(&commands, cmd);
 }
 
-struct utilStrList *consoleCmdsComplete(char *prefix) {
+struct utilStrList *consoleTranslComplete(char *prefix) {
 	struct trie *trie=&commands;
 	struct trie *trie2=trie;
 	while (trie && *prefix) {
@@ -309,23 +309,23 @@ struct utilStrList *consoleCmdsComplete(char *prefix) {
 		if (opened)
 			switch (*flags) {
 				case 'p':
-					return consoleCmdsPathComplete(param);
+					return consoleTranslPathComplete(param);
 				case 'c':
-					return consoleCmdsColorComplete(param, false);
+					return consoleTranslColorComplete(param, false);
 				case 'C':
-					return consoleCmdsColorComplete(param, true);
+					return consoleTranslColorComplete(param, true);
 			}
 	}
 	return NULL;
 }
 
-void consoleCmdsUserAdd2(char *prefix, char *scriptExpr) {
-	consoleCmdsUserAdd(prefix, scriptExpr, 0, NULL);
+void consoleTranslUserAdd2(char *prefix, char *scriptExpr) {
+	consoleTranslUserAdd(prefix, scriptExpr, 0, NULL);
 }
-void consoleCmdsUserAdd3(char *prefix, char *scriptExpr, int params) {
-	consoleCmdsUserAdd(prefix, scriptExpr, params, NULL);
+void consoleTranslUserAdd3(char *prefix, char *scriptExpr, int params) {
+	consoleTranslUserAdd(prefix, scriptExpr, params, NULL);
 }
-void consoleCmdsUserAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags) {
+void consoleTranslUserAdd(char *prefix, char *scriptExpr, int params, char *paramsFlags) {
 	if (!trieAdd(
 		&commands,
 		prefix,
@@ -335,7 +335,7 @@ void consoleCmdsUserAdd(char *prefix, char *scriptExpr, int params, char *params
 		userCmd
 	)) scriptThrowException("The command would be ambiguous");
 }
-void consoleCmdsUserRmBranch(char *prefix) {
+void consoleTranslUserRmBranch(char *prefix) {
 	if (*prefix) {
 		struct trie **pTrie=trieGetChildPtr(&commands, *prefix);
 		if (!*pTrie)
@@ -346,13 +346,13 @@ void consoleCmdsUserRmBranch(char *prefix) {
 			trieDestroy(pt, userCmd);
 	}
 }
-void consoleCmdsUserRmAll() {
-	consoleCmdsUserRmBranch("");
+void consoleTranslUserRmAll() {
+	consoleTranslUserRmBranch("");
 }
 
 // -- path completion --
 
-struct utilStrList *consoleCmdsPathComplete(char *prefix) {
+struct utilStrList *consoleTranslPathComplete(char *prefix) {
 	char *path=utilExpandPath(prefix);
 	static char *tmp=0;
 	utilStrRealloc(&tmp, 0, strlen(path)+1);
@@ -396,7 +396,7 @@ struct utilStrList *consoleCmdsPathComplete(char *prefix) {
 struct trie colors;
 struct trie colorsWithAlpha;
 
-struct utilStrList *consoleCmdsColorComplete(char *prefix, bool withAlphaChannel) {
+struct utilStrList *consoleTranslColorComplete(char *prefix, bool withAlphaChannel) {
 	struct trie *trie=(withAlphaChannel? &colorsWithAlpha:&colors);
 	struct utilStrList *list=0;
 	int codeLen=0;
@@ -445,7 +445,7 @@ struct utilStrList *consoleCmdsColorComplete(char *prefix, bool withAlphaChannel
 		break; \
 	}
 
-char *consoleCmdsColorNormalize(char *color) {
+char *consoleTranslColorNormalize(char *color) {
 	char *ret=0;
 	static char lastColor[8];
 	if (*color=='#') {
@@ -468,7 +468,7 @@ char *consoleCmdsColorNormalize(char *color) {
 	return ret;
 }
 
-char *consoleCmdsColorANormalize(char *color) {
+char *consoleTranslColorANormalize(char *color) {
 	char *ret=0;
 	static char lastColor[10];
 	if (*color=='#') {
@@ -499,11 +499,11 @@ char *consoleCmdsColorANormalize(char *color) {
 
 #undef normalizeColorChar
 
-void consoleCmdsColorAdd(char *alias, char *color) {
-	char *normalizedAlpha=consoleCmdsColorANormalize(color);
+void consoleTranslColorAdd(char *alias, char *color) {
+	char *normalizedAlpha=consoleTranslColorANormalize(color);
 	if (!normalizedAlpha)
 		return;
-	char *normalized=     consoleCmdsColorNormalize(color);
+	char *normalized=     consoleTranslColorNormalize(color);
 	scriptCatchException();
 
 	if (trieAdd(&colorsWithAlpha, alias, normalizedAlpha, 0, 0, userCmd)) {
@@ -518,7 +518,7 @@ void consoleCmdsColorAdd(char *alias, char *color) {
 	scriptThrowException("Color alias already exists");
 }
 
-void consoleCmdsColorRemoveAll() {
+void consoleTranslColorRemoveAll() {
 	for (struct trie **pt=&colors.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))
 		trieDestroy(pt, userCmd);
 	for (struct trie **pt=&colorsWithAlpha.child, *t2=*pt; *pt; (*pt!=t2) || (pt=&(*pt)->sibling), (t2=*pt))

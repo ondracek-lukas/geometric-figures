@@ -51,164 +51,128 @@ except ImportError:
 
 # Cuts Figure object with given Hyperplane,
 # returns ([Figure negative_parts], [Figure section_parts], [Figure positive_parts])
-def cutFigure(figure, hyperplane, reuseCache=False):
-	if not reuseCache:
-		for f in figure:
-			f.cuttingCache=None
+def cutFigure(wholeFigure, hyperplane):
 
-	if figure.cuttingCache: # Already computed
-		return figure.cuttingCache
-	def cache(left, section, right): # Caching before returning
-		if reuseCache:
-			figure.cuttingCache=left,section,right
-		else: # Remove cache
-			for f in figure:
-				del f.cuttingCache
-		return left, section, right
+	facesAscending=[]
+	queue=[wholeFigure]
+	mark=object()
+	while queue:
+		figure=queue.pop(0)
+		if figure.mark==mark: continue
+		figure.mark=mark
+		facesAscending.insert(0,figure)
+		queue.extend(figure.boundary)
 
-	if figure.dim == 0: # Vertex
-		dist=hyperplane.orientedDistance(figure.position)
-		if abs(dist)<0.00001:
-			return cache([], [figure], [])
-		elif dist<0:
-			return cache([figure], [], [])
-		else:
-			return cache([], [], [figure])
+	for figure in facesAscending:
+		figure.usedInSection=False
+		figure.sectionFacets=[]
+		if figure.dim == 0: # Vertex
+			dist=hyperplane.orientedDistance(figure.position)
+			if abs(dist)<0.0001:
+				figure.cuttingCache=([], [figure], [])
+			elif dist>0:
+				figure.cuttingCache=([], [], [figure])
+			else:
+				figure.cuttingCache=([figure], [], [])
+			continue;
 
-	else: # Edge, face, ...
+		# Edge, face, ...
+
 		left,middle,right = \
-				zip(*map(lambda f: cutFigure(f, hyperplane, True), figure.boundary))
+				zip(*map(lambda f: f.cuttingCache, figure.boundary))
 		left,middle,right = (reduce(lambda a,b: a+b, l) for l in (left,middle,right))
 
 		if not right and not left: # All in the hyperplane
-			return cache([], [figure], [])
-		elif not right:            # Nothing right
-			return cache([figure], middle, [])
-		elif not left:             # Nothing left
-			return cache([], middle, [figure])
+			figure.cuttingCache=([], [figure], [])
+			continue
 
-		elif figure.dim == 1:      # Cutting edge
+
+		if not right or not left:
+			for f in middle:
+				if f.dim==figure.dim-1:
+					for f2 in f.boundary:
+						f2.usedInSection=True
+					figure.sectionFacets.append(f)
+
+		middle2=[]
+		for f in middle:
+			if not f.usedInSection or f.dim == figure.dim-2:
+				middle2.append(f)
+		middle=middle2
+
+
+		if not right:            # Nothing right
+			figure.cuttingCache=([figure], middle, [])
+			continue
+		if not left:             # Nothing left
+			figure.cuttingCache=([], middle, [figure])
+			continue
+
+		section=[]
+		middle2=set()
+		for f in middle:
+			if f.dim == figure.dim-2:
+				middle2.add(f)
+			elif f.dim != figure.dim-1:
+				section.append(f)
+		middle=middle2
+
+		if figure.dim == 1:      # Cutting edge
 			diff=algebra.vectDiff(right[0].position, left[0].position)
 			prod=algebra.dotProduct(diff, hyperplane.normal)
 			dist=hyperplane.orientedDistance(left[0].position)
 			vert=Vertex(algebra.vectSum(left[0].position, algebra.vectMult(-dist/prod, diff)))
+			vert.usedInSection=True
 			leftEdge=Figure([left[0], vert])
 			rightEdge=Figure([right[0], vert])
-			return cache([leftEdge], [vert], [rightEdge])
+			leftEdge.sectionFacets=[vert]
+			rightEdge.sectionFacets=[vert]
+			figure.cuttingCache=([leftEdge], [vert], [rightEdge])
+			continue
 
-		else:                      # Cutting face (at least 2-dimensional)
-			middle.sort(key=attrgetter('dim'), reverse=True)
-			for f in figuresIterator(middle):
-				f.used=False
-			section=[]
-			middle2=set()
-			for f in middle:
-				if not f.used:
-					if f.dim == figure.dim-2:
-						middle2.add(f)
-					else:
-						section.append(f)
-					for f2 in f:
-						f2.used=True
-			for f in figuresIterator(middle):
-				del f.used
+		# Cutting face (at least 2-dimensional)
 
-			if True: # General case
+		leftComp=check.findComponents(left, middle)
+		rightComp=check.findComponents(right, middle)
+		leftComp=[Figure(c) for c in leftComp]
+		rightComp=[Figure(c) for c in rightComp]
 
-				def findComponents(figures, exclude):
-					for f in figures:
-						f.group=None
-						f.groupIndex=None
-						f.groupRank=0
-						for f2 in f.boundary:
-							f2.groupRank=0
-							f2.group=None
-					def find(f):
-						f2=f
-						while f.group:
-							f=f.group
-						while f2.group:
-							f3=f2.group
-							f2.group=f
-							f2=f3
-						return f
-					def union(parent, child):
-						parent=find(parent)
-						child=find(child)
-						if child == parent:
-							return
-						if parent.groupRank>child.groupRank:
-							child.group=parent
-						elif parent.groupRank == child.groupRank:
-							child.group=parent
-							parent.groupRank+=1
-						else:
-							parent.group=child
-						return
-					for f in figures:
-						for f2 in f.boundary:
-							if not f2 in exclude:
-								union(f, f2)
-					groups=[]
-					for f in figures:
-						g=find(f)
-						if g.groupIndex == None:
-							g.groupIndex=len(groups)
-							groups.append([])
-						groups[g.groupIndex].append(f)
-					for f in figures:
-						del f.group
-						del f.groupIndex
-						del f.groupRank
-						for f2 in f.boundary:
-							f2.group=None
-							del f2.group
-							f2.groupRank=None
-							del f2.groupRank
-					return groups
+		for rightFigure in rightComp:
+			rightFigure.sectionFacets=[]
+			rightFigure.sectionRidges=set()
+			for f in rightFigure.boundary:
+				rightFigure.sectionRidges.update(f.sectionFacets)
+		for leftFigure in leftComp:
+			leftFigure.sectionFacets=[]
+			leftRidges=set()
+			for f in leftFigure.boundary:
+				leftRidges.update(f.sectionFacets)
+			for rightFigure in rightComp:
+				rightRidges=rightFigure.sectionRidges
+				commonRidges=leftRidges | rightRidges
+				if commonRidges:
+					f=Figure(commonRidges)
+					f.usedInSection=True
+					leftFigure.sectionFacets.append(f)
+					rightFigure.sectionFacets.append(f)
+					leftFigure.boundary.add(f)
+					rightFigure.boundary.add(f)
+					section.append(f)
 
-				leftComp=findComponents(left, middle2)
-				rightComp=findComponents(right, middle2)
-				leftComp=[Figure(c) for c in leftComp]
-				rightComp=[Figure(c) for c in rightComp]
 
-				sectComp=[]
-				for f in leftComp:
-					comp=[set()]
-					for f2 in f.boundary:
-						comp[0] |= f2.boundary & middle2
-					sectComp.append(comp)
-					f.sect=comp
-				# sectComp=[ [set(vertices)] ]
-				for f in rightComp:
-					f.sect=[]
-				for c in sectComp:
-					m=c.pop()
-					for f in rightComp:
-						comp=[set()]
-						for f2 in f.boundary:
-							comp[0] |= f2.boundary & m
-						c.append(comp)
-						f.sect.append(comp)
-				# sectComp=[ [[set(vertices)]] ]
-				for l in sectComp:
-					for m in l:
-						m.append(Figure(m.pop()))
-						section.append(m[0])
-				for f in leftComp+rightComp:
-					for f2 in f.sect:
-						f.addToBoundary(f2[0])
-					del f.sect
+		for f in middle:
+			if not f.usedInSection:
+				section.append(f)
 
-			else: # Convex only
 
-				newSect=Figure(middle2)
-				leftComp=[Figure(left + [newSect])]
-				rightComp=[Figure(right + [newSect])]
-				section.append(newSect)
+		figure.cuttingCache=(leftComp, section, rightComp)
 
-			return cache(leftComp, section, rightComp)
+	ret=wholeFigure.cuttingCache;
+	for figure in wholeFigure:
+		del figure.cuttingCache
+		del figure.usedInSection
 
+	return ret;
 
 # Cuts off parts of the Figure object determined by the given Hyperplanes,
 # iteratively calls cutFigure function, slow

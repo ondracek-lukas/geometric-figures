@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include "console.h"
-#include "consoleCmds.h"
+#include "consoleTransl.h"
 #include "util.h"
 #include "safe.h"
 #include "drawer.h"
@@ -32,40 +32,40 @@ static bool colorSetter(GLfloat *variable, char *value);
 	appendToGetAllExpr(cmd);
 
 #define addCustomGetter(name, getterExpr) \
-	consoleCmdsAdd("set "name, getterExpr, 0, 0, false); \
-	consoleCmdsAdd("set "name"?", getterExpr, 0, 0, true); \
+	consoleTranslAdd("set "name, getterExpr, 0, 0, false); \
+	consoleTranslAdd("set "name"?", getterExpr, 0, 0, true); \
 	addToGetAllExpr(getterExpr);
 #define addCustom(name, flag, getter, setter) \
 	addCustomGetter(name, "'  "name"='+str(gf.get_"getter")"); \
-	consoleCmdsAdd("set "name"=", "gf.set_"setter, 1, flag, false);
+	consoleTranslAdd("set "name"=", "gf.set_"setter, 1, flag, false);
 #define add(name, flag) \
 	addCustom(name, flag, name"()", name"(%)");
 
 #define addBoolGetter(name, getterExpr) \
-	consoleCmdsAdd("set "name"?", getterExpr, 0, 0, false); \
+	consoleTranslAdd("set "name"?", getterExpr, 0, 0, false); \
 	addToGetAllExpr(getterExpr);
 #define addBool(name) \
 	addBoolGetter(name, "(gf.get_"name"() and '  "name"' or 'no"name"')"); \
-	consoleCmdsAdd("set no"name, "gf.set_"name"(0)", 0, 0, false); \
-	consoleCmdsAdd("set "name, "gf.set_"name"(1)", 0, 0, false);
+	consoleTranslAdd("set no"name, "gf.set_"name"(0)", 0, 0, false); \
+	consoleTranslAdd("set "name, "gf.set_"name"(1)", 0, 0, false);
 
 #define addArray(name, flag, minIndex, maxIndex, getter, setter) \
 	for (int i=minIndex; i<=maxIndex; i++) { \
 		char strName[30], strExpr[30], strExpr2[50]; \
 		sprintf(strName, "set "name"%d", i); \
 		sprintf(strExpr, "gf.get_"getter, i); \
-		consoleCmdsAdd(strName, strExpr, 0, 0, false); \
+		consoleTranslAdd(strName, strExpr, 0, 0, false); \
 		sprintf(strName, "set "name"%d?", i); \
-		consoleCmdsAdd(strName, strExpr, 0, 0, true); \
+		consoleTranslAdd(strName, strExpr, 0, 0, true); \
 		sprintf(strExpr2, "'  "name"%d='+str(%s)", i, strExpr); \
 		addToGetAllExpr(strExpr2); \
 		sprintf(strName, "set "name"%d=", i); \
 		sprintf(strExpr, "gf.set_"setter, i); \
-		consoleCmdsAdd(strName, strExpr, 1, flag, false); \
+		consoleTranslAdd(strName, strExpr, 1, flag, false); \
 	}
 
 void consoleCmdSetUpdateCmds() {
-	consoleCmdsRmBranch("set");
+	consoleTranslRmBranch("set");
 	char *getAllScriptExpr=0, *getAllScriptExprEnd=0;
 	appendToGetAllExpr("gf.echo('--- Options ---'");
 
@@ -92,7 +92,7 @@ void consoleCmdSetUpdateCmds() {
 	addBool  ("stdoutpyexpr");
 	add      ("vertsize",       0 );
 	appendToGetAllExpr(") or gf.clearAfterCmd()");
-	consoleCmdsAdd("set", getAllScriptExpr, 0, 0, false);
+	consoleTranslAdd("set", getAllScriptExpr, 0, 0, false);
 }
 
 #undef appendToGetAllExpr
@@ -310,7 +310,7 @@ static char *colorGetter(GLfloat *variable) {
 static bool colorSetter(GLfloat *variable, char *value) {
 	unsigned int ai=255, ri, gi, bi;
 	char string[10];
-	value=consoleCmdsColorANormalize(value);
+	value=consoleTranslColorANormalize(value);
 	if (!value)
 		return false;
 	if ((sscanf(value, "#%2X%2X%2X%2X%1s", &ai, &ri, &gi, &bi, string)==4) || (ai=255, sscanf(value, "#%2X%2X%2X%1s", &ri, &gi, &bi, string)==3)) {

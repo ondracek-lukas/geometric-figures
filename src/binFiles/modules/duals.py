@@ -12,6 +12,7 @@ Commands:
 Python interface:
   createDual(figure)
     -creates dual of the Figure object
+    -faces has origDualFace property pointing to original ones
   dualPointFromHyperplane(hyperplane, centerPoint)
     -creates dual point to the given hyperplane
      using polar reciprocation with the given center and radius 1
@@ -49,24 +50,30 @@ def dualPointFromHyperplane(hyperplane, centerPoint=None):
 def createDual(figure, centerPoint=None):
 	if figure.dim<2:
 		raise RuntimeError("Figure has to have at least 2 dimensions")
-	figureElem = sorted(figure, key=attrgetter('dim'), reverse=True)[1:]
 	dualFigure=Figure()
-	for f in figureElem:
+	objFigure.updateVerticesLists(figure)
+	for f in figure:
 		f.dualCache=None
 	try:
-		for f in figureElem:
-			if not f.dualCache: # create vertex of the dual figure using polar reciprocation
-				vertsPos=[v.position for v in f if v.dim==0]
+		for f in figure:
+			d=figure.dim-f.dim-1
+			if d<0: continue
+			if d==0: # create vertex of the dual figure using polar reciprocation
+				vertsPos=[v.position for v in f.vertices]
 				hyperplane=algebra.hyperplaneFromPoints(vertsPos)
 				f.dualCache=Vertex(dualPointFromHyperplane(hyperplane, centerPoint))
-			for child in f.boundary:
-				if not child.dualCache:
-					child.dualCache=Figure()
-				child.dualCache.addToBoundary(f.dualCache)
-				if child.dim == 0:
-					dualFigure.addToBoundary(child.dualCache)
+			else:
+				f.dualCache=Figure()
+				f.dualCache.setDim(d,figure.spaceDim)
+			f.dualCache.origDualFace=f
+		for f in figure:
+			if f.dim<figure.dim:
+				for child in f.boundary:
+					child.dualCache.addToBoundary(f.dualCache)
+				if f.dim == 0:
+					dualFigure.addToBoundary(f.dualCache)
 	finally:
-		for f in figureElem:
+		for f in figure:
 			del f.dualCache
 	return dualFigure
 

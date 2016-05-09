@@ -21,7 +21,7 @@
 #include "matrix.h"
 #include "hid.h"
 #include "consoleCmd.h"
-#include "consoleCmds.h"
+#include "consoleTransl.h"
 #include "script.h"
 #include "scriptEvents.h"
 
@@ -292,7 +292,7 @@ void updateCompletions() {
 	while (completions)
 		utilStrListRm(&completions);
 	if (cmdBegin<cmdEnd) {
-		completions=consoleCmdsComplete(consoleLines->str+cmdBegin);
+		completions=consoleTranslComplete(consoleLines->str+cmdBegin);
 	} else {
 		completions=NULL;
 	}
@@ -491,8 +491,8 @@ bool consolePythonExprToStdout=false;
 	lastParams=params; \
 	lastExpr=expr; \
 	lastParamsFlags=paramsFlags; \
-	consoleCmdsAdd(prefix, lastExpr, lastParams, lastParamsFlags, false)
-#define addAlias(prefix) consoleCmdsAdd(prefix, lastExpr, lastParams, lastParamsFlags, true)
+	consoleTranslAdd(prefix, lastExpr, lastParams, lastParamsFlags, false)
+#define addAlias(prefix) consoleTranslAdd(prefix, lastExpr, lastParams, lastParamsFlags, true)
 void initCmds() {
 	int lastParams;
 	char *lastParamsFlags;
@@ -580,7 +580,7 @@ void consoleExecuteCmd(char *cmd) {
 	*++tmp2='\0';
 	cmd=tmp;
 
-	expr=consoleCmdsToScriptExpr(cmd);
+	expr=consoleTranslToScriptExpr(cmd);
 	if (!expr && consoleAllowPythonExpr)
 		expr=cmd;
 	if (expr) {

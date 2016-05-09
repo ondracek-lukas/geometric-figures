@@ -200,7 +200,11 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 	DEBUG_HULL_PROGR(unsigned int oldHash=fig->hash;)
 	fig->hash=0;
 	convexFigListDestroy(&fig->vertices);
-	convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &fig->vertices);
+	for (struct convexFigList *vertList=vertices; vertList; vertList=vertList->next) {
+		if (vertList->fig->parents) {
+			convexFigListAdd(&fig->vertices, vertList->fig);
+		}
+	}
 	convexFigMarkReset(convexFigMarkIdHash);
 	convexFigHashCalc(fig, &fig->hash);
 	convexFigHashAdd(fig);

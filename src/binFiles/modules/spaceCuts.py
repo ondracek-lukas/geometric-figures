@@ -35,9 +35,20 @@ class WrongAreaError(RuntimeError):
 	pass
 
 def figureFromArea(hyperplanes, innerPoint):
-	dualVertsPos=[duals.dualPointFromHyperplane(h, innerPoint) for h in hyperplanes]
+	hyppByDual=dict()
+	dualVertsPos=[]
+	for h in hyperplanes:
+		dualPoint=duals.dualPointFromHyperplane(h, innerPoint)
+		hyppByDual[dualPoint]=h
+		dualVertsPos.append(dualPoint)
 	dualFigure=gfUtils.createConvexObjFigure(dualVertsPos)
-	return duals.createDual(dualFigure, innerPoint)
+	for f in dualFigure:
+		if f.dim==0:
+			f.origHypp=hyppByDual[f.position]
+	figure=duals.createDual(dualFigure, innerPoint)
+	for f in figure.boundary:
+		f.origHypp=f.origDualFace.origHypp
+	return figure
 
 def hyperplaneOfFacet(facet, positivePoint=None):
 	vertsPos=[v.position for v in facet if v.dim==0]

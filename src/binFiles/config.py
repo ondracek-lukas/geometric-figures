@@ -239,11 +239,11 @@ def setSizes(edge, vert, selvert):
 	gf.set_vertsize(vert)
 	gf.set_selvertsize(selvert)
 
-gf.map("<f8>",  "setSizes(20, 20, 20)")
-gf.map("<f9>",  "setSizes(10, 10, 10)")
-gf.map("<f10>", "setSizes( 5,  5,  5)")
-gf.map("<f11>", "setSizes( 2,  2,  2)")
-gf.map("<f12>", "setSizes( 1,  1,  1)")
+gf.map("<f8>",  "setSizes(10,   10,   10  )")
+gf.map("<f9>",  "setSizes( 5,    5,    5  )")
+gf.map("<f10>", "setSizes( 2.5,  2.5,  2.5)")
+gf.map("<f11>", "setSizes( 1,    1,    1  )")
+gf.map("<f12>", "setSizes( 0.5,  0.5,  0.5)")
 
 helpMod.configAdd("""
 Size of vertices and edges: (in the origin)
@@ -253,7 +253,7 @@ Size of vertices and edges: (in the origin)
 # Default settings
 
 gf.set_speed(60);
-gf.set_vertsize(10);
+gf.set_vertsize(5);
 
 def onNew():
 	defaultColors()

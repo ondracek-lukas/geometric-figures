@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "console.h"
-#include "consoleCmds.h"
+#include "consoleTransl.h"
 #include "util.h"
 #include "figure.h"
 #include "drawer.h"
@@ -74,7 +74,7 @@ void consoleCmdMap(char *key, char *cmd_or_expr) {
 		scriptThrowException("Wrong key shortcut");
 		return;
 	}
-	char *expr=consoleCmdsToScriptExpr(cmd_or_expr);
+	char *expr=consoleTranslToScriptExpr(cmd_or_expr);
 	if (!expr)
 		expr=cmd_or_expr;
 	hidMap(code, expr);

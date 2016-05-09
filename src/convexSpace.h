@@ -14,7 +14,6 @@ struct convexSpace {
 	int coordsCnt;     // number of coordinates
 	GLdouble *pos;      // a point in the space, it should be inside the figure when assigned
 	GLdouble *ortBasis; // orthonormal basis
-	GLdouble hash;      // distance to a fixed random point, introduces order of spaces
 	GLdouble *normal, normalPos; // normal (in another space) and position within it (dist from origin)
 };
 

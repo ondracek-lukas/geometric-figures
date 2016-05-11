@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "anim.h"
 #include "safe.h"
 #include "matrix.h"
 #include "figure.h"
@@ -36,6 +37,10 @@ int drawerLastDelay=1;
 unsigned drawerRedisplayCounter=0;
 int drawerWidth=0, drawerHeight=0;
 int drawerLastRedisplayTime=0;
+
+#define MAX_PRECISION 50
+#define MIN_PRECISION 5
+static int precision=15;
 
 static bool redisplayNeeded=false;
 static GLfloat stringColor[4];
@@ -103,6 +108,22 @@ void drawerDisplay() {
 
 	glFlush();
 	glutSwapBuffers();
+	int drawingDelay=glutGet(GLUT_ELAPSED_TIME)-time;
+	if (drawingDelay+4<animFrameDelay) {
+		precision++;
+		if (precision>MAX_PRECISION) {
+			precision=MAX_PRECISION;
+		}
+	} else if (drawingDelay>animFrameDelay) {
+		if (drawingDelay>animFrameDelay*2) {
+			precision/=2;
+		} else {
+			precision--;
+		}
+		if (precision<MIN_PRECISION) {
+			precision=MIN_PRECISION;
+		}
+	}
 }
 
 void drawerSetBackColor(GLfloat *color) {
@@ -346,23 +367,14 @@ static void drawFigure() {
 
 static void drawVert3D(GLdouble *coordinates, GLdouble size, GLfloat *color) {
 	static GLdouble vertScale=0;
-	static GLuint list=0;
 	glPushMatrix();
 	glTranslated(coordinates[0], coordinates[1], coordinates[2]);
-	glScaled(size, size, size);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, color);
-	if (list==0)
-		list=glGenLists(1);
-	if (vertScale!=drawerVertSize/2*scale) {
-		vertScale=drawerVertSize/2*scale;
-		glNewList(list, GL_COMPILE_AND_EXECUTE);
-		gluSphere(quadric, vertScale, 20, 20);
-		glEndList();
-	} else {
-		glCallList(list);
-	}
+	vertScale=drawerVertSize/2*scale;
+	gluSphere(quadric, vertScale*size, precision*2, precision);
 	glPopMatrix();
 }
+
 
 static void drawEdge3D(GLdouble *coords1, GLdouble size1, GLfloat *color1, GLdouble *coords2, GLdouble size2, GLfloat *color2) {
 	glPushMatrix();
@@ -380,17 +392,22 @@ static void drawEdge3D(GLdouble *coords1, GLdouble size1, GLfloat *color1, GLdou
 	glRotated(acos(d2/length)*180*M_1_PI, -d1, d0, 0);
 
 	int i;
-	static double sinc[32]= {-1};
-	if (sinc[0]==-1)
-		for (i=0; i<32; i++)
-			sinc[i]=sin(2*M_PI*i/32);
+	static double sinc[2*MAX_PRECISION], cosc[2*MAX_PRECISION];
+	static int n=0;
+	if (n!=2*precision) {
+		n=2*precision;
+		for (i=0; i<n; i++) {
+			sinc[i]=sin(2*M_PI*i/n);
+			cosc[i]=cos(2*M_PI*i/n);
+		}
+	}
 	d1=drawerEdgeSize/2*size1*scale;
 	d2=drawerEdgeSize/2*size2*scale;
 	glBegin(GL_TRIANGLE_STRIP);
-		for (i=0; i<34; i++) {
+		for (i=0; i<n+2; i++) {
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (i%2?color2:color1));
-			glNormal3d(sinc[i%32], sinc[(i+8)%32], 0);
-			glVertex3d((i%2?d2:d1)*sinc[i%32], (i%2?d2:d1)*sinc[(i+8)%32], (i%2)*length);
+			glNormal3d(sinc[i%n], cosc[i%n], 0);
+			glVertex3d((i%2?d2:d1)*sinc[i%n], (i%2?d2:d1)*cosc[i%n], (i%2)*length);
 		}
 	glEnd();
 	glPopMatrix();

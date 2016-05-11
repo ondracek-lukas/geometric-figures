@@ -60,7 +60,7 @@ PyObject *scriptFigureConvexHullUpdate(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 	if (!convexUpdateHullAtOnce(figure)) {
-		scriptThrowException("Loop detected while generating convex hull");
+		scriptThrowException("An error occurred whille generating convex hull.");
 	}
 
 	return figureToPython(figure);

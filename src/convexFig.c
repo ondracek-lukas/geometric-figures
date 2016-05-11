@@ -7,7 +7,6 @@
 #include "figure.h"
 #include "safe.h"
 #include "convex.h"
-#include "convexLoopDetect.h"
 #include "debug.h"
 #include "convexSpace.h"
 
@@ -75,7 +74,6 @@ void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) 
 
 int convexFigBoundaryDetach(struct convexFig *parent, struct convexFig *child) {
 	int ret=0;
-	convexLoopDetectAction(parent, child);
 	DEBUG_HULL_PROGR(debugProgrDetach(parent, child);)
 	convexFigListRmFig(&parent->boundary, child);
 	ret=convexFigListRmFig(&child->parents, parent);

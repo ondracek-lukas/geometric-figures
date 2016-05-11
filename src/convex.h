@@ -45,7 +45,7 @@ extern void convexDestroyHull();
 
 // Updates convex hull of the given figure
 // No figure is attached after call
-// Returns false on loop
+// Returns false on error
 extern bool convexUpdateHullAtOnce(struct figureData *figure);
 
 

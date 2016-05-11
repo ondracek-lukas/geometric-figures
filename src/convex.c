@@ -4,7 +4,6 @@
 
 #include "safe.h"
 #include "convexFig.h"
-#include "convexLoopDetect.h"
 #include "convexSpace.h"
 #include "convexInteract.h"
 #include "convexHull.h"
@@ -24,7 +23,6 @@ bool convexAttach(struct figureData *figure) {
 	struct convexFig *fig;
 	int i, j, dim;
 	bool inconsistent=false;
-	convexLoopDetectDisable();
 	if (convexAttached)
 		convexDetach();
 	if (figure->dim<0)

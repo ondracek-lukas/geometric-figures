@@ -36,14 +36,6 @@ void convexFigPrintR(struct convexFigList *list, char *parent) {
 	}
 }
 
-void convexLoopDetectPrint(int count, int parent, int child, int index, int next) {
-	printf("convexLoopDetect: %dx(%08x-%08x) - %d/%d\n",
-		count,
-		parent,
-		child,
-		index,
-		next);
-}
 
 // consoleTransl.c:
 struct trie {

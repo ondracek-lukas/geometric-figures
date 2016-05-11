@@ -9,7 +9,6 @@
 #include "convexFig.h"
 #include "convexHullUtil.h"
 #include "convexSpace.h"
-#include "convexLoopDetect.h"
 #include "convexInteract.h"
 #include "figure.h"
 #include "debug.h"
@@ -20,7 +19,6 @@ static struct convexSpace *tmpSpace=0;
 
 void convexHullVertAdd(struct convexFig *vert) {
 	DEBUG_HULL(printf("\n-- add vert %02d-%08x --\n", vert->index, vert->hash);)
-	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
 	convexFigListAdd(&convexFreeVertices, vert);
@@ -45,7 +43,6 @@ void convexHullVertAdd(struct convexFig *vert) {
 			}
 			convexFigListDestroy(&vertices);
 		}
-		DEBUG_LOOP(convexLoopDetectPrint();)
 	}
 	*/
 }
@@ -54,7 +51,6 @@ static void removeFig(struct convexFig *fig);
 
 void convexHullVertRm(struct convexFig *vert) {
 	DEBUG_HULL(printf("\n--  rm vert %02d-%08x --\n", vert->index, vert->hash);)
-	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
 	if (convexHull) {
@@ -88,7 +84,6 @@ static void removeFig(struct convexFig *fig) {
 }
 
 void convexHullCreate() {
-	convexLoopDetectReset();
 	if (convexInteractAborted)
 		return;
 	convexHullDestroy();
@@ -115,7 +110,6 @@ void convexHullBreakNearVert(struct convexFig *vertIn) {
 		return;
 	if (!convexFigure)
 		return;
-	convexLoopDetectDisable();
 
 	convexFigGetLayer(vertIn, 1, convexFigMarkIdTrue, convexFigMarkIdTrue, &ridgesIn);
 	convexFigMarkReset(convexFigMarkIdHull);

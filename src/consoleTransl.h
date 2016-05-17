@@ -8,8 +8,8 @@
 // The command consists of the prefix followed (without space) by the given number of parameters,
 // separated with spaces (ignored in double-quotes, all double-quotes are removed).
 // scriptExpr is scripting language expression with % being replaced by parameters (use %% to escape),
-// params-th % will be replaced with all remaining content.
-// If params equals -1, the first % will be replaced with comma-separated list of all parameters.
+// abs(params)-th % will be replaced with all remaining content.
+// If params is negative, the first % will be replaced with comma-separated list of all parameters.
 // paramsFlags should contain one char for each %;
 // if it is shorter, the last character will be repeated;
 // if it is NULL or "", - character will be repeated.

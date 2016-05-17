@@ -133,8 +133,9 @@ void frame(int value) {
 	for (struct animRotation *r=activeRots; r; r=r->next)
 		rots+=animCustomRot(r, animRotSpeed*delay/1000);
 
-	if (!rots)
-		scriptEventsSchedulePending();
+	if (!consoleIsOpen()) {
+		scriptEventsPerform(&scriptEventsIdle);
+	}
 
 	updateStatus(rots, true, 0);
 }
@@ -172,7 +173,6 @@ bool animSleep(int ms) {
 	glutMainLoopEvent();
 	animSleepActive=false;
 	scriptAcquireGIL();
-	scriptEventsSchedulePending();
 	hidInvokeWaitingEvents();
 	return !sleepInterrupted;
 }

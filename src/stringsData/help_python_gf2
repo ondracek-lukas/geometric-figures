@@ -1,9 +1,10 @@
 help:python gf2;help:scripting gf2
 List of other gf module functions (not accessible as commands):
   gf.clear()  | Clears console, otherwise echo will only append new lines.
-  gf.clearAfterCmd()     | Does echo msg; only this line is cleared when typing command,
+  gf.clearAfterCmd()     | Prints msg; only this line is cleared when typing command,
   gf.clearAfterCmd(msg)  | the other will resist; default msg is used if not given.
   gf.clearBeforePrinting()  | Clears console before next printing.
+  gf.echo(string)  | Prints string.
   gf.echoErr(string)  | Prints string with red color.
   gf.printCentered(string)  | Prints string centered like help pages.
   gf.sleep(ms)  | Handles window events for at least given time and one repainting (if necessary);

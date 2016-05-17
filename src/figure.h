@@ -11,10 +11,10 @@
 
 // Represents figure
 struct figureData {
-	GLint dim;          // dimension of the figure (number of coordinates)
-	GLint *count;       // counts of faces of given dimension (0-vertices, 1-edges, ...)
+	int dim;          // dimension of the figure (number of coordinates)
+	int *count;       // counts of faces of given dimension (0-vertices, 1-edges, ...)
 	GLdouble **vertices; // [vertex index][axis] = coordinate
-	GLint ***boundary;  // [face dimension][face index] = face border (array of (dim-1)-faces)
+	int ***boundary;  // [face dimension][face index] = face border (array of (dim-1)-faces)
 	                    // [face dimension][face index][bordering face index] = index in boundary[dim-1]
 	// vertex index         from 0 to count[0]-1
 	// face dimension       from 1 to dim  (0 represented by vertices)

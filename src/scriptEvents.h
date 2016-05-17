@@ -14,20 +14,14 @@ extern struct scriptEvent
 	scriptEventsNew,       // "new";       no arguments
 	scriptEventsModified;  // "modified";  no arguments
 
-// Invokes event, it will be performed on idle
-extern void scriptEventsInvoke(struct scriptEvent *event, ...);
-
-// Performs event immediately
+// Performs event
 extern void scriptEventsPerform(struct scriptEvent *event, ...);
 
-// Schedules pending as glut events
-extern void scriptEventsSchedulePending();
-
 #ifdef Py_PYTHON_H
-// Register new callback, takes callback name and callable function
+// Registers new callback, takes callback name and callable function
 extern PyObject *scriptEventsRegisterCallback(PyObject *self, PyObject *args);   // [SCRIPT_NAME: registerCallback]
 
-// Unregister callback when called with the same arguments as when registering
+// Unregisters callback when called with the same arguments as when registering
 extern PyObject *scriptEventsUnregisterCallback(PyObject *self, PyObject *args); // [SCRIPT_NAME: unregisterCallback]
 #endif
 #endif

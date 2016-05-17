@@ -41,7 +41,7 @@ void figureNew(int dim) {
 	if (dim>=0) {
 		figureRotMatrix=safeMalloc(dim*dim*sizeof(GLdouble));
 		figureResetRotation();
-		figureData.count=safeCalloc(dim+1, sizeof(GLint));
+		figureData.count=safeCalloc(dim+1, sizeof(int));
 		figureData.boundary=safeCalloc(dim+1, sizeof(GLdouble **));
 	} else {
 		figureRotMatrix=0;
@@ -192,7 +192,7 @@ void figureRotate(int axis1, int axis2, GLdouble angle) {
 }
 
 static void updateScale() {
-	GLint i, j;
+	int i, j;
 	GLdouble sum;
 	GLdouble farest=0;
 	for (i=0; i<figureData.count[0]; i++) {

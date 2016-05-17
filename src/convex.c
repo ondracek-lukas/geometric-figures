@@ -131,7 +131,7 @@ static void exportHull() {
 			for (i=count; i<convexAttached->count[dim]; i++)
 				if (convexShadow[dim][i])
 					convexFigTouch(convexShadow[dim][i]);
-			convexAttached->boundary[dim]=safeRealloc(convexAttached->boundary[dim], count*sizeof(GLint *));
+			convexAttached->boundary[dim]=safeRealloc(convexAttached->boundary[dim], count*sizeof(int *));
 			convexShadow[dim]=safeRealloc(convexShadow[dim], count*sizeof(struct convexFig *));
 			changed=true;
 		}
@@ -151,7 +151,7 @@ static void exportHull() {
 				free(convexAttached->boundary[dim][i]);
 			list1=list2->fig->boundary;
 			j=convexFigListLen(list1);
-			convexAttached->boundary[dim][i]=safeMalloc((j+1)*sizeof(GLint));
+			convexAttached->boundary[dim][i]=safeMalloc((j+1)*sizeof(int));
 			convexAttached->boundary[dim][i][0]=j;
 			DEBUG_HULL_VERBOSE(printf("%d-%d-%d: %d\n", dim, i, 0, j);)
 			for (j=1; list1; j++, list1=list1->next) {

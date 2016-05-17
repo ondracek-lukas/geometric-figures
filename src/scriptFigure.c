@@ -107,7 +107,7 @@ struct figureData *figureFromPython(PyObject *pyFigure) {
 
 	if (PyErr_Occurred() || figure->dim<0)
 		throw("Wrong figure");
-	figure->count=safeMalloc(sizeof(GLint) * (figure->dim+1));
+	figure->count=safeMalloc(sizeof(int) * (figure->dim+1));
 
 	PyObject *vertices=PyList_GET_ITEM(pyFigure, 0);
 	figure->count[0]=PyList_Size(vertices);
@@ -129,19 +129,19 @@ struct figureData *figureFromPython(PyObject *pyFigure) {
 	if (PyErr_Occurred())
 		throw("Wrong list of vertices");
 
-	figure->boundary=safeCalloc(figure->dim+1, sizeof(GLint **));
+	figure->boundary=safeCalloc(figure->dim+1, sizeof(int **));
 	for (int i=1; i<=figure->dim; i++) {
 		PyObject *faces=PyList_GET_ITEM(pyFigure, i);
 		figure->count[i]=PyList_Size(faces);
 		if (PyErr_Occurred())
 			throw("Wrong topology");
-		figure->boundary[i]=safeCalloc(figure->count[i], sizeof(GLint *));
+		figure->boundary[i]=safeCalloc(figure->count[i], sizeof(int *));
 		for (int j=0; j<figure->count[i]; j++) {
 			PyObject *face=PyList_GET_ITEM(faces, j);
 			int count=PyList_Size(face);
 			if (PyErr_Occurred())
 				throw("Wrong topology");
-			figure->boundary[i][j]=safeMalloc(sizeof(GLint) * (count+1));
+			figure->boundary[i][j]=safeMalloc(sizeof(int) * (count+1));
 			figure->boundary[i][j][0]=count;
 			for (int k=1; k<=count; k++) {
 				PyObject *value=PyList_GET_ITEM(face, k-1);

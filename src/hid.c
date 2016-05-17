@@ -172,8 +172,7 @@ struct mappedItem {
 	char *expr[2]; // release, press
 	struct animRotation *rot;
 	bool pressed;
-	struct mappedItem *next; // list of pressed
-	struct mappedItem *prev;
+	struct mappedItem *prev, *next; // list of pressed
 };
 
 static struct mappedItem *mapped=0;

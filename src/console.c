@@ -204,8 +204,6 @@ void consolePrintErr(char *str) {
 }
 
 void consoleClear() {
-	if (cursorPos)
-		scriptEventsSchedulePending();
 	historyActive=0;
 	cursorPos=0;
 	mode=modeNormal;

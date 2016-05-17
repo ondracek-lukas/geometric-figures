@@ -111,40 +111,7 @@ PyObject *scriptEventsUnregisterCallback(PyObject *self, PyObject *args) {
 #undef event
 
 
-// -- invoking events --
-
-struct invokedCalls {
-	struct scriptEvent *event;
-	PyObject *args;
-	struct invokedCalls *next;
-};
-struct invokedCalls *invoked=NULL, **invokedEnd=&invoked, *invokedFreed=NULL;
-
-void scriptEventsInvoke(struct scriptEvent *event, ...) {
-	GIL_ACQUIRE
-	va_list vargs;
-	va_start(vargs, event);
-	PyObject *args=Py_VaBuildValue(event->argsFormat, vargs);
-	if (PyErr_Occurred()) {
-		PyErr_Clear();
-		printf("Err: Wrong event");
-		return;
-	}
-	GIL_RELEASE
-	struct invokedCalls *item;
-	if (invokedFreed) {
-		item=invokedFreed;
-		invokedFreed=item->next;
-	} else
-		item=safeMalloc(sizeof(struct invokedCalls));
-	item->event=event;
-	item->args=args;
-	item->next=NULL;
-	*invokedEnd=item;
-	invokedEnd=&item->next;
-	scriptEventsSchedulePending();
-}
-
+// -- performing events --
 
 static void performEvent(struct scriptEvent *event, PyObject *args) {
 	int count=0;
@@ -176,33 +143,4 @@ void scriptEventsPerform(struct scriptEvent *event, ...) {
 	}
 	performEvent(event, args);
 	GIL_RELEASE
-}
-
-static void performPending(int nothing) {
-	if (animSleepActive || convexInteract || consoleIsOpen())
-		return;
-	GIL_ACQUIRE
-	if (invoked) {
-		struct invokedCalls *item=invoked;
-		invoked=invoked->next;
-		if (!invoked)
-			invokedEnd=&invoked;
-		performEvent(item->event, item->args);
-		item->event=0;
-		item->args=0;
-		item->next=invokedFreed;
-		invokedFreed=item;
-		glutTimerFunc(0, performPending, 0);
-	} else {
-		performEvent(&scriptEventsIdle, Py_BuildValue("()"));
-	}
-	char *err=scriptCatchException();
-	if (err)
-		consolePrintErr(err);
-	GIL_RELEASE
-}
-
-void scriptEventsSchedulePending() {
-	if (!animSleepActive && !convexInteract)
-		glutTimerFunc(0, performPending, 0);
 }

@@ -1,7 +1,6 @@
 help:python gf1;help:scripting gf1
 List of commands to be accessed via python:
   gf.close()
-  gf.echo(string)
   gf.help(string_name)
   gf.history()
   gf.map(event, string_cmd_or_python_expr)

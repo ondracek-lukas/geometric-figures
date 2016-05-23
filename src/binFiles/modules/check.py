@@ -1,8 +1,12 @@
 # Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
 module_help="""
-Module check verifies some properties of figures,
-it has only Python interface:
+Module check verifies some properties of figures.
+
+Commands:
+  is convex
+
+Python interface:
   isBoundaryConnected(figure, checkFaces=True)
   isBoundaryComplete(figure, checkFaces=True)
   isFigureConvex(figure)

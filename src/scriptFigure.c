@@ -42,7 +42,7 @@ PyObject *scriptFigureOpen(PyObject *self, PyObject *args) {
 			scriptEventsPerform(&scriptEventsModified);
 		} else {
 			scriptEventsPerform(&scriptEventsNew);
-			scriptEventsPerform(&scriptEventsOpen, NULL);
+			scriptEventsPerform(&scriptEventsOpen);
 		}
 	}
 	if (PyErr_Occurred())

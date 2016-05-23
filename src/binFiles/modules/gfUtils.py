@@ -16,7 +16,7 @@ it has only Python interface:
     -creates convex hull of the given list of vertices
     -returns objFigure.Figure object
 
-uses modules: figureInfo, objFigure, [helpMod]
+uses modules: objFigure, [figureInfo], [helpMod]
 
 For more information see gfUtils.py
 """

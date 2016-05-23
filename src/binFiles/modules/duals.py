@@ -10,7 +10,7 @@ Commands:
                 using polar reciprocation
 
 Python interface:
-  createDual(figure)
+  createDual(figure, centerPoint)
     -creates dual of the Figure object
     -faces has origDualFace property pointing to original ones
   dualPointFromHyperplane(hyperplane, centerPoint)

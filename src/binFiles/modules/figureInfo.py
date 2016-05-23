@@ -61,7 +61,7 @@ def onNew():
 	modified=False
 	if snapshots:
 		updateSnapshotState()
-def onOpen(path):
+def onOpen():
 	global name
 	global description
 	global filePath

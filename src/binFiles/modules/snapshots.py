@@ -222,7 +222,7 @@ def onNew():
 	setState("new", True)
 	setState("gfFigure", None)
 
-def onOpen(path):
+def onOpen():
 	if restoringInProgress():
 		return
 	setState("gfFigure", gf.figureGet())

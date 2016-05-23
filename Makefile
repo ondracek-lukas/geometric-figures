@@ -21,8 +21,7 @@ endif
 ifeq ($(arch), win32) # Windows
 	CC       = i686-w64-mingw32-gcc
 	CFLAGS  += -mwindows -DGLUT_DISABLE_ATEXIT_HACK -mthreads \
-	           -I/usr/i686-w64-mingw32/include/python27 \
-	           #-mconsole # uncomment to use console in windows (to see python scripts errors)
+	           -I/usr/i686-w64-mingw32/include/python27
 	LDFLAGS += -lfreeglut -lglu32 -lopengl32 -lpython27
 	name     = geometric_figures.exe
 	suff     = -win32
@@ -34,6 +33,7 @@ else                  # Linux (native/32/64)
 	CFLAGS  += -I/usr/include/python2.7
 	name     = geometric_figures
 	pkg      = tar.gz
+	override console = 0
 endif
 ifeq ($(arch), 32)    # Linux 32-bit
 	CFLAGS  += -m32
@@ -45,14 +45,19 @@ ifeq ($(arch), 64)    # Linux 64-bit
 	suff     = 64
 	version += for Linux 64-bit
 endif
+ifeq ($(console), 1) # use console window in Windows (to see Python scripts errors)
+	CFLAGS  += -mconsole
+endif
 CFLAGS    += -D 'STRINGS_DATA_VERSION="$(version)"'
 
 ifeq ($(debug), 1)
-	binFiles=$(shell find src/binFiles -type f | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
+	binFiles:=$(shell find src/binFiles -type f | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
 else
-	binFiles=$(shell find src/binFiles -type f \! -name 'debug*' | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
+	binFiles:=$(shell find src/binFiles -type f \! -name 'debug*' | sed -r 's=^src/binFiles/=bin$(suff)/=; s=/[A-Z]+$$=&$(txtext)=')
 endif
-
+ifeq ($(arch), win32)
+	binFiles := $(filter-out %/spaceNavigator.py, $(binFiles))
+endif
 
 compile: bin$(suff)/$(name) $(patsubst src/binFiles/%,bin$(suff)/%,$(binFiles))
 package: pkg/geometric_figures$(suff).$(pkg)
@@ -69,13 +74,13 @@ clean-all: clean-tmp-all
 clean-tmp-all:
 	rm -rf src/*.tmp obj*
 compile-all:
-	make compile arch=32
-	make compile arch=64
-	make compile arch=win32
+	make compile arch=32 debug=$(debug)
+	make compile arch=64 debug=$(debug)
+	make compile arch=win32 debug=$(debug) console=$(console)
 package-all:
-	make package arch=32
-	make package arch=64
-	make package arch=win32
+	make package arch=32 debug=$(debug)
+	make package arch=64 debug=$(debug)
+	make package arch=win32 debug=$(debug) console=$(console)
 
 
 bin$(suff)/%: src/binFiles/%

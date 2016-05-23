@@ -31,7 +31,7 @@ struct scriptEvent {
 	struct scriptEvent varName = {name, argsFormat, NULL}
 
 event(scriptEventsIdle,     "idle",     "()");
-event(scriptEventsOpen,     "open",     "(s)");
+event(scriptEventsOpen,     "open",     "()");
 event(scriptEventsWrite,    "write",    "(s)");
 event(scriptEventsNew,      "new",      "()");
 event(scriptEventsModified, "modified", "()");

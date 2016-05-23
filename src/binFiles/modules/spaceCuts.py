@@ -8,6 +8,7 @@ it has only Python interface:
 
   figureFromArea(hyperplanes, innerPoint)
     -creates objFigure containing innerPoint and being bounded by the hyperplanes
+    -raises WrongAreaError if the area is unbounded
   hyperplaneOfFacet(facet, positivePoint)
     -creates hyperplane containing the given facet
     -optional positivePoint will have positive oriented distance from the hyperplane
@@ -36,7 +37,7 @@ class WrongAreaError(RuntimeError):
 
 def figureFromArea(hyperplanes, innerPoint):
 	hyppByDual=dict()
-	dualVertsPos=[]
+	dualVertsPos=[innerPoint] # to check whether innerPoint is really inner
 	for h in hyperplanes:
 		dualPoint=duals.dualPointFromHyperplane(h, innerPoint)
 		hyppByDual[dualPoint]=h
@@ -44,7 +45,10 @@ def figureFromArea(hyperplanes, innerPoint):
 	dualFigure=gfUtils.createConvexObjFigure(dualVertsPos)
 	for f in dualFigure:
 		if f.dim==0:
-			f.origHypp=hyppByDual[f.position]
+			try:
+				f.origHypp=hyppByDual[f.position]
+			except KeyError:
+				raise WrongAreaError() # Occurs when innerPoint is found in convex hull
 	figure=duals.createDual(dualFigure, innerPoint)
 	for f in figure.boundary:
 		f.origHypp=f.origDualFace.origHypp

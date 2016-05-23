@@ -4,7 +4,7 @@ module_help="""
 Module helpMod provides help pages for other modules
 and information about the default configuration.
 
-To show the configuration info press ? or type :help config.
+To show the configuration info press F1 or ? or type :help config.
 For help to imported modules type :help module <name>
 (configuration info contains available names).
 
@@ -43,8 +43,9 @@ def printPage(name):
 
 
 gf.map("?", "helpMod.configPrint()")
+gf.map("<F1>", "helpMod.configPrint()")
 gf.addCommand("help config", "helpMod.configPrint()")
-gf.echo("To see the configuration press ?")
+gf.echo("To see the configuration press F1")
 config_readme=""
 
 def configPrint():

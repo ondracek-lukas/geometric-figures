@@ -1,17 +1,28 @@
 # Color aliases:
 
-gf.addColorAlias("black",       "#000000");
-gf.addColorAlias("white",       "#ffffff");
-gf.addColorAlias("red",         "#ff0000");
-gf.addColorAlias("green",       "#00ff00");
-gf.addColorAlias("blue",        "#0000ff");
-gf.addColorAlias("yellow",      "#ffff00");
-gf.addColorAlias("cyan",        "#00ffff");
-gf.addColorAlias("purple",      "#ff00ff");
-gf.addColorAlias("gray",        "#808080");
+import math
+colors=[
+	("black",  "000000"),
+	("white",  "ffffff"),
+	("red",    "ff0000"),
+	("green",  "00ff00"),
+	("blue",   "0000ff"),
+	("yellow", "ffff00"),
+	("cyan",   "00ffff"),
+	("purple", "ff00ff"),
+	("gray",   "808080")]
+alpha=[ (str(i), "%02x" % (i**2*255/10**2)) for i in range(1,10) ]
+for name, value in colors:
+	gf.addColorAlias(name, "#"+value)
+	for suffix, aValue in alpha:
+		gf.addColorAlias(name+suffix, "#"+aValue+value)
+		pass
 gf.addColorAlias("transparent", "#00000000");
+del colors, alpha, name, value, suffix, aValue
+
 helpMod.configAdd("""
-Named colors: black, white, red, green, blue, yellow, cyan, purple, gray, transparent
+Named colors: black, white, red, green, blue, yellow, cyan, purple, gray
+     opacity: transparent, <color>1, <color>2, ..., <color>9, <color>
 """)
 
 # Figures:
@@ -56,7 +67,7 @@ Figures:
 # Rotation:
 
  #Random:
-randomRot.map("<tab>")
+randomRot.map("<TAB>")
 
  #2D:
 gf.rmap("q", 1, 2)
@@ -126,7 +137,6 @@ Perspective projection: holding middle mouse button - x camposl3, y camposl4
 
 gf.map("p", "vertex previous")
 gf.map("n", "vertex next")
-gf.map("o", "vertex deselect")
 gf.map("<esc>", "vertex deselect")
 gf.map("P", "vertex remove")
 gf.map("N", "vertex add")
@@ -146,13 +156,13 @@ helpMod.configAdd("""
 Modifications:
   Remove/add vertex:    P-N
   Select previous/next: p-n
-  Deselect:             o/Esc
+  Deselect:             Esc
   Move in an axis:      h-l 1(x), j-k 2(y), u-i 3(z), m-, 4
   Undo, redo:           Backspace, Ctrl-r
 """)
 
 
-# Four small letters remain:
+# Other:
 
 gf.map("b", "reset boundary")
 gf.map("g", "reset rotation")
@@ -183,10 +193,12 @@ def spacecolor3D():
 	gf.set_spacecolor( 3, "yellow")
 def spacecolor3D4D():
 	resetSpaceColor()
+	dim=gf.get_dimen()
 	gf.set_spacecolor(-3, "blue")
 	gf.set_spacecolor( 3, "yellow")
-	gf.set_spacecolor( 4, "red")
-	gf.set_spacecolor(-4, "green")
+	if dim>=4:
+		gf.set_spacecolor( 4, "red")
+		gf.set_spacecolor(-4, "green")
 def spacecolor4D():
 	resetSpaceColor()
 	gf.set_spacecolor( 4, "red")
@@ -214,21 +226,14 @@ def defaultColors():
 		b=1.0/(dim-1)
 		gf.set_facecolor(utils.tupleToColor(tuple([int(255*a), int(128-b*128), int(128-b*64), int(127+b*128)])));
 
-gf.map("<f1>", "reset colors")
-
-gf.map("<f2>", "defaultColors()")  # 3D axis colored
-gf.map("<f3>", "spacecolor4D()")   # 4D axis colored
-gf.map("<f4>", "spacecolor3D4D()") # 3D and 4D axes colored
-
-gf.map("<f5>", "set facecolor=" + utils.tupleToColor((int(255*0.2), 128, 128, 128)))
-gf.map("<f6>", "set facecolor= " + utils.tupleToColor((int(255*0.03), 255, 255, 255)))
-gf.map("<f7>", "set facecolor=transparent")
+gf.map("<f2>", "defaultColors()")
+gf.map("<f3>", "spacecolor3D4D()")
+gf.map("<f4>", "spacecolor4D()")
 
 helpMod.configAdd("""
 Colors:
-  Restore defaults: F1 app colors, F2 config colors
-  Colored axes:     F3 4,          F4 both 3(z) and 4
-  Face color:       F5 20% gray,   F6 3% white, F7 transparent
+  Default config colors: F2 config colors
+  Colored axes:          F3 3(z) and 4, F4 4 only
 """)
 
 
@@ -239,21 +244,20 @@ def setSizes(edge, vert, selvert):
 	gf.set_vertsize(vert)
 	gf.set_selvertsize(selvert)
 
-gf.map("<f8>",  "setSizes(10,   10,   10  )")
-gf.map("<f9>",  "setSizes( 5,    5,    5  )")
-gf.map("<f10>", "setSizes( 2.5,  2.5,  2.5)")
+gf.map("<f9>",  "setSizes(10,   10,   10  )")
+gf.map("<f10>", "setSizes( 5,    5,    5  )")
 gf.map("<f11>", "setSizes( 1,    1,    1  )")
 gf.map("<f12>", "setSizes( 0.5,  0.5,  0.5)")
 
 helpMod.configAdd("""
 Size of vertices and edges: (in the origin)
-  F8 20px, F9 10px, F10 5px, F11 2px, F12 1px
+  F9 10px, F10 5px, F11 1px, F12 0.5px
 """)
 
 # Default settings
 
 gf.set_speed(60);
-gf.set_vertsize(5);
+setSizes(5,5,5);
 
 def onNew():
 	defaultColors()
@@ -267,7 +271,7 @@ def onNew():
 					gf.set_campos(i,3)
 
 
-def onOpen(path):
+def onOpen():
 	if gf.get_dimen() >= 3:
 		gf.rotate(1 ,3, 30)
 		gf.rotate(2 ,3, 20)

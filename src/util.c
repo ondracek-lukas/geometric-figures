@@ -92,7 +92,7 @@ char *utilExecutablePath() {
 char *utilFileNameFromPath(char *path) {
 	char *name=strrchr(path, '/');
 #ifdef WIN32
-	char *backslash=strchr(path, '\\');
+	char *backslash=strrchr(path, '\\');
 	if (backslash>name)
 		name=backslash;
 #endif

@@ -16,6 +16,9 @@
 	// Sphere of this radius located in the origin is always visible
 	extern const GLdouble drawerVisibleRadius;
 
+	// Window padding -- figure margin in window in px
+	extern const GLdouble drawerPadding;
+
 
 	// Dimension of drawing space, read-only (use drawerSetDim)
 	extern int drawerDim;

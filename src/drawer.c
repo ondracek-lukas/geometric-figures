@@ -26,7 +26,8 @@ int drawerDim=0;
 GLdouble drawerVertSize=10;
 GLdouble drawerEdgeSize=10;
 GLdouble drawerSelectedVertSize=15;
-const GLdouble drawerVisibleRadius=1.1;
+const GLdouble drawerVisibleRadius=1;
+const GLdouble drawerPadding=10;
 GLfloat drawerFaceColor[4];
 GLfloat drawerBackColor[4]={0,0,0,1};
 GLfloat (*drawerSpaceColorPositive)[4]=0;
@@ -207,28 +208,48 @@ void drawerSetProjection() {
 		return;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	GLdouble paddingMult;
+	if (drawerHeight<drawerWidth) {
+		scale=2*drawerVisibleRadius/drawerHeight;
+		paddingMult=drawerHeight/(drawerHeight-2*drawerPadding);
+	} else {
+		scale=2*drawerVisibleRadius/drawerWidth;
+		paddingMult=drawerWidth/(drawerWidth-2*drawerPadding);
+	}
+	scale*=paddingMult;
 	if (drawerDim<3) {
-		if (drawerHeight<drawerWidth)
+		if (drawerHeight<drawerWidth) {
 			glOrtho(
-				-drawerVisibleRadius*drawerWidth/drawerHeight, drawerVisibleRadius*drawerWidth/drawerHeight,
-				-drawerVisibleRadius, drawerVisibleRadius,
-				-drawerVisibleRadius, drawerVisibleRadius);
-		else
+				-drawerVisibleRadius*drawerWidth/drawerHeight*paddingMult,
+				drawerVisibleRadius*drawerWidth/drawerHeight*paddingMult,
+				-drawerVisibleRadius*paddingMult,
+				drawerVisibleRadius*paddingMult,
+				0, 2*drawerVisibleRadius);
+		} else {
 			glOrtho(
-				-drawerVisibleRadius, drawerVisibleRadius,
-				-drawerVisibleRadius*drawerHeight/drawerWidth, drawerVisibleRadius*drawerHeight/drawerWidth,
-				-drawerVisibleRadius, drawerVisibleRadius);
+				-drawerVisibleRadius*paddingMult,
+				drawerVisibleRadius*paddingMult,
+				-drawerVisibleRadius*drawerHeight/drawerWidth*paddingMult,
+				drawerVisibleRadius*drawerHeight/drawerWidth*paddingMult,
+				0, 2*drawerVisibleRadius);
+		}
 	} else {
 		GLdouble r=sqrt((drawerCamPos[2]-drawerVisibleRadius)/(drawerCamPos[2]+drawerVisibleRadius))*drawerVisibleRadius;
-		if (drawerHeight<drawerWidth)
-			glFrustum(-r*drawerWidth/drawerHeight, r*drawerWidth/drawerHeight, -r, r, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
-		else
-			glFrustum(-r, r, -r*drawerHeight/drawerWidth, r*drawerHeight/drawerWidth, drawerCamPos[2]-drawerVisibleRadius, drawerCamPos[2]+drawerVisibleRadius);
+		if (drawerHeight<drawerWidth) {
+			glFrustum(
+				-r*drawerWidth/drawerHeight*paddingMult,
+				r*drawerWidth/drawerHeight*paddingMult,
+				-r*paddingMult, r*paddingMult,
+				drawerCamPos[2]-drawerVisibleRadius,
+				drawerCamPos[2]+drawerVisibleRadius);
+		} else {
+			glFrustum(-r*paddingMult, r*paddingMult,
+				-r*drawerHeight/drawerWidth*paddingMult,
+				r*drawerHeight/drawerWidth*paddingMult,
+				drawerCamPos[2]-drawerVisibleRadius,
+				drawerCamPos[2]+drawerVisibleRadius);
+		}
 	}
-	if (drawerHeight<drawerWidth)
-		scale=2*drawerVisibleRadius/drawerHeight;
-	else
-		scale=2*drawerVisibleRadius/drawerWidth;
 
 	if (drawerVisibleRadius<scale*drawerSelectedVertSize/2) {
 		drawerSelectedVertSize=drawerVisibleRadius/scale*2;

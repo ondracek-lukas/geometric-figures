@@ -41,7 +41,7 @@ def map(key):
 		gf.map(key, "randomRot.randomRot()");
 	mappedTo=key
 
-def schedule(path):
+def schedule():
 	def idle():
 		gf.unregisterCallback("idle", idle)
 		randomRot(False, False)
@@ -131,7 +131,7 @@ def randomRot(allowCameraMoving=False, printInfo=True):
 				gf.echo("Automatic rotation disabled")
 		if mappedTo:
 			if printInfo:
-				gf.clearAfterCmd("Press TAB to toggle camera moving or any other key to stop moving") # Remove only this line when user types command
+				gf.clearAfterCmd("Press "+mappedTo+" to toggle camera moving or any other key to stop moving") # Remove only this line when user types command
 			if allowCameraMoving:
 				gf.map(mappedTo, "randomRot.randomRot(False)") # Tab always rotates without camera moving (default)
 			else:

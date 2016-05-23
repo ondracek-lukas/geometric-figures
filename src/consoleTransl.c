@@ -362,15 +362,20 @@ struct utilStrList *consoleTranslPathComplete(char *prefix) {
 		path=prefix;
 	}
 	prefix=utilFileNameFromPath(path);
-	if (prefix==path)
+	char c='\0';
+	if (prefix==path) {
 		path=".";
-	else
-		*(prefix-1)='\0';
-	int prefixLen=strlen(prefix);
-
+	} else {
+		c=*prefix;
+		*prefix='\0';
+	}
 	DIR *dir=opendir(path);
 	if (!dir)
 		return NULL;
+	if (c) *prefix=c;
+
+	int prefixLen=strlen(prefix);
+
 
 	struct dirent *file;
 	struct utilStrList *list=0;

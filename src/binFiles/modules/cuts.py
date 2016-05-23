@@ -19,8 +19,8 @@ Python interface:
   cutFigure(figure, hyperplane)                    -returns both parts and section
   cutOff(figure, hyperplanes, showProgress)        -cuts off parts
   cutOffConvex(figure, hyperplanes, innerPoint)    -cuts off parts, faster than the previous
-  cutOffFaces(figure, ratio, faces, showProgress)  -cuts off given faces
-  cutOffFacesDim(figure, ratio, dim, showProgress) -cuts off all <dim>-faces
+  cutOffFaces(figure, ratio, faces)                -cuts off given faces
+  cutOffFacesDim(figure, ratio, dim)               -cuts off all <dim>-faces
 
 uses modules: algebra, objFigure, spaceCuts, check, [figureInfo], [helpMod]
 

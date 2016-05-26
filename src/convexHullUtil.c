@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "convexHullUtil.h"
 
@@ -11,7 +11,6 @@
 #include "convexFig.h"
 #include "convexInteract.h"
 #include "figure.h"
-#include "debug.h"
 #include "matrix.h"
 
 struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFigList *newVertices, struct convexSpace *newSpace) {
@@ -19,7 +18,6 @@ struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFi
 	int vertCount;
 	struct convexFigList *list=0;
 	struct convexFig *newFig;
-	DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - enter\n", fig->space->dim+1);)
 
 	convexFigMarkReset(convexFigMarkIdHash);
 	vertCount=convexFigHashCalc(fig, &hash);
@@ -29,7 +27,6 @@ struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFi
 		}
 	}
 	if ((newFig=convexFigHashFind(hash, newSpace->dim, vertCount))) {
-		DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (fig exists)\n", fig->space->dim+1);)
 		return newFig;
 	}
 
@@ -46,16 +43,12 @@ struct convexFig *convexHullUtilExpandDim(struct convexFig *fig, struct convexFi
 	convexHullUtilComplete(newFig, allVertices);
 	convexFigMarkSet(newFig, convexFigMarkIdHullProcessed);
 
-	DEBUG_HULL_VERBOSE(printf("-ExpandDim(%d) - exit (created)\n", fig->space->dim+1);)
 	return newFig;
 }
 
 
 void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertices) {
 	// normals of facets needed
-	DEBUG_HULL_VERBOSE(
-		printf("-Complete(%d) - enter\n", fig->space->dim);
-		DEBUG_HULL_DOT(convexFigPrint();))
 
 	if (fig->space->dim==1) {
 		if (fig->boundary->next) // at least two vertices bordering edge
@@ -89,34 +82,6 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 			}
 		}
 
-		/* Update facets near holes (and oneParent marks in ridges if needed)
-		 * Needed only in case of update
-		for (struct convexFigList *facets=fig->boundary; facets; facets=facets->next) {
-			struct convexFig *facet=facets->fig;
-			if (!convexFigMarkGet(facet, convexFigMarkIdHullProcessed)) {
-				bool holeNeighbour=false;
-				for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
-					if (convexFigMarkGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV)) {
-						holeNeighbour=true;
-						break;
-					}
-				}
-				if (holeNeighbour) {
-					for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
-						convexFigMarkNegGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
-					}
-					struct convexFigList *facetVertices=convexHullUtilSpaceFilter(vertices, facet->space);
-					convexHullUtilExpand(facet, facetVertices);
-					convexFigListDestroy(&facetVertices);
-					for (struct convexFigList *ridges=facet->boundary; ridges; ridges=ridges->next) {
-						convexFigMarkNegGetV(ridges->fig, convexFigMarkIdHullOneParent, oneParentMarkV);
-					}
-				}
-			}
-		}
-		*/
-
-
 		// Create missing facets, begin from hole-bordering ridges
 		struct convexFigList *facets=0;
 		convexFigListCopy(fig->boundary, &facets, convexFigMarkIdTrue);
@@ -127,8 +92,6 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 				if (!convexFigMarkGetV(ridge, convexFigMarkIdHullOneParent, oneParentMarkV)) {
 					continue;
 				}
-
-				DEBUG_HULL_VERBOSE(printf("-Complete: ridge %8x selected\n", ridge->hash);)
 
 				struct convexSpace *facetSpace=0;
 				convexSpaceCopy(ridge->space, &facetSpace);
@@ -161,8 +124,6 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 					}
 				}
 
-				DEBUG_HULL_VERBOSE(printf("-Complete: vert %8x selected\n", vert->hash);)
-
 				struct convexFig *newFacet=convexHullUtilExpandDim(ridge, facetVertices, facetSpace);
 				convexSpaceNormalCalc(newFacet->space, fig->space);
 				convexFigBoundaryAttach(fig, newFacet);
@@ -178,26 +139,12 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 					}
 				}
 
-				DEBUG_HULL(printf("Adding   %dD-%02d-%08x  to  %dD-%02d-%08x... (%dD-%02d-%08x + %dD-%02d-%08x)\n",
-					facet->space->dim,
-					facet->index,
-					facet->hash,
-					fig->space->dim,
-					fig->index,
-					fig->hash,
-					ridge->space->dim,
-					ridge->index,
-					ridge->hash,
-					vert->space->dim,
-					vert->index,
-					vert->hash);)
 				convexInteractUpdate();
 			}
 		}
 		convexFigListDestroy(&facets);
 	}
 
-	DEBUG_HULL_PROGR(unsigned int oldHash=fig->hash;)
 	fig->hash=0;
 	convexFigListDestroy(&fig->vertices);
 	for (struct convexFigList *vertList=vertices; vertList; vertList=vertList->next) {
@@ -208,10 +155,6 @@ void convexHullUtilComplete(struct convexFig *fig, struct convexFigList *vertice
 	convexFigMarkReset(convexFigMarkIdHash);
 	convexFigHashCalc(fig, &fig->hash);
 	convexFigHashAdd(fig);
-	DEBUG_HULL_PROGR(debugProgrHashChange(oldHash, fig->hash);)
-	DEBUG_HULL_VERBOSE(
-		printf("-Complete(%d) - exit\n", fig->space->dim);
-		DEBUG_HULL_DOT(convexFigPrint();))
 }
 
 struct convexFig *convexHullUtilCreate(struct convexFigList *vertices) {

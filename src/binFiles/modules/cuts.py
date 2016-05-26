@@ -1,4 +1,4 @@
-# Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
 # This module contains functions for cutting figures.
 # It adds command :cut for direct access.

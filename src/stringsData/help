@@ -7,7 +7,7 @@ help:
         history                        - shows the history of commands
         map                            - (un)assigns command to key
         n[ew]                          - creates new space
-        o[pen]                         - opens figure from file
+        o[pen]                         - opens figure / executes script
         (q[uit]|exit)                  - closes the application
         reset boundary                 - removes the figure except vertices
         reset colors                   - sets the default colors
@@ -15,7 +15,7 @@ help:
         rmap                           - (un)assigns rotation to key
         rot[ate]                       - rotates figure
         set                            - shows/edits settings
-        so[urce]                       - executes python script
+        so[urce]                       - opens figure / executes script
         vert[ex] add                   - adds new vertex
         vert[ex] desel[ect]            - deselects the vertex
         vert[ex] move                  - moves the selected vertex
@@ -25,5 +25,6 @@ help:
         w[rite]                        - writes figure to a file
 
                       For more help type :help <command>.
-For information about scripting and default configuration type :help python.
+   For information about scripting and configuration file type :help python.
      For information about author and license conditions type :help about.
+ For information on modules and configuration, if default, type :help config.

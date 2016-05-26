@@ -1,5 +1,4 @@
 help:set grabmouse;help:set nograbmouse
               grabmouse  (boolean)
 Determines whether to grab mouse cursor
-while rotating figure using mouse move
-      mapped with rmap command.
+       while holding its buttons.

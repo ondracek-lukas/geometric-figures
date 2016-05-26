@@ -1,5 +1,0 @@
-help:echo
-            echo <string>
-
-  Prints the string to the console.
-Clears the console without the string.

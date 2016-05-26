@@ -1,6 +1,6 @@
 #!/usr/bin/gawk -f 
 
-# Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 # This script generates stringsData.c.tmp from stringsData folder (resp. from given files),
 # all string resources will be then compiled into executable app

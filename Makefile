@@ -1,4 +1,4 @@
-# Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 .PHONY: compile package clean clean-tmp \
 	compile-all package-all clean-all clean-tmp-all

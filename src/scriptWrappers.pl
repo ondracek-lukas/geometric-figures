@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 # scriptWrappers.pl scans all (resp. given) header files and creates necessary wrapper functions
 

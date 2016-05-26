@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 // convex and its submodules convex* generate and maintain convex hull of the figure
 
@@ -11,7 +11,7 @@
 // Determines whether convex is attached to and synchronized with figure, read-only
 extern struct figureData *convexAttached;
 
-// Attaches convex to given figure
+// Attaches convex to the given figure
 // Returns false if figure was inconsistent, repairing it
 extern bool convexAttach(struct figureData *figure);
 
@@ -32,7 +32,7 @@ extern void convexDetach();
 
 // convexHull.c:
 
-	// Determines whether to recalculate convex hull when needed (or break faces only)
+	// Determines whether to recalculate convex hull when needed (breaking faces otherwise)
 	// Can be changed anytime
 	extern bool convexHull;
 

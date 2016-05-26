@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include <Python.h>
 #include <stdbool.h>
@@ -78,7 +78,6 @@ bool scriptExecFile(char *path) {
 			return false;
 		}
 	} else {
-		// PyErr_Clear();
 		GIL_RELEASE
 		return false;
 	}
@@ -127,7 +126,6 @@ char *scriptCatchException() {
 		Py_XDECREF(objType);
 		Py_XDECREF(objValue);
 		Py_XDECREF(objTraceback);
-		//PyErr_Clear();
 		char *ret=PyString_AsString(str);
 		GIL_RELEASE
 		return ret;
@@ -147,7 +145,6 @@ bool scriptCatchExceptionAndPrint() {
 			pyStr=PyObject_Str(objValue);
 		else
 			pyStr=PyObject_Str(objType);
-		//PyErr_Clear();
 		consolePrintErr(PyString_AsString(pyStr));
 		Py_DECREF(pyStr);
 

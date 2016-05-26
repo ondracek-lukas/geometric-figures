@@ -237,7 +237,7 @@ Colors:
 """)
 
 
-# Predefined edges and vertices sizes
+# Predefined sizes of edges and vertices
 
 def setSizes(edge, vert, selvert):
 	gf.set_edgesize(edge)

@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "consoleTransl.h"
 
@@ -7,7 +7,6 @@
 #include <dirent.h>
 
 #include "util.h"
-#include "debug.h"
 #include "safe.h"
 #include "script.h"
 
@@ -268,7 +267,6 @@ void consoleTranslRmBranch(char *prefix) {
 			trieDestroy(pt, builtinAliasCmd);
 		}
 	}
-	DEBUG_CMDS(consoleTranslTriePrint(&commands);)
 }
 
 char *consoleTranslToScriptExpr(char *cmd) {

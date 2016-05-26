@@ -1,6 +1,6 @@
 help:python;help:scripting
        The application can be extended using python scripts,
-                which can be executed using :source.
+           which can be executed using :open or :source.
        On startup, modules in %/modules directory are loaded
                    and %/config.py is executed.
 

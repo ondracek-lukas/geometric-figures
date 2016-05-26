@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "drawer.h"
 
@@ -371,7 +371,6 @@ static void drawFigure() {
 			facescount=figureVerticesOfFaces(&facevert);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, (GLfloat[]) {1.0f, 0.0f, 0.0f, 0.5f});
 			glDisable(GL_LIGHTING);
 			glDepthMask(GL_FALSE);
 			glColor4fv(drawerFaceColor);

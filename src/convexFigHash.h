@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 // This file is intended to be included only in convexFig.h
 // convexFigHash manages global hash table of all existing figures
@@ -8,7 +8,7 @@
 // hash of vertex can be any value (it is expected it to be random)
 
 
-// Calculates hash of fig except its hash-marked components and combines it with given hash
+// Calculates hash of fig except its hash-marked components and combines it with the given hash
 // Intended use: reset hash-mark, assign 0 to hash, call convexFigHashCalc with all selected figs
 // All vertices are hash-marked
 extern int convexFigHashCalc(struct convexFig *fig, unsigned int *hash);

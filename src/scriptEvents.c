@@ -1,3 +1,5 @@
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+//
 #include <Python.h>
 #include "scriptEvents.h"
 #include <stdarg.h>
@@ -136,7 +138,7 @@ void scriptEventsPerform(struct scriptEvent *event, ...) {
 	va_list vargs;
 	va_start(vargs, event);
 	PyObject *args=Py_VaBuildValue(event->argsFormat, vargs);
-	if (PyErr_Occurred()) {
+	if (PyErr_Occurred()) { // broken assertion
 		PyErr_Clear();
 		printf("Err: Wrong event");
 		return;

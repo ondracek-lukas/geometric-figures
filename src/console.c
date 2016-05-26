@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "console.h"
 #include "consolePrivDraw.h"
@@ -17,7 +17,6 @@
 #include "convex.h"
 #include "strings.h"
 #include "anim.h"
-#include "debug.h"
 #include "matrix.h"
 #include "hid.h"
 #include "consoleCmd.h"

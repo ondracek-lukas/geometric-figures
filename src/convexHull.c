@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "convexHull.h"
 
@@ -11,46 +11,23 @@
 #include "convexSpace.h"
 #include "convexInteract.h"
 #include "figure.h"
-#include "debug.h"
 
 bool convexHull=0;
 
 static struct convexSpace *tmpSpace=0;
 
 void convexHullVertAdd(struct convexFig *vert) {
-	DEBUG_HULL(printf("\n-- add vert %02d-%08x --\n", vert->index, vert->hash);)
 	if (convexInteractAborted)
 		return;
 	convexFigListAdd(&convexFreeVertices, vert);
 	if (convexHull) {
 		convexHullCreate();
 	}
-	/* Update only, sometimes causes errors
-	if (convexHull) {
-		if (!convexFigure) {
-			convexFigListAdd(&convexFigure, vert);
-		} else {
-			convexFigMarkReset(convexFigMarkIdHullProcessed);
-			struct convexFigList *vertices=0;
-			convexFigListAdd(&vertices, vert);
-			if (convexSpaceContains(convexFigure->fig->space, vert->space)) {
-				convexHullUtilExpand(convexFigure->fig, vertices);
-			} else {
-				struct convexFig *fig;
-				// calculate newSpace
-				fig=convexHullUtilExpandDim(convexFigListRm(&convexFigure), vertices, newSpace);
-				convexFigListAdd(&convexFigure, fig);
-			}
-			convexFigListDestroy(&vertices);
-		}
-	}
-	*/
 }
 
 static void removeFig(struct convexFig *fig);
 
 void convexHullVertRm(struct convexFig *vert) {
-	DEBUG_HULL(printf("\n--  rm vert %02d-%08x --\n", vert->index, vert->hash);)
 	if (convexInteractAborted)
 		return;
 	if (convexHull) {

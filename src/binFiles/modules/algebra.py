@@ -1,6 +1,6 @@
-# Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
-# This module contains several functions from linear algebra
+# This module contains several functions of linear algebra
 
 module_help="""
 Module algebra contains several functions from linear algebra,

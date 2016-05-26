@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "convexFig.h"
 
@@ -7,7 +7,6 @@
 #include "figure.h"
 #include "safe.h"
 #include "convex.h"
-#include "debug.h"
 #include "convexSpace.h"
 
 struct convexFigList *convexFigFreed=0;
@@ -49,15 +48,6 @@ struct convexFig *convexFigNew() {
 }
 
 void convexFigDelete(struct convexFig *fig) {
-	DEBUG_HULL(
-		if (fig->space->ortBasis)
-			printf("err: basis exists on delete\n");
-		if (fig->index<-1)
-			printf("Err: fig deleted twice\n");
-		fig->index=-fig->index-100;
-	)
-
-	// convexFigHashRm(fig);
 	fig->space->dim=convexAttached->dim;
 	convexFigListAdd(&convexFigFreed, fig);
 	convexFigCount--;
@@ -65,7 +55,6 @@ void convexFigDelete(struct convexFig *fig) {
 
 void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) {
 	convexFigBoundaryDetach(parent, child);
-	DEBUG_HULL_PROGR(debugProgrAttach(parent, child);)
 	if ((child->space->dim==0) && !child->parents)
 		convexFigListRmFig(&convexFreeVertices, child);
 	convexFigListAdd(&(parent->boundary), child);
@@ -74,7 +63,6 @@ void convexFigBoundaryAttach(struct convexFig *parent, struct convexFig *child) 
 
 int convexFigBoundaryDetach(struct convexFig *parent, struct convexFig *child) {
 	int ret=0;
-	DEBUG_HULL_PROGR(debugProgrDetach(parent, child);)
 	convexFigListRmFig(&parent->boundary, child);
 	ret=convexFigListRmFig(&child->parents, parent);
 	if (ret && (child->space->dim==0) && (!child->parents))

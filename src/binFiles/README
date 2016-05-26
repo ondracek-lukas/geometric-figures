@@ -3,11 +3,11 @@
 
       The Geometric Figures @VERSION@
 
-      was created to draw polytopes of any dimension,
+      draws polytopes of any dimension,
       in addition it can generate their convex hull
       and much more via Python plug-ins.
 
-      Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>
+      Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>
 
       This program is free software: you can redistribute it and/or modify
       it under the terms of the GNU General Public License version 3
@@ -44,9 +44,9 @@ as freeglut 3.0.0 MinGW Package.
 See COPYING for full text of GNU General Public Licence version 3
 
 A brief documentation of the application can be obtained by typing :help in it.
-Default settings can be read directly from geometric_figures.conf.
+Default settings and a list of modules can by obtained by pressing F1.
 
-Other information (like Czech user_guide) and source code can be found on my web page
+Other information (like Czech user guide) and source code can be found on my web page
   http://ondracek-lukas.hys.cz/geometric-figures .
 
 

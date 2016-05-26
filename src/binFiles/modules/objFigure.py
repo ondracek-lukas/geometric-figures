@@ -1,4 +1,4 @@
-# Geometric Figures  Copyright (C) 2015  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
+# Geometric Figures  Copyright (C) 2015--2016  Lukas Ondracek <ondracek.lukas@gmail.com>, see README file
 
 # This module provides objectively oriented access to figures
 # and converting methods from/to gf.figure structure

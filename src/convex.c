@@ -1,4 +1,4 @@
-// Geometric Figures  Copyright (C) 2015  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
+// Geometric Figures  Copyright (C) 2015--2016  Lukáš Ondráček <ondracek.lukas@gmail.com>, see README file
 
 #include "convex.h"
 
@@ -7,7 +7,6 @@
 #include "convexSpace.h"
 #include "convexInteract.h"
 #include "convexHull.h"
-#include "debug.h"
 #include "figure.h"
 
 struct convexFigList *convexFigure=0;
@@ -75,7 +74,6 @@ bool convexAttach(struct figureData *figure) {
 		if (!convexShadow[0][i]->parents)
 			convexFigListAdd(&convexFreeVertices, convexShadow[0][i]);
 
-	DEBUG_HULL_PROGR(debugProgrStart(figure, convexShadow);)
 	convexUpdateHull();
 	if (!convexHull && inconsistent && !convexInteractAborted)
 		exportHull();
@@ -86,7 +84,6 @@ bool convexAttach(struct figureData *figure) {
 void convexUpdateHull() {
 	if (convexHull) {
 		convexInteractStart("Checking and updating convex hull...");
-		//convexHullUpdate();
 		convexHullCreate();
 		convexInteractStop("Convex hull has been checked and updated...");
 		if (convexInteractAborted) {
@@ -103,7 +100,6 @@ bool convexUpdateHullAtOnce(struct figureData *figure) {
 	convexAttach(figure);
 	convexInteractAborted=false;
 	convexHull=true;
-	//convexHullUpdate();
 	convexHullCreate();
 	if (!convexInteractAborted) {
 		exportHull();
@@ -127,7 +123,6 @@ static void exportHull() {
 		convexFigMarkReset(convexFigMarkIdLayer);
 		for (list1=convexFigure; list1; list1=list1->next)
 			count+=convexFigGetLayer(list1->fig, dim, convexFigMarkIdTrue, convexFigMarkIdLayer, &list2);
-		DEBUG_HULL_VERBOSE(printf("count[%d]=%d\n", dim, count);)
 		if (count!=convexAttached->count[dim]) {
 			for (i=count; i<convexAttached->count[dim]; i++)
 				if (convexShadow[dim][i])
@@ -138,12 +133,10 @@ static void exportHull() {
 		}
 		for (i=0; i<count; i++) {
 			if ((i<convexAttached->count[dim]) && convexShadow[dim][i]) {
-				DEBUG_HULL_VERBOSE(printf("Skipping shadow[%d][%d] - fig index %d\n", dim, i, convexShadow[dim][i]->index);)
 				continue;
 			}
 			changed=true;
 			while (list2->fig->index>=0) {
-				DEBUG_HULL_VERBOSE(printf("Skipping fig index %d-%d\n", dim, list2->fig->index);)
 				convexFigListRm(&list2);
 			}
 			list2->fig->index=i;
@@ -154,29 +147,14 @@ static void exportHull() {
 			j=convexFigListLen(list1);
 			convexAttached->boundary[dim][i]=safeMalloc((j+1)*sizeof(int));
 			convexAttached->boundary[dim][i][0]=j;
-			DEBUG_HULL_VERBOSE(printf("%d-%d-%d: %d\n", dim, i, 0, j);)
 			for (j=1; list1; j++, list1=list1->next) {
 				convexAttached->boundary[dim][i][j]=list1->fig->index;
-				DEBUG_HULL_VERBOSE(printf("%d-%d-%d: %d\n", dim, i, j, list1->fig->index);)
 			}
 		}
-		DEBUG_HULL_VERBOSE(
-			while (list2 && (list2->fig->index>=0)) {
-				// printf("Skipping fig index %d-%d\n", dim, list2->fig->index);
-				convexFigListRm(&list2);
-			}
-			if (list2)
-				safeExitErr("convex export error");)
 
 		convexFigListDestroy(&list2);
 		convexAttached->count[dim]=count;
 	}
-	DEBUG_HULL(
-		for (dim=1; dim<=convexAttached->dim; dim++)
-			for (i=0; i<convexAttached->count[dim]; i++)
-				for (j=1; j<=convexAttached->boundary[dim][i][0]; j++)
-					if (convexAttached->boundary[dim][i][j]<0)
-						safeExitErr("convex export error");)
 	if (changed) {
 		figureBoundaryChanged();
 	}
@@ -218,7 +196,6 @@ void convexVertexAdd(int index) {
 	if (convexHull) {
 		exportHull();
 	}
-	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
 
 void convexVertexRm(int index) {
@@ -242,13 +219,11 @@ void convexVertexRm(int index) {
 		convexInteractStop("Topology of the figure updated");
 	if (!convexInteractAborted)
 		exportHull();
-	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 }
 
 void convexVertexMove(int index, GLdouble *pos) {
 	if (convexHull) {
 		convexInteractStart("Updating convex hull...");
-		// convexHullVertRm(convexShadow[0][index]);
 	} else {
 		convexInteractStart("Breaking appropriate faces...");
 		convexHullBreakNearVert(convexShadow[0][index]);
@@ -257,9 +232,7 @@ void convexVertexMove(int index, GLdouble *pos) {
 	convexSpaceUnassign(convexShadow[0][index]);
 	convexSpaceCreateVert(&tmpSpace, pos);
 	convexSpaceAssign(tmpSpace, convexShadow[0][index]);
-	DEBUG_HULL_VERBOSE(DEBUG_HULL_DOT(convexFigPrint();))
 	if (convexHull) {
-		// convexHullVertAdd(convexShadow[0][index]);
 		convexHullCreate();
 		convexInteractStop("Convex hull updated");
 	}

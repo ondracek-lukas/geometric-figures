@@ -58,6 +58,7 @@ bool convexAttach(struct figureData *figure) {
 			convexFigGetLayer(fig, 0, convexFigMarkIdTrue, convexFigMarkIdTrue, &fig->vertices);
 			convexFigMarkReset(convexFigMarkIdHash);
 			convexFigHashCalc(fig, &fig->hash);
+			convexFigHashAdd(fig);
 		}
 		while (wrongDimList)
 			convexFigDestroy(convexFigListRm(&wrongDimList));
